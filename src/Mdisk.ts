@@ -1,3 +1,11 @@
-console.log("Hello World");
+import { Cache } from "classes/cache";
+import { CHUNK_SIZE } from "configs/constants";
 
-export {};
+
+const cache = new Cache("binary/binkw32.dll", CHUNK_SIZE);
+
+console.log(
+    cache.readByte(12)
+);
+
+cache.closeFile();
