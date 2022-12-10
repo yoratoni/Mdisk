@@ -56,6 +56,13 @@ export class Pointers {
     }
 
     /**
+     * Increment the absolute pointer.
+     */
+    public incrementAbsolutePointer() {
+        this._absolutePointer++;
+    }
+
+    /**
      * Increment the chunk pointer.
      */
     public incrementChunkPointer() {
@@ -67,6 +74,20 @@ export class Pointers {
      */
     public incrementBytePointer() {
         this._bytePointer++;
+    }
+
+    /**
+     * Reset the absolute pointer.
+     */
+    public resetChunkPointer() {
+        this._chunkPointer = 0;
+    }
+
+    /**
+     * Reset the byte pointer.
+     */
+    public resetBytePointer() {
+        this._bytePointer = 0;
     }
 
     /**

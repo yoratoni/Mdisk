@@ -1,9 +1,6 @@
 import fs from "fs";
 import path from "path";
 
-import { CHUNK_SIZE } from "configs/constants";
-import { convertMegaBytesToBytes } from "helpers/bytes";
-
 
 /**
  * Returns the absolute path based on the relative path

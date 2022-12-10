@@ -1,4 +1,5 @@
 import { Pointers } from "classes/pointers";
+import { CHUNK_SIZE } from "configs/constants";
 import { convertMegaBytesToBytes } from "helpers/bytes";
 import { closeFile, getAbsolutePath, getFileSize, openFile, readFileByChunk } from "helpers/files";
 
@@ -113,5 +114,19 @@ export class Cache {
         }
 
         return this._buffer[this._pointers.bytePointer];
+    }
+
+    public readFourBytes(absolutePointer: number) {
+        const bytes = [];
+        let currentByte = 0;
+
+        for (let i = 0; i < 4; i++) {
+            currentByte = this.readByte(absolutePointer + i);
+            bytes.push(currentByte);
+
+            this._pointers.incrementAbsolutePointer();
+        }
+
+        return bytes;
     }
 }
