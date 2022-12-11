@@ -25,9 +25,9 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     header.formatVersion = readNBytesFromBytesArray(rawHeader, 4);
     header.fileCount = readNBytesFromBytesArray(rawHeader, 8);
     header.directoryCount = readNBytesFromBytesArray(rawHeader, 12);
-    header.offsetTableMaxLength = readNBytesFromBytesArray(rawHeader, 36);
-    header.initialKey = readNBytesFromBytesArray(rawHeader, 44);
-    header.offsetTableOffset = readNBytesFromBytesArray(rawHeader, 56);
+    header.offsetTableMaxLength = readNBytesFromBytesArray(rawHeader, 32);
+    header.initialKey = readNBytesFromBytesArray(rawHeader, 40);
+    header.offsetTableOffset = readNBytesFromBytesArray(rawHeader, 52);
 
     return header;
 }

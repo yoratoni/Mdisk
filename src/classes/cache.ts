@@ -125,7 +125,7 @@ export class Cache {
         absolutePointer: number,
         numberOfBytes = 4
     ) {
-        const bytes = [];
+        const bytes: number[] = [];
         let currentByte = 0;
 
         for (let i = 0; i < numberOfBytes; i++) {

@@ -56,18 +56,24 @@ export function closeFile(file: number): void {
 export function readFileByChunk(
     file: number,
     fileSize: number,
-    buffer: Buffer,
+    buffer: ArrayBuffer,
     chunkNumber: number,
     chunkSize: number
-): Buffer {
-    if (buffer.length !== chunkSize) {
-        buffer = Buffer.alloc(chunkSize);
+): DataView {
+    if (buffer.byteLength !== chunkSize) {
+        buffer = new ArrayBuffer(chunkSize);
     }
 
+    const dataView = new DataView(buffer);
     const position = chunkNumber * chunkSize;
-    if (position >= fileSize) return Buffer.alloc(0);
 
-    fs.readSync(file, buffer, 0, chunkSize, position);
+    if (position >= fileSize) {
+        return new DataView(new ArrayBuffer(0));
+    }
 
-    return buffer;
+    const chunk = new Uint8Array(buffer);
+    fs.readSync(file, chunk, 0, chunkSize, position);
+    // dataView.set(chunk);
+
+    return dataView;
 }
