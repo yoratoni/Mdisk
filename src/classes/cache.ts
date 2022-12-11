@@ -1,5 +1,4 @@
 import { Pointers } from "classes/pointers";
-import { CHUNK_SIZE } from "configs/constants";
 import { convertMegaBytesToBytes } from "helpers/bytes";
 import { closeFile, getAbsolutePath, getFileSize, openFile, readFileByChunk } from "helpers/files";
 
@@ -116,11 +115,20 @@ export class Cache {
         return this._buffer[this._pointers.bytePointer];
     }
 
-    public readFourBytes(absolutePointer: number) {
+    /**
+     * Reads a certain amount of bytes from the file.
+     * @param absolutePointer The absolute pointer to the first byte.
+     * @param numberOfBytes The number of bytes to read (defaults to 4).
+     * @returns The number of bytes in an array.
+     */
+    public readNBytes(
+        absolutePointer: number,
+        numberOfBytes = 4
+    ) {
         const bytes = [];
         let currentByte = 0;
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < numberOfBytes; i++) {
             currentByte = this.readByte(absolutePointer + i);
             bytes.push(currentByte);
 

@@ -1,11 +1,4 @@
-import { Cache } from "classes/cache";
-import { CHUNK_SIZE } from "configs/constants";
+import { readBigFile } from "helpers/bigFile";
 
 
-const cache = new Cache("binary/binkw32.dll", CHUNK_SIZE);
-
-console.log(
-    cache.readFourBytes(12)
-);
-
-cache.closeFile();
+readBigFile("binary/sally_clean.bf");

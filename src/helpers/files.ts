@@ -65,10 +65,7 @@ export function readFileByChunk(
     }
 
     const position = chunkNumber * chunkSize;
-
-    if (position >= fileSize) {
-        return Buffer.alloc(0);
-    }
+    if (position >= fileSize) return Buffer.alloc(0);
 
     fs.readSync(file, buffer, 0, chunkSize, position);
 
