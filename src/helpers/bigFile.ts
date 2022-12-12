@@ -1,9 +1,9 @@
 import { Cache } from "classes/cache";
 import { CHUNK_SIZE } from "configs/constants";
 import {
-    applyBytesToObjectFromMapping,
     convertNumberToUint8Array,
-    convertUint8ArrayToNumber
+    convertUint8ArrayToNumber,
+    generateByteObjectFromMapping
 } from "helpers/bytes";
 import { MpBigFileHeader } from "mappings/mappings";
 
@@ -15,7 +15,7 @@ import { MpBigFileHeader } from "mappings/mappings";
  */
 export function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readNBytes(0, headerSize);
-    const header = applyBytesToObjectFromMapping(rawHeader, MpBigFileHeader);
+    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Converts to numbers before operation
     const offsetTableOffset = convertUint8ArrayToNumber(header.offsetTableOffset);

@@ -1,5 +1,5 @@
-import NsMappings from "types/mappings";
 import NsBytes from "types/bytes";
+import NsMappings from "types/mappings";
 
 
 /**
@@ -51,14 +51,14 @@ export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, num
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
  */
-export function applyBytesToObjectFromMapping(
+export function generateByteObjectFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
 ) {
     const resultObject: NsBytes.IsMappingByteObject = {};
 
-    for (const [key, value] of Object.entries(mapping)) {
-        resultObject[key] = readNBytesFromBytesArray(bytesArray, value);
+    for (const [key, position] of Object.entries(mapping)) {
+        resultObject[key] = readNBytesFromBytesArray(bytesArray, position);
     }
 
     return resultObject;
