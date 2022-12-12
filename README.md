@@ -28,7 +28,7 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
     offsetTableOffset: 52
 };
 ```
-Which returns this object:
+Which returns this object (**Little Endian**):
 ```typescript
 formatVersion:            [  34,   0,  0,   0 ],
 fileCount:                [  21,  39,  0,   0 ],
