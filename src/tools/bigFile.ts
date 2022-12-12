@@ -20,8 +20,8 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Converts to numbers before operation
-    const offsetTableOffset = convertUint8ArrayToNumber(header.offsetTableOffset);
-    const offsetTableMaxLength = convertUint8ArrayToNumber(header.offsetTableMaxLength);
+    const offsetTableOffset = convertUint8ArrayToNumber(header.data.offsetTableOffset);
+    const offsetTableMaxLength = convertUint8ArrayToNumber(header.data.offsetTableMaxLength);
 
     // The file metadata table offset can be found after the offset table:
     // fileMetadataOffset = offsetTableOffset + offsetTableMaxLength * 8.
@@ -32,8 +32,8 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     const directoryMetadataOffset = fileMetadataOffset + offsetTableMaxLength * 84;
 
     // Values are then converted back to Uint8Array
-    header.fileMetadataOffset = convertNumberToUint8Array(fileMetadataOffset);
-    header.directoryMetadataOffset = convertNumberToUint8Array(directoryMetadataOffset);
+    header.data.fileMetadataOffset = convertNumberToUint8Array(fileMetadataOffset);
+    header.data.directoryMetadataOffset = convertNumberToUint8Array(directoryMetadataOffset);
 
     return header;
 }
@@ -63,9 +63,13 @@ export function readBigFile(relativePath: string) {
 
     console.log(header);
 
-    const offsetTable = readBigFileOffsetTable(cache, header.offsetTableOffset, header.offsetTableMaxLength);
+    const offsetTable = readBigFileOffsetTable(
+        cache,
+        header.data.offsetTableOffset,
+        header.data.offsetTableMaxLength
+    );
 
-    console.log(offsetTable[offsetTable.length - 9771]);
+    console.log(offsetTable.length);
 
     cache.closeFile();
 }

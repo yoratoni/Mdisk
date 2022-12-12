@@ -48,16 +48,24 @@ export function convertNumberToUint8Array(number: number) {
 
 /**
  * Reads a number of bytes from a bytes array.
+ * Note that this function populates the bytes array with 0 to match the number of bytes.
  * @param bytesArray The bytes array.
  * @param offset The offset to start reading from (defaults to 0).
  * @param numberOfBytes The number of bytes to read (defaults to 4).
  */
 export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, numberOfBytes = 4) {
-    return bytesArray.slice(offset, offset + numberOfBytes);
+    const result = new Uint8Array(numberOfBytes);
+
+    result.set(
+        bytesArray.slice(offset, offset + numberOfBytes)
+    );
+
+    return result;
 }
 
 /**
  * Read bytes from a mapping and a bytes array and returns an object based on the mapping.
+ * Returns an object containing the data and secondly a boolean indicating if the data is empty.
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
  */
@@ -71,7 +79,14 @@ export function generateByteObjectFromMapping(
         resultObject[key] = readNBytesFromBytesArray(bytesArray, position);
     }
 
-    return resultObject;
+    const checkEmptiness = Object.values(resultObject).every(
+        byteArray => byteArray.every(byte => byte === 0)
+    );
+
+    return {
+        data: resultObject,
+        isEmpty: checkEmptiness
+    };
 }
 
 
@@ -94,7 +109,13 @@ export function generateByteTableFromMapping(
         const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, mappingLength);
         const resultObject = generateByteObjectFromMapping(slicedBytesArray, mapping);
 
-        resultTable.push(resultObject);
+        // If the result object is empty, we can stop the loop
+        // as the Offset table is not fully used
+        if (resultObject.isEmpty) {
+            break;
+        }
+
+        resultTable.push(resultObject.data);
     }
 
     return resultTable;
