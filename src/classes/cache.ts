@@ -4,12 +4,12 @@ import { closeFile, getAbsolutePath, getFileSize, openFile, readFileByChunk } fr
 
 
 export class Cache {
-    private _filePath = "";
-    private _fileSize = 0;
-    private _file = 0;
-    private _chunkNumber = 0;
-    private _chunkSize = 0;
-    private _buffer: Buffer = Buffer.alloc(0);
+    private _filePath: string;
+    private _fileSize: number;
+    private _file: number;
+    private _chunkNumber: number;
+    private _chunkSize: number;
+    private _buffer: Uint8Array;
     private _pointers: Pointers;
 
 
@@ -24,8 +24,11 @@ export class Cache {
     ) {
         this._filePath = getAbsolutePath(relativePath);
         this._fileSize = getFileSize(this._filePath);
+        this._chunkNumber = 0;
         this._chunkSize = convertMegaBytesToBytes(chunkSize);
         this._file = openFile(this._filePath);
+
+        this._buffer = new Uint8Array(this._chunkSize);
 
         this._buffer = readFileByChunk(
             this._file,
@@ -124,14 +127,11 @@ export class Cache {
     public readNBytes(
         absolutePointer: number,
         numberOfBytes = 4
-    ) {
-        const bytes: number[] = [];
-        let currentByte = 0;
+    ): Uint8Array {
+        const bytes = new Uint8Array(numberOfBytes);
 
         for (let i = 0; i < numberOfBytes; i++) {
-            currentByte = this.readByte(absolutePointer + i);
-            bytes.push(currentByte);
-
+            bytes[i] = this.readByte(absolutePointer + i);
             this._pointers.incrementAbsolutePointer();
         }
 

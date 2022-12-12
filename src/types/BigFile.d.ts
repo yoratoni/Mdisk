@@ -1,13 +1,13 @@
 declare namespace NS_BigFile {
     interface IsBigFileHeader {
-        formatVersion: number[];
-        fileCount: number[];
-        directoryCount: number[];
-        offsetTableMaxLength: number[];
-        initialKey: number[];
-        offsetTableOffset: number[];
-        fileMetadataOffset: number[];
-        directoryMetadataOffset: number[];
+        formatVersion: Uint8Array | null;
+        fileCount: Uint8Array | null;
+        directoryCount: Uint8Array | null;
+        offsetTableMaxLength: Uint8Array | null;
+        initialKey: Uint8Array | null;
+        offsetTableOffset: Uint8Array | null;
+        fileMetadataOffset: Uint8Array | null;
+        directoryMetadataOffset: Uint8Array | null;
     }
 }
 
