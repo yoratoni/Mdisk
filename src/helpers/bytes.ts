@@ -1,3 +1,7 @@
+import NsMappings from "types/mappings";
+import NsBytes from "types/bytes";
+
+
 /**
  * Converts bytes to megabytes for the file operations.
  * @param megaBytes The number of megabytes.
@@ -40,4 +44,22 @@ export function convertNumberToUint8Array(number: number) {
  */
 export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, numberOfBytes = 4) {
     return bytesArray.slice(offset, offset + numberOfBytes);
+}
+
+/**
+ * Read bytes from a mapping and a bytes array and returns an object based on the mapping.
+ * @param bytesArray The bytes array.
+ * @param mapping The mapping.
+ */
+export function applyBytesToObjectFromMapping(
+    bytesArray: Uint8Array,
+    mapping: NsMappings.IsMapping,
+) {
+    const resultObject: NsBytes.IsMappingByteObject = {};
+
+    for (const [key, value] of Object.entries(mapping)) {
+        resultObject[key] = readNBytesFromBytesArray(bytesArray, value);
+    }
+
+    return resultObject;
 }

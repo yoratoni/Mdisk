@@ -1,11 +1,11 @@
 import { Cache } from "classes/cache";
 import { CHUNK_SIZE } from "configs/constants";
 import {
+    applyBytesToObjectFromMapping,
     convertNumberToUint8Array,
-    convertUint8ArrayToNumber,
-    readNBytesFromBytesArray
+    convertUint8ArrayToNumber
 } from "helpers/bytes";
-import NS_BigFile from "types/BigFile";
+import { MpBigFileHeader } from "mappings/mappings";
 
 
 /**
@@ -14,25 +14,8 @@ import NS_BigFile from "types/BigFile";
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
 export function readBigFileHeader(cache: Cache, headerSize = 68) {
-    const header: NS_BigFile.IsBigFileHeader = {
-        formatVersion: null,
-        fileCount: null,
-        directoryCount: null,
-        offsetTableMaxLength: null,
-        initialKey: null,
-        offsetTableOffset: null,
-        fileMetadataOffset: null,
-        directoryMetadataOffset: null
-    };
-
     const rawHeader = cache.readNBytes(0, headerSize);
-
-    header.formatVersion = readNBytesFromBytesArray(rawHeader, 4);
-    header.fileCount = readNBytesFromBytesArray(rawHeader, 8);
-    header.directoryCount = readNBytesFromBytesArray(rawHeader, 12);
-    header.offsetTableMaxLength = readNBytesFromBytesArray(rawHeader, 32);
-    header.initialKey = readNBytesFromBytesArray(rawHeader, 40);
-    header.offsetTableOffset = readNBytesFromBytesArray(rawHeader, 52);
+    const header = applyBytesToObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Converts to numbers before operation
     const offsetTableOffset = convertUint8ArrayToNumber(header.offsetTableOffset);
