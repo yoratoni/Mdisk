@@ -29,7 +29,7 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
 };
 ```
 Which returns this object:
-```JSON
+```typescript
 formatVersion:            [  34,   0,  0,   0 ],
 fileCount:                [  21,  39,  0,   0 ],
 directoryCount:           [  15,  43,  0,   0 ],
