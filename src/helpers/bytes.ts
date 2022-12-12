@@ -12,11 +12,16 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 }
 
 /**
- * Converts an Uint8Array to a number.
+ * Converts an Uint8Array to a number (Little Endian).
+ * Note that this function have a number pass-through.
  * @param bytesArray The bytes array.
  * @returns The number.
  */
-export function convertUint8ArrayToNumber(bytesArray: Uint8Array) {
+export function convertUint8ArrayToNumber(bytesArray: Uint8Array | number) {
+    if (typeof bytesArray === "number") {
+        return bytesArray;
+    }
+
     return bytesArray.reverse().reduce((acc, value) => (acc << 8) + value);
 }
 
@@ -50,15 +55,19 @@ export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, num
  * Read bytes from a mapping and a bytes array and returns an object based on the mapping.
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
+ * @param convertToNumbers Whether to convert the bytes to numbers (defaults to false).
  */
 export function generateByteObjectFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
+    convertToNumbers = false
 ) {
     const resultObject: NsBytes.IsMappingByteObject = {};
 
     for (const [key, position] of Object.entries(mapping)) {
-        resultObject[key] = readNBytesFromBytesArray(bytesArray, position);
+        const res = readNBytesFromBytesArray(bytesArray, position);
+
+        resultObject[key] = convertToNumbers ? convertUint8ArrayToNumber(res) : res;
     }
 
     return resultObject;

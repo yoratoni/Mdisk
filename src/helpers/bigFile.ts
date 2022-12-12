@@ -11,11 +11,12 @@ import { MpBigFileHeader } from "mappings/mappings";
 /**
  * Reads the header of the Big File.
  * @param headerSize The size of the header (defaults to 68 bytes).
+ * @param convertToNumbers Whether to convert the bytes to numbers (defaults to true).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export function readBigFileHeader(cache: Cache, headerSize = 68) {
+export function readBigFileHeader(cache: Cache, headerSize = 68, convertToNumbers = true) {
     const rawHeader = cache.readNBytes(0, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
+    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader, convertToNumbers);
 
     // Converts to numbers before operation
     const offsetTableOffset = convertUint8ArrayToNumber(header.offsetTableOffset);
@@ -30,8 +31,13 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     const directoryMetadataOffset = fileMetadataOffset + offsetTableMaxLength * 84;
 
     // Values are then converted back to Uint8Array
-    header.fileMetadataOffset = convertNumberToUint8Array(fileMetadataOffset);
-    header.directoryMetadataOffset = convertNumberToUint8Array(directoryMetadataOffset);
+    if (!convertToNumbers) {
+        header.fileMetadataOffset = convertNumberToUint8Array(fileMetadataOffset);
+        header.directoryMetadataOffset = convertNumberToUint8Array(directoryMetadataOffset);
+    } else {
+        header.fileMetadataOffset = fileMetadataOffset;
+        header.directoryMetadataOffset = directoryMetadataOffset;
+    }
 
     return header;
 }

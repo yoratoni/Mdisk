@@ -1,6 +1,6 @@
 declare namespace NsBytes {
     interface IsMappingByteObject {
-        [key: string]: Uint8Array
+        [key: string]: Uint8Array | number;
     }
 }
 
