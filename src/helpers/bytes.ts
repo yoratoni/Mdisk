@@ -12,12 +12,21 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 }
 
 /**
- * Converts an Uint8Array to a number (Little Endian).
+ * Converts an Uint8Array to a number.
  * Note that this function have a number pass-through.
  * @param bytesArray The bytes array.
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The number.
  */
-export function convertUint8ArrayToNumber(bytesArray: Uint8Array) {
+export function convertUint8ArrayToNumber(bytesArray: Uint8Array, littleEndian = true) {
+    if (bytesArray[0] === 0) {
+        bytesArray = bytesArray.slice(1);
+    }
+
+    if (!littleEndian) {
+        return bytesArray.reduce((acc, value) => (acc << 8) + value);
+    }
+
     return bytesArray.reverse().reduce((acc, value) => (acc << 8) + value);
 }
 
@@ -29,7 +38,7 @@ export function convertUint8ArrayToNumber(bytesArray: Uint8Array) {
 export function convertNumberToUint8Array(number: number) {
     const bytesArray = new Uint8Array(4);
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = bytesArray.length - 1; i >= 0; i--) {
         bytesArray[i] = number & 0xff;
         number = number >> 8;
     }
@@ -63,4 +72,29 @@ export function generateByteObjectFromMapping(
     }
 
     return resultObject;
+}
+
+
+/**
+ * Generates a bytes array from a mapping (as a table).
+ * The main difference with the generateByteObjectFromMapping function is that
+ * this function returns an array of mapped objects instead of a single object.
+ * @param bytesArray The bytes array.
+ * @param mapping The mapping.
+ */
+export function generateByteTableFromMapping(
+    bytesArray: Uint8Array,
+    mapping: NsMappings.IsMapping
+) {
+    const resultTable: NsBytes.IsMappingByteObject[] = [];
+    const increment = Object.keys(mapping).length * 4;
+
+    for (let i = 0; i < bytesArray.length; i += increment) {
+        const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, increment);
+        const resultObject = generateByteObjectFromMapping(slicedBytesArray, mapping);
+
+        resultTable.push(resultObject);
+    }
+
+    return resultTable;
 }

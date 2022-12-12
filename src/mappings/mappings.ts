@@ -17,3 +17,11 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
     initialKey: 40,
     offsetTableOffset: 52
 };
+
+/**
+ * Mapping for the Big File offset table entries.
+ */
+export const MpBigFileOffsetTableEntry: NsMappings.IsMapping = {
+    key: 0,
+    dataOffset: 4
+};

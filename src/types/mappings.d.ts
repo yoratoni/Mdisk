@@ -1,9 +1,8 @@
 declare namespace NsMappings {
+    /**
+     * The linear mapping for a bytes array.
+     */
     interface IsMapping {
-        [key: string]: number
-    }
-
-    interface IsMappingResult {
         [key: string]: number
     }
 }

@@ -3,9 +3,11 @@ import { CHUNK_SIZE } from "configs/constants";
 import {
     convertNumberToUint8Array,
     convertUint8ArrayToNumber,
-    generateByteObjectFromMapping
+    generateByteObjectFromMapping,
+    generateByteTableFromMapping
 } from "helpers/bytes";
-import { MpBigFileHeader } from "mappings/mappings";
+import { MpBigFileHeader, MpBigFileOffsetTableEntry } from "mappings/mappings";
+// import NsBigFile from "types/BigFile";
 
 
 /**
@@ -36,6 +38,20 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     return header;
 }
 
+export function readBigFileOffsetTable(
+    cache: Cache,
+    offsetTableOffset: Uint8Array,
+    offsetTableMaxLength: Uint8Array
+) {
+    const offset = convertUint8ArrayToNumber(offsetTableOffset, false);
+    const maxLength = convertUint8ArrayToNumber(offsetTableMaxLength, false);
+
+    const rawOffsetTable = cache.readNBytes(offset, maxLength);
+    const offsetTable = generateByteTableFromMapping(rawOffsetTable, MpBigFileOffsetTableEntry);
+
+    return offsetTable;
+}
+
 /**
  * Main function to read the Big File.
  * @param relativePath The relative path to the Big File.
@@ -46,6 +62,10 @@ export function readBigFile(relativePath: string) {
     const header = readBigFileHeader(cache);
 
     console.log(header);
+
+    const offsetTable = readBigFileOffsetTable(cache, header.offsetTableOffset, header.offsetTableMaxLength);
+
+    console.log(offsetTable[offsetTable.length - 6]);
 
     cache.closeFile();
 }
