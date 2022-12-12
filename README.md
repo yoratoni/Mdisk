@@ -28,16 +28,14 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
     offsetTableOffset: 52
 };
 ```
-Which returns this object:
-```JSON
+Which returns this object (**Little Endian**):
+```typescript
 formatVersion:            [  34,   0,  0,   0 ],
 fileCount:                [  21,  39,  0,   0 ],
 directoryCount:           [  15,  43,  0,   0 ],
 offsetTableMaxLength:     [   0,   0, 43, 158 ],
 initialKey:               [ 249,  63,  0, 113 ],
-offsetTableOffset:        [   0,   0,  0,  68 ],
-fileMetadataOffset:       [  52,  93,  1,   0 ],
-directoryMetadataOffset:  [  12, 173, 15,   0 ]
+offsetTableOffset:        [   0,   0,  0,  68 ]
 ```
 
 File Format
