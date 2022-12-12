@@ -65,7 +65,7 @@ export function readBigFile(relativePath: string) {
 
     const offsetTable = readBigFileOffsetTable(cache, header.offsetTableOffset, header.offsetTableMaxLength);
 
-    console.log(offsetTable[offsetTable.length - 6]);
+    console.log(offsetTable[offsetTable.length - 9771]);
 
     cache.closeFile();
 }

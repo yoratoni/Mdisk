@@ -24,7 +24,7 @@ The Big File stores all the game data, it is similar to a **tar** archive as the
 uncompressed.
 
 The header of the file contains the offsets of the .. offsets of the data, linking to an offset table,
-this table have a **max** length that can also be found inside of the header (generally **11166**),
+this table have a **max** length that can also be found inside of the header (generally **11165**),
 this length is not the number of bytes of the table but the number of entries.
 
 Each of these entries contains two data (u32), the offset of the file data and a resource key,

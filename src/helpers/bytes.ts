@@ -87,10 +87,11 @@ export function generateByteTableFromMapping(
     mapping: NsMappings.IsMapping
 ) {
     const resultTable: NsBytes.IsMappingByteObject[] = [];
-    const increment = Object.keys(mapping).length * 4;
+    const mappingLength = Object.keys(mapping).length * 4;
+    const bytesLength = bytesArray.length * mappingLength;
 
-    for (let i = 0; i < bytesArray.length; i += increment) {
-        const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, increment);
+    for (let i = 0; i < bytesLength; i += mappingLength) {
+        const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, mappingLength);
         const resultObject = generateByteObjectFromMapping(slicedBytesArray, mapping);
 
         resultTable.push(resultObject);
