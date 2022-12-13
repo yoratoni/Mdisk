@@ -47,3 +47,4 @@ Credits
 -------
 * Most of the information about general parsing comes from this [documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
 * Another good source of information comes from [this repository](https://github.com/panzi/bgebf) made by **panzi**.
+* I also used [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
