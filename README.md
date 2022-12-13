@@ -29,7 +29,8 @@ this length is not the number of bytes of the table but the number of entries.
 
 Each of these entries contains two data (u32), the offset of the file data and a resource key,
 used to quickly identify the file, note that these 11166 "slots" are not all used,
-it's the max amount of files that the Big File can contain.
+it's the max amount of files that the Big File can contain, certainly allowing the devs to
+add files if necessary, without modifying the whole BigFile system.
 
 *More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
 

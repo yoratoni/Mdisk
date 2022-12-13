@@ -12,6 +12,18 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 }
 
 /**
+ * Converts an Uint8Array to a string.
+ * Note that this function removes "0" from the array before conversion.
+ * @param bytesArray The bytes array.
+ * @returns The decoded string.
+ */
+export function convertUint8ArrayToString(bytesArray: Uint8Array) {
+    const decoder = new TextDecoder("iso-8859-1");
+    const nonZeroBytes = bytesArray.filter(b => b !== 0);
+    return decoder.decode(nonZeroBytes);
+}
+
+/**
  * Converts an Uint8Array to a number.
  * Note that this function have a number pass-through.
  * @param bytesArray The bytes array.
@@ -47,6 +59,32 @@ export function convertNumberToUint8Array(number: number) {
 }
 
 /**
+ * Based on a mapping, calculate its total length, including the entries that have a custom length.
+ *
+ * Example:
+ *     unixTimestamp: 16,  // 4 bytes by default
+ *     filename: { position: 20, length: 64 }  // 64 bytes
+ * >>> The length of this mapping is 68 (4 + 64).
+ *
+ * @param mapping The mapping.
+ * @returns The length of the mapping.
+ */
+export function calculateMappingsLength(mapping: NsMappings.IsMapping) {
+    let mappingLength = 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const [key, value] of Object.entries(mapping)) {
+        if (typeof value === "object" && value !== null) {
+            mappingLength += value.length;
+        } else {
+            mappingLength += 4;
+        }
+    }
+
+    return mappingLength;
+}
+
+/**
  * Reads a number of bytes from a bytes array.
  * Note that this function populates the bytes array with 0 to match the number of bytes.
  * @param bytesArray The bytes array.
@@ -68,20 +106,35 @@ export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, num
  * Returns an object containing the data and secondly a boolean indicating if the data is empty.
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
+ * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
  */
 export function generateByteObjectFromMapping(
     bytesArray: Uint8Array,
-    mapping: NsMappings.IsMapping
+    mapping: NsMappings.IsMapping,
+    ignoreEmptiness = true
 ) {
     const resultObject: NsBytes.IsMappingByteObject = {};
 
-    for (const [key, position] of Object.entries(mapping)) {
-        resultObject[key] = readNBytesFromBytesArray(bytesArray, position);
+    for (const [key, value] of Object.entries(mapping)) {
+        let res;
+
+        // If the value is an object, it means that the length is specified
+        if (typeof value === "object") {
+            res = readNBytesFromBytesArray(bytesArray, value.position, value.length);
+        } else {
+            res = readNBytesFromBytesArray(bytesArray, value);
+        }
+
+        resultObject[key] = res;
     }
 
-    const checkEmptiness = Object.values(resultObject).every(
-        byteArray => byteArray.every(byte => byte === 0)
-    );
+    // Check if the object is empty
+    let checkEmptiness = false;
+    if (!ignoreEmptiness) {
+        checkEmptiness = Object.values(resultObject).every(
+            arr => arr.every(byte => byte === 0)
+        );
+    }
 
     return {
         data: resultObject,
@@ -89,29 +142,29 @@ export function generateByteObjectFromMapping(
     };
 }
 
-
 /**
- * Generates a bytes array from a mapping (as a table).
- * The main difference with the generateByteObjectFromMapping function is that
- * this function returns an array of mapped objects instead of a single object.
+ * Generates a bytes array from a mapping.
+ * Don't forget to calculate the bytes array length (in the case of countable entries).
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
+ * @param mappingLength The length of the mapping.
+ * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
  */
 export function generateByteTableFromMapping(
     bytesArray: Uint8Array,
-    mapping: NsMappings.IsMapping
+    mapping: NsMappings.IsMapping,
+    mappingLength: number,
+    ignoreEmptiness = true
 ) {
     const resultTable: NsBytes.IsMappingByteObject[] = [];
-    const mappingLength = Object.keys(mapping).length * 4;
-    const bytesLength = bytesArray.length * mappingLength;
 
-    for (let i = 0; i < bytesLength; i += mappingLength) {
+    for (let i = 0; i < bytesArray.length; i += mappingLength) {
         const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, mappingLength);
-        const resultObject = generateByteObjectFromMapping(slicedBytesArray, mapping);
+        const resultObject = generateByteObjectFromMapping(slicedBytesArray, mapping, ignoreEmptiness);
 
         // If the result object is empty, we can stop the loop
-        // as the Offset table is not fully used
-        if (resultObject.isEmpty) {
+        // as tables are not generally fully filled.
+        if (!ignoreEmptiness && resultObject.isEmpty) {
             break;
         }
 

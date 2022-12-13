@@ -15,6 +15,24 @@ export function getAbsolutePath(relativePath: string): string {
 }
 
 /**
+ * Exports any data as a JSON file.
+ * @param data The data to export.
+ * @param fileName The name of the file.
+ * @param relativePath The relative path to the file.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function exportAsJson(data: any, fileName: string, relativePath = "exports") {
+    const absolutePath = getAbsolutePath(relativePath) + `/${fileName}`;
+    const dataString = JSON.stringify(data, null, 4);
+
+    if (dataString === undefined) {
+        throw new Error("Could not stringify data");
+    }
+
+    fs.writeFileSync(absolutePath, dataString);
+}
+
+/**
  * Returns the size of the sally file in bytes.
  * @param absolutePath The path to the file.
  * @returns The size of the file in bytes.

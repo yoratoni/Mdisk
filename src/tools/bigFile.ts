@@ -1,23 +1,31 @@
 import { Cache } from "classes/cache";
 import { CHUNK_SIZE } from "configs/constants";
 import {
+    MpBigFileDirectoryMetadataTableEntry,
+    MpBigFileFileMetadataTableEntry,
+    MpBigFileHeader,
+    MpBigFileOffsetTableEntry
+} from "configs/mappings";
+import {
+    calculateMappingsLength,
     convertNumberToUint8Array,
     convertUint8ArrayToNumber,
+    convertUint8ArrayToString,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
-import { MpBigFileHeader, MpBigFileOffsetTableEntry } from "mappings/mappings";
-// import NsBigFile from "types/BigFile";
+import { exportAsJson } from "helpers/files";
 
 
 /**
  * Reads the header of the Big File.
+ * @param cache Initialized cache class.
  * @param headerSize The size of the header (defaults to 68 bytes).
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
+ * @returns The formatted header.
  */
 export function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readNBytes(0, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
+    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader, true);
 
     // Converts to numbers before operation
     const offsetTableOffset = convertUint8ArrayToNumber(header.data.offsetTableOffset);
@@ -38,30 +46,112 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
     return header;
 }
 
+/**
+ * Reads the offset table of the Big File.
+ * @param cache Initialized cache class.
+ * @param offsetTableOffset The offset of the offset table.
+ * @param offsetTableMaxLength The max number of entries in the offset table.
+ * @returns The formatted offset table.
+ */
 export function readBigFileOffsetTable(
     cache: Cache,
     offsetTableOffset: Uint8Array,
     offsetTableMaxLength: Uint8Array
 ) {
     const offset = convertUint8ArrayToNumber(offsetTableOffset, false);
-    const maxLength = convertUint8ArrayToNumber(offsetTableMaxLength, false);
+    const entryCount = convertUint8ArrayToNumber(offsetTableMaxLength, false);
 
-    const rawOffsetTable = cache.readNBytes(offset, maxLength);
-    const offsetTable = generateByteTableFromMapping(rawOffsetTable, MpBigFileOffsetTableEntry);
+    const mappingLength = calculateMappingsLength(MpBigFileOffsetTableEntry);
+    const bytesArrayLength = mappingLength * entryCount;
+
+    const rawOffsetTable = cache.readNBytes(offset, bytesArrayLength);
+    const offsetTable = generateByteTableFromMapping(
+        rawOffsetTable,
+        MpBigFileOffsetTableEntry,
+        mappingLength,
+        false
+    );
 
     return offsetTable;
 }
 
 /**
+ * Reads the file metadata table of the Big File.
+ * @param cache Initialized cache class.
+ * @param fileMetadataOffset The offset of the file metadata table.
+ * @param fileCount The number of files in the file metadata table.
+ * @returns The formatted file metadata table.
+ */
+export function readBigFileFileMetadataTable(
+    cache: Cache,
+    fileMetadataOffset: Uint8Array,
+    fileCount: number
+) {
+    const offset = convertUint8ArrayToNumber(fileMetadataOffset, false);
+
+    const mappingLength = calculateMappingsLength(MpBigFileFileMetadataTableEntry);
+    const bytesArrayLength = mappingLength * fileCount;
+
+    const rawFileMetadataTable = cache.readNBytes(offset, bytesArrayLength);
+    const fileMetadataTable = generateByteTableFromMapping(
+        rawFileMetadataTable,
+        MpBigFileFileMetadataTableEntry,
+        mappingLength,
+        true
+    );
+
+    fileMetadataTable.forEach((entry) => {
+        entry.strFilename = convertUint8ArrayToString(entry.filename);
+    });
+
+    return fileMetadataTable;
+}
+
+/**
+ * Reads the directory metadata table of the Big File.
+ * @param cache Initialized cache class.
+ * @param fileMetadataOffset The offset of the directory metadata table.
+ * @param fileCount The number of dirs in the directory metadata table.
+ * @returns The formatted directory metadata table.
+ */
+export function readBigFileDirectoryMetadataTable(
+    cache: Cache,
+    directoryMetadataOffset: Uint8Array,
+    dirCount: number
+) {
+    const offset = convertUint8ArrayToNumber(directoryMetadataOffset, false);
+
+    const mappingLength = calculateMappingsLength(MpBigFileDirectoryMetadataTableEntry);
+    const bytesArrayLength = mappingLength * dirCount;
+
+    const rawDirectoryMetadataTable = cache.readNBytes(offset, bytesArrayLength);
+    const directoryMetadataTable = generateByteTableFromMapping(
+        rawDirectoryMetadataTable,
+        MpBigFileDirectoryMetadataTableEntry,
+        mappingLength,
+        true
+    );
+
+    directoryMetadataTable.forEach((entry) => {
+        entry.strDirname = convertUint8ArrayToString(entry.dirname);
+    });
+
+    return directoryMetadataTable;
+}
+
+export function readBigFileDataTable() {
+    // TODO
+}
+
+/**
  * Main function to read the Big File.
  * @param relativePath The relative path to the Big File.
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
 export function readBigFile(relativePath: string) {
     const cache = new Cache(relativePath, CHUNK_SIZE);
 
     const header = readBigFileHeader(cache);
-
-    console.log(header);
 
     const offsetTable = readBigFileOffsetTable(
         cache,
@@ -69,7 +159,17 @@ export function readBigFile(relativePath: string) {
         header.data.offsetTableMaxLength
     );
 
-    console.log(offsetTable.length);
+    const fileMetadataTable = readBigFileFileMetadataTable(
+        cache,
+        header.data.fileMetadataOffset,
+        offsetTable.length
+    );
+
+    const directoryMetadataTable = readBigFileDirectoryMetadataTable(
+        cache,
+        header.data.directoryMetadataOffset,
+        offsetTable.length
+    );
 
     cache.closeFile();
 }
