@@ -2,6 +2,7 @@ import { Cache } from "classes/cache";
 import { CHUNK_SIZE } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
+    MpBigFileFileData,
     MpBigFileFileMetadataTableEntry,
     MpBigFileHeader,
     MpBigFileOffsetTableEntry
@@ -15,6 +16,8 @@ import {
     generateByteTableFromMapping
 } from "helpers/bytes";
 import { exportAsJson } from "helpers/files";
+import NsBigFile from "types/bigFile";
+import NsBytes from "types/bytes";
 
 
 /**
@@ -110,8 +113,8 @@ export function readBigFileFileMetadataTable(
 /**
  * Reads the directory metadata table of the Big File.
  * @param cache Initialized cache class.
- * @param fileMetadataOffset The offset of the directory metadata table.
- * @param fileCount The number of dirs in the directory metadata table.
+ * @param directoryMetadataOffset The offset of the directory metadata table.
+ * @param dirCount The number of dirs in the directory metadata table.
  * @returns The formatted directory metadata table.
  */
 export function readBigFileDirectoryMetadataTable(
@@ -139,8 +142,49 @@ export function readBigFileDirectoryMetadataTable(
     return directoryMetadataTable;
 }
 
-export function readBigFileDataTable() {
-    // TODO
+/**
+ * Reads the file data table of the Big File and links it to the file metadata,
+ * creating an array containing the complete files.
+ * @param cache Initialized cache class.
+ * @param offsetTable The offset table (used to get the file data offsets).
+ * @param fileMetadataTable The file metadata table (used to link data to metadata).
+ * @returns The formatted files into an array.
+ */
+export function readBigFileFiles(
+    cache: Cache,
+    offsetTable: NsBytes.IsMappingByteObject[],
+    fileMetadataTable: NsBytes.IsMappingByteObject[]
+) {
+    const resultArray: NsBigFile.IsFile[] = [];
+
+    for (let i = 0; i < 2; i++) {
+        const tbOffset = offsetTable[i];
+        const tbMetadata = fileMetadataTable[i];
+
+        const offset = convertUint8ArrayToNumber(tbOffset.dataOffset, false);
+
+        console.log(offset);
+
+        // const rawLength = cache.readNBytes(offset, 4);
+        // const length = convertUint8ArrayToNumber(rawLength, false);
+
+        // const data = cache.readNBytes(offset + 4, length);
+
+        // if (tbMetadata.strFilename) {
+        //     resultArray[i] = {
+        //         name: tbMetadata.strFilename,
+        //         key: tbOffset.key,
+        //         size: length,
+        //         nextIndex: tbMetadata.nextIndex,
+        //         previousIndex: tbMetadata.previousIndex,
+        //         directoryIndex: tbMetadata.directoryIndex,
+        //         unixTimestamp: tbMetadata.unixTimestamp,
+        //         data,
+        //     };
+        // }
+    }
+
+    // return resultArray;
 }
 
 /**
@@ -170,6 +214,14 @@ export function readBigFile(relativePath: string) {
         header.data.directoryMetadataOffset,
         offsetTable.length
     );
+
+    const files = readBigFileFiles(
+        cache,
+        offsetTable,
+        fileMetadataTable
+    );
+
+    // console.log(files);
 
     cache.closeFile();
 }

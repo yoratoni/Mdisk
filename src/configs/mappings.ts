@@ -4,8 +4,11 @@ import NsMappings from "types/mappings";
 /*
  * This file is made to map file data with positions in the bytes array.
  * Example: "formatVersion: 4" means that the format version is at the 4th byte.
+ *
  * The default length used for each key is 4 bytes, but you can specify a length
  * by using an object instead of a number { position: 20, length: 64 }.
+ *
+ * If the length is 0, it will use the previous key's value.
  */
 
 /**
@@ -24,8 +27,8 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
  * Mapping for the Big File offset table entries.
  */
 export const MpBigFileOffsetTableEntry: NsMappings.IsMapping = {
-    key: 0,
-    dataOffset: 4
+    dataOffset: 0,
+    key: 4
 };
 
 /**
@@ -50,4 +53,12 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
     previousIndex: 12,
     parentIndex: 16,
     dirname: { position: 20, length: 64 }
+};
+
+/**
+ * Mapping for the Big File file data.
+ */
+export const MpBigFileFileData: NsMappings.IsMapping = {
+    fileSize: 0,
+    data: { position: 4, length: 0 }
 };
