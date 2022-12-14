@@ -4,7 +4,6 @@ declare namespace NsBigFile {
         key: string;
         offset: number;
         size: number;
-        index: number;
         nextIndex: number;
         previousIndex: number;
         directoryName: string;

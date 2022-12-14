@@ -1,7 +1,8 @@
 declare namespace NsMappings {
     interface IsMappingWithLength {
         position: number;
-        length: number;
+        length?: number;
+        type?: "str" | "hex" | "number";
     }
 
     /**

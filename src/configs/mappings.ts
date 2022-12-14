@@ -9,50 +9,54 @@ import NsMappings from "types/mappings";
  * by using an object instead of a number { position: 20, length: 64 }.
  *
  * If the length is 0, it will use the previous key's value.
+ *
+ * The custom object can also contain a "type" key, which can be used to specify
+ * the type of the value. The default type is "Uint8Array", "number" converts it to a number
+ * and "str" to a string (ISO-8859-1).
  */
 
 /**
  * Mapping for the Big File header.
  */
 export const MpBigFileHeader: NsMappings.IsMapping = {
-    formatVersion: 4,
-    fileCount: 8,
-    directoryCount: 12,
-    offsetTableMaxLength: 32,
-    initialKey: 40,
-    offsetTableOffset: 52
+    formatVersion: { position: 4, type: "hex" },
+    fileCount: { position: 8, type: "number" },
+    directoryCount: { position: 12, type: "number" },
+    offsetTableMaxLength: { position: 32, type: "number" },
+    initialKey: { position: 40, type: "hex" },
+    offsetTableOffset: { position: 52, type: "number" }
 };
 
 /**
  * Mapping for the Big File offset table entries.
  */
 export const MpBigFileOffsetTableEntry: NsMappings.IsMapping = {
-    dataOffset: 0,
-    key: 4
+    dataOffset: { position: 0, type: "number" },
+    key: { position: 4, type: "hex" }
 };
 
 /**
  * Mapping for the Big File file metadata table entries.
  */
 export const MpBigFileFileMetadataTableEntry: NsMappings.IsMapping = {
-    fileSize: 0,
-    nextIndex: 4,
-    previousIndex: 8,
-    directoryIndex: 12,
-    unixTimestamp: 16,
-    filename: { position: 20, length: 64 }
+    fileSize: { position: 0, type: "number" },
+    nextIndex: { position: 4, type: "number" },
+    previousIndex: { position: 8, type: "number" },
+    directoryIndex: { position: 12, type: "number" },
+    unixTimestamp: { position: 16, type: "number" },
+    filename: { position: 20, length: 64, type: "str" }
 };
 
 /**
  * Mapping for the Big File directory metadata table entries.
  */
 export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
-    firstFileIndex: 0,
-    firstSubdirIndex: 4,
-    nextIndex: 8,
-    previousIndex: 12,
-    parentIndex: 16,
-    dirname: { position: 20, length: 64 }
+    firstFileIndex: { position: 0, type: "number" },
+    firstSubdirIndex: { position: 4, type: "number" },
+    nextIndex: { position: 8, type: "number" },
+    previousIndex: { position: 12, type: "number" },
+    parentIndex: { position: 16, type: "number" },
+    dirname: { position: 20, length: 64, type: "str" }
 };
 
 /**

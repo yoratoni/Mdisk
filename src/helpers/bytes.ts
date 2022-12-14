@@ -15,10 +15,16 @@ export function convertMegaBytesToBytes(megaBytes: number) {
  * Converts an Uint8Array to a string.
  * Note that this function removes "0" from the array before conversion.
  * @param bytesArray The bytes array.
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The decoded string.
  */
-export function convertUint8ArrayToString(bytesArray: Uint8Array) {
+export function convertUint8ArrayToString(bytesArray: Uint8Array, littleEndian = true) {
     const decoder = new TextDecoder("iso-8859-1");
+
+    if (!littleEndian) {
+        bytesArray = bytesArray.reverse();
+    }
+
     const nonZeroBytes = bytesArray.filter(b => b !== 0);
     return decoder.decode(nonZeroBytes);
 }
@@ -103,8 +109,12 @@ export function calculateMappingsLength(mapping: NsMappings.IsMapping) {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for (const [key, value] of Object.entries(mapping)) {
-        if (typeof value === "object" && value !== null) {
-            mappingLength += value.length;
+        if (typeof value === "object") {
+            if (value.length) {
+                mappingLength += value.length;
+            } else {
+                mappingLength += 4;
+            }
         } else {
             mappingLength += 4;
         }
@@ -131,16 +141,37 @@ export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, num
 }
 
 /**
+ * Check the emptiness of a value.
+ * @param value The value to check.
+ * @returns Whether the value is empty.
+ */
+export function checkValueEmptiness(value: string | number | Uint8Array | undefined) {
+    if (typeof value === "string") {
+        return value === "" || value === "0x00000000";
+    } else if (typeof value === "number") {
+        return value === -1 || value === 0;
+    } else if (value instanceof Uint8Array) {
+        return value.every(b => b === 0);
+    } else {
+        return true;
+    }
+}
+
+/**
  * Read bytes from a mapping and a bytes array and returns an object based on the mapping.
  * Returns an object containing the data and secondly a boolean indicating if the data is empty.
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
  * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param hexPrefix Whether to add the "0x" prefix if outputting any hex string (defaults to true).
  */
 export function generateByteObjectFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
-    ignoreEmptiness = true
+    ignoreEmptiness = true,
+    littleEndian = true,
+    hexPrefix = true
 ) {
     const resultObject: NsBytes.IsMappingByteObject = {};
 
@@ -149,7 +180,31 @@ export function generateByteObjectFromMapping(
 
         // If the value is an object, it means that the length is specified
         if (typeof value === "object") {
-            res = readNBytesFromBytesArray(bytesArray, value.position, value.length);
+            let length: number;
+
+            if (value.length) {
+                length = value.length;
+            } else {
+                length = 4;
+            }
+
+            const rawRes = readNBytesFromBytesArray(bytesArray, value.position, length);
+
+            if (value.type) {
+                switch (value.type) {
+                    case "str":
+                        res = convertUint8ArrayToString(rawRes, littleEndian);
+                        break;
+                    case "hex":
+                        res = convertUint8ArrayToHexString(rawRes, hexPrefix);
+                        break;
+                    case "number":
+                        res = convertUint8ArrayToNumber(rawRes, littleEndian);
+                        break;
+                }
+            } else {
+                res = rawRes;
+            }
         } else {
             res = readNBytesFromBytesArray(bytesArray, value);
         }
@@ -161,7 +216,7 @@ export function generateByteObjectFromMapping(
     let checkEmptiness = false;
     if (!ignoreEmptiness) {
         checkEmptiness = Object.values(resultObject).every(
-            arr => arr.every(byte => byte === 0)
+            arr => checkValueEmptiness(arr)
         );
     }
 
