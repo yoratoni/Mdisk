@@ -61,4 +61,4 @@ Credits
 * Another good source of information comes from [this repository](https://github.com/panzi/bgebf) made by **panzi**.
 * There's also this mysterious [quickBMS script](https://zenhax.com/viewtopic.php?t=2478&start=80) wrote by **AnonBaiter**
 * Some info [here](https://raymanpc.com/forum/viewtopic.php?t=74804) that helped me to complete the list made by **Kapouett**.
-* I also used [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
+* I'm also using [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
