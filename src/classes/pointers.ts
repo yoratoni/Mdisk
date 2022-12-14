@@ -2,7 +2,7 @@ import { CHUNK_SIZE } from "configs/constants";
 import { convertMegaBytesToBytes } from "helpers/bytes";
 
 
-export class Pointers {
+export default class Pointers {
     private _chunkPointer = 0;
     private _bytePointer = 0;
     private _absolutePointer = 0;

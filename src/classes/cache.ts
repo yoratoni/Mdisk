@@ -1,9 +1,9 @@
-import { Pointers } from "classes/pointers";
+import Pointers from "classes/pointers";
 import { convertMegaBytesToBytes } from "helpers/bytes";
 import { closeFile, getAbsolutePath, getFileSize, openFile, readFileByChunk } from "helpers/files";
 
 
-export class Cache {
+export default class Cache {
     private _filePath: string;
     private _fileSize: number;
     private _file: number;

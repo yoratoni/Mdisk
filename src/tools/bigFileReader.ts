@@ -1,4 +1,5 @@
-import { Cache } from "classes/cache";
+import Cache from "classes/cache";
+import { PathStack } from "classes/pathStack";
 import { CHUNK_SIZE } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
@@ -14,6 +15,7 @@ import {
 import { exportAsJson } from "helpers/files";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
+import NsMappings from "types/mappings";
 
 
 /**
@@ -22,7 +24,7 @@ import NsBytes from "types/bytes";
  * @param headerSize The size of the header (defaults to 68 bytes).
  * @returns The formatted header.
  */
-export function readBigFileHeader(cache: Cache, headerSize = 68) {
+function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readNBytes(0, headerSize);
     const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader, true);
 
@@ -48,7 +50,7 @@ export function readBigFileHeader(cache: Cache, headerSize = 68) {
  * @param offsetTableMaxLength The max number of entries in the offset table.
  * @returns The formatted offset table.
  */
-export function readBigFileOffsetTable(
+function readBigFileOffsetTable(
     cache: Cache,
     offsetTableOffset: number,
     offsetTableMaxLength: number
@@ -68,55 +70,30 @@ export function readBigFileOffsetTable(
 }
 
 /**
- * Reads the file metadata table of the Big File.
- * @param cache Initialized cache class.
- * @param fileMetadataOffset The offset of the file metadata table.
- * @param numberOfFiles The number of files in the file metadata table.
- * @returns The formatted file metadata table.
- */
-export function readBigFileFileMetadataTable(
-    cache: Cache,
-    fileMetadataOffset: number,
-    numberOfFiles: number
-) {
-    const mappingLength = calculateMappingsLength(MpBigFileFileMetadataTableEntry);
-    const bytesArrayLength = mappingLength * numberOfFiles;
-
-    const rawFileMetadataTable = cache.readNBytes(fileMetadataOffset, bytesArrayLength);
-    const fileMetadataTable = generateByteTableFromMapping(
-        rawFileMetadataTable,
-        MpBigFileFileMetadataTableEntry,
-        mappingLength,
-        true
-    );
-
-    return fileMetadataTable;
-}
-
-/**
  * Reads the directory metadata table of the Big File.
  * @param cache Initialized cache class.
- * @param directoryMetadataOffset The offset of the directory metadata table.
- * @param numberOfDirectories The number of dirs in the directory metadata table.
+ * @param mapping The mapping to use to read the table.
+ * @param metadataOffset The offset of the directory metadata table.
+ * @param numberOfEntries The number of dirs in the directory metadata table.
  * @returns The formatted directory metadata table.
  */
-export function readBigFileDirectoryMetadataTable(
+function readBigFileMetadataTable(
     cache: Cache,
-    directoryMetadataOffset: number,
-    numberOfDirectories: number
+    mapping: NsMappings.IsMapping,
+    metadataOffset: number,
+    numberOfEntries: number
 ) {
-    const mappingLength = calculateMappingsLength(MpBigFileDirectoryMetadataTableEntry);
-    const bytesArrayLength = mappingLength * numberOfDirectories;
+    const mappingLength = calculateMappingsLength(mapping);
+    const bytesArrayLength = mappingLength * numberOfEntries;
 
-    const rawDirectoryMetadataTable = cache.readNBytes(directoryMetadataOffset, bytesArrayLength);
-    const directoryMetadataTable = generateByteTableFromMapping(
-        rawDirectoryMetadataTable,
-        MpBigFileDirectoryMetadataTableEntry,
+    const rawMetadataTable = cache.readNBytes(metadataOffset, bytesArrayLength);
+    const metadataTable = generateByteTableFromMapping(rawMetadataTable,
+        mapping,
         mappingLength,
         true
     );
 
-    return directoryMetadataTable;
+    return metadataTable;
 }
 
 /**
@@ -131,7 +108,7 @@ export function readBigFileDirectoryMetadataTable(
  * @param includeData Whether to include the file data in the result (defaults to false).
  * @returns The formatted files into an array.
  */
-export function readBigFileFiles(
+function readBigFileFiles(
     cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
@@ -177,31 +154,65 @@ export function readBigFileFiles(
     return resultArray;
 }
 
-export function readBigFileStructure(
+/**
+ * Reads the directory structure of the Big File, linking all the subdirs and files.
+ * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
+ * @param files The formatted files into an array.
+ * @returns The formatted directory structure including all the matching indexes.
+ */
+function readBigFileStructure(
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     files: NsBigFile.IsFile[]
 ) {
-    const resultArray: NsBigFile.IsDirectory[] = [];
+    const structure: NsBigFile.IsDirectory[] = [];
 
     for (let i = 0; i < directoryMetadataTable.length; i++) {
+        const dir = directoryMetadataTable[i];
+        const parentIndex = dir.parentIndex as number;
 
-        
+        if (parentIndex !== -1) {
+            structure[parentIndex as number].subdirIndexes.push(i);
+        }
 
-        resultArray[i] = {
-            name: directoryMetadataTable[i].dirname as string,
+        structure[i] = {
+            name: dir.dirname as string,
             subdirIndexes: [],
             fileIndexes: []
         };
+    }
+
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        structure[file.directoryIndex as number].fileIndexes.push(i);
+    }
+
+    return structure;
+}
+
+function generateBigFileStructure(
+    absoluteOutputDirPath: string,
+    structure: NsBigFile.IsDirectory[],
+    files: NsBigFile.IsFile[]
+) {
+    const stack = new PathStack(absoluteOutputDirPath);
+
+    for (let i = 0; i < structure.length; i++) {
+        const dir = structure[i];
+
+        for (const subdirIndex of dir.subdirIndexes) {
+            const subdir = structure[subdirIndex];
+            stack.push(subdir.name);
+        }
     }
 }
 
 /**
  * Main function to read the Big File.
- * @param relativePath The relative path to the Big File.
+ * @param relativeBigFilePath The relative path to the Big File.
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export function readBigFile(relativePath: string) {
-    const cache = new Cache(relativePath, CHUNK_SIZE);
+export function readBigFile(relativeBigFilePath: string, absoluteOutputDirPath: string) {
+    const cache = new Cache(relativeBigFilePath, CHUNK_SIZE);
 
     const header = readBigFileHeader(cache);
 
@@ -215,16 +226,18 @@ export function readBigFile(relativePath: string) {
 
     // exportAsJson(offsetTable, "bigFileOffsetTable.json");
 
-    const fileMetadataTable = readBigFileFileMetadataTable(
+    const fileMetadataTable = readBigFileMetadataTable(
         cache,
+        MpBigFileFileMetadataTableEntry,
         header.data.fileMetadataOffset as number,
         header.data.fileCount as number
     );
 
     // exportAsJson(fileMetadataTable, "bigFileFileMetadataTable.json");
 
-    const directoryMetadataTable = readBigFileDirectoryMetadataTable(
+    const directoryMetadataTable = readBigFileMetadataTable(
         cache,
+        MpBigFileDirectoryMetadataTableEntry,
         header.data.directoryMetadataOffset as number,
         header.data.directoryCount as number
     );
@@ -245,9 +258,9 @@ export function readBigFile(relativePath: string) {
         files
     );
 
-    console.log(structure);
+    generateBigFileStructure(absoluteOutputDirPath, structure, files);
 
-    // exportAsJson(files, "bigFileFiles.json");
+    // exportAsJson(structure, "bigFileStructure.json");
 
     cache.closeFile();
 }
