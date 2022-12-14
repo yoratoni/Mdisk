@@ -37,11 +37,11 @@ add files if necessary, without modifying the whole BigFile system.
 ### Formats of files stored in the Big File
 
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
-- `*.waa`, `*.wac`, `*.wad`, `*.wam` are standard `wav` files (MS-ADPCM).
+- `*.waa`, `*.wac`, `*.wad`, `*.wam` are `wav` files (MS-ADPCM).
 - `*.bik` are Bink videos.
 - `*.mtx` ?
 - `*.omd` ?
-- `*.ofc` are binarized functions used to perform some specific actions.
+- `*.ofc` are binarized functions to perform specific actions.
 - `*.oin` ?
 - `*.ova` ?
 - `*.wol` are useless prototypes made during development.

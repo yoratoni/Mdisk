@@ -147,15 +147,15 @@ export function readBigFileDirectoryMetadataTable(
  * Reads the file data table of the Big File and links it to the file metadata,
  * creating an array containing the complete file data.
  * Note that this function formats all the fields into readable values.
- * @param cache Initialized cache class.
  * @param offsetTable The offset table (used to get the file data offsets).
+ * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param fileMetadataTable The file metadata table (used to link data to metadata).
  * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
  * @returns The formatted files into an array.
  */
 export function readBigFileFiles(
-    cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
+    directoryMetadataTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
     numberOfFiles: number
 ) {
@@ -169,18 +169,24 @@ export function readBigFileFiles(
         const tbOffset = offsetTable[i];
         const tbMetadata = fileMetadataTable[i];
 
+        const dirIndex = convertUint8ArrayToNumber(tbMetadata.directoryIndex);
         const offset = convertUint8ArrayToNumber(tbOffset.dataOffset);
         const length = convertUint8ArrayToNumber(tbMetadata.fileSize);
 
-        if (tbMetadata.strFilename) {
+        // const dirName = directoryMetadataTable[dirIndex].strDirname;
+        const dirName = "A";
+
+        if (tbMetadata.strFilename && dirName) {
             resultArray[i] = {
                 name: tbMetadata.strFilename,
                 key: convertUint8ArrayToHexString(tbOffset.key, true, false),
                 offset: offset + 4,
                 size: length,
+                index: i,
                 nextIndex: convertUint8ArrayToNumber(tbMetadata.nextIndex),
                 previousIndex: convertUint8ArrayToNumber(tbMetadata.previousIndex),
-                directoryIndex: convertUint8ArrayToNumber(tbMetadata.directoryIndex),
+                directoryName: dirName,
+                directoryIndex: dirIndex,
                 unixTimestamp: convertUint8ArrayToNumber(tbMetadata.unixTimestamp)
             };
         }
@@ -218,13 +224,15 @@ export function readBigFile(relativePath: string) {
     );
 
     const files = readBigFileFiles(
-        cache,
         offsetTable,
+        directoryMetadataTable,
         fileMetadataTable,
-        offsetTable.length
+        1
     );
 
-    exportAsJson(files, "bigFile.json");
+    console.log(directoryMetadataTable.length);
+    console.log(files);
+    // exportAsJson(files, "bigFile.json");
 
     cache.closeFile();
 }
