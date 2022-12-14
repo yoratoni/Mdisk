@@ -24,13 +24,42 @@ export function convertUint8ArrayToString(bytesArray: Uint8Array) {
 }
 
 /**
+ * Converts an Uint8Array to an hex string.
+ * @param bytesArray The bytes array.
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param prefix Whether to add the "0x" prefix (defaults to true).
+ * @returns The hex string.
+ */
+export function convertUint8ArrayToHexString(
+    bytesArray: Uint8Array,
+    littleEndian = true,
+    prefix = true
+) {
+    if (!littleEndian) {
+        bytesArray = bytesArray.reverse();
+    }
+
+    const hex = bytesArray.reduce((acc, value) => acc + value.toString(16).padStart(2, "0"), "");
+
+    if (prefix) {
+        return `0x${hex.toUpperCase()}`;
+    } else {
+        return hex.toUpperCase();
+    }
+}
+
+/**
  * Converts an Uint8Array to a number.
- * Note that this function have a number pass-through.
+ * Note that 0xFFFFFFFF is converted to -1.
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The number.
  */
 export function convertUint8ArrayToNumber(bytesArray: Uint8Array, littleEndian = true) {
+    if (bytesArray.every(b => b === 0xff)) {
+        return -1;
+    }
+
     if (bytesArray[0] === 0) {
         bytesArray = bytesArray.slice(1);
     }

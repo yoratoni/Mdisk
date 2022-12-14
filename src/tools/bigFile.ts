@@ -10,6 +10,7 @@ import {
 import {
     calculateMappingsLength,
     convertNumberToUint8Array,
+    convertUint8ArrayToHexString,
     convertUint8ArrayToNumber,
     convertUint8ArrayToString,
     generateByteObjectFromMapping,
@@ -144,47 +145,48 @@ export function readBigFileDirectoryMetadataTable(
 
 /**
  * Reads the file data table of the Big File and links it to the file metadata,
- * creating an array containing the complete files.
+ * creating an array containing the complete file data.
+ * Note that this function formats all the fields into readable values.
  * @param cache Initialized cache class.
  * @param offsetTable The offset table (used to get the file data offsets).
  * @param fileMetadataTable The file metadata table (used to link data to metadata).
+ * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
  * @returns The formatted files into an array.
  */
 export function readBigFileFiles(
     cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
-    fileMetadataTable: NsBytes.IsMappingByteObject[]
+    fileMetadataTable: NsBytes.IsMappingByteObject[],
+    numberOfFiles: number
 ) {
     const resultArray: NsBigFile.IsFile[] = [];
 
-    for (let i = 0; i < 2; i++) {
+    if (numberOfFiles > offsetTable.length) {
+        numberOfFiles = offsetTable.length;
+    }
+
+    for (let i = 0; i < numberOfFiles; i++) {
         const tbOffset = offsetTable[i];
         const tbMetadata = fileMetadataTable[i];
 
-        const offset = convertUint8ArrayToNumber(tbOffset.dataOffset, false);
+        const offset = convertUint8ArrayToNumber(tbOffset.dataOffset);
+        const length = convertUint8ArrayToNumber(tbMetadata.fileSize);
 
-        console.log(offset);
-
-        // const rawLength = cache.readNBytes(offset, 4);
-        // const length = convertUint8ArrayToNumber(rawLength, false);
-
-        // const data = cache.readNBytes(offset + 4, length);
-
-        // if (tbMetadata.strFilename) {
-        //     resultArray[i] = {
-        //         name: tbMetadata.strFilename,
-        //         key: tbOffset.key,
-        //         size: length,
-        //         nextIndex: tbMetadata.nextIndex,
-        //         previousIndex: tbMetadata.previousIndex,
-        //         directoryIndex: tbMetadata.directoryIndex,
-        //         unixTimestamp: tbMetadata.unixTimestamp,
-        //         data,
-        //     };
-        // }
+        if (tbMetadata.strFilename) {
+            resultArray[i] = {
+                name: tbMetadata.strFilename,
+                key: convertUint8ArrayToHexString(tbOffset.key, true, false),
+                offset: offset + 4,
+                size: length,
+                nextIndex: convertUint8ArrayToNumber(tbMetadata.nextIndex),
+                previousIndex: convertUint8ArrayToNumber(tbMetadata.previousIndex),
+                directoryIndex: convertUint8ArrayToNumber(tbMetadata.directoryIndex),
+                unixTimestamp: convertUint8ArrayToNumber(tbMetadata.unixTimestamp)
+            };
+        }
     }
 
-    // return resultArray;
+    return resultArray;
 }
 
 /**
@@ -218,10 +220,11 @@ export function readBigFile(relativePath: string) {
     const files = readBigFileFiles(
         cache,
         offsetTable,
-        fileMetadataTable
+        fileMetadataTable,
+        offsetTable.length
     );
 
-    // console.log(files);
+    exportAsJson(files, "bigFile.json");
 
     cache.closeFile();
 }

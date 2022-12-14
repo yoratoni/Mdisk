@@ -1,13 +1,13 @@
 declare namespace NsBigFile {
     interface IsFile {
         name: string;
-        key: Uint8Array;
+        key: string;
+        offset: number;
         size: number;
-        nextIndex: Uint8Array;
-        previousIndex: Uint8Array;
-        directoryIndex: Uint8Array;
-        unixTimestamp: Uint8Array;
-        data: Uint8Array;
+        nextIndex: number;
+        previousIndex: number;
+        directoryIndex: number;
+        unixTimestamp: number;
     }
 }
 
