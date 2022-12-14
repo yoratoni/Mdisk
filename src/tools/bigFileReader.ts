@@ -2,17 +2,12 @@ import { Cache } from "classes/cache";
 import { CHUNK_SIZE } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
-    MpBigFileFileData,
     MpBigFileFileMetadataTableEntry,
     MpBigFileHeader,
     MpBigFileOffsetTableEntry
 } from "configs/mappings";
 import {
     calculateMappingsLength,
-    convertNumberToUint8Array,
-    convertUint8ArrayToHexString,
-    convertUint8ArrayToNumber,
-    convertUint8ArrayToString,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
@@ -128,17 +123,21 @@ export function readBigFileDirectoryMetadataTable(
  * Reads the file data table of the Big File and links it to the file metadata,
  * creating an array containing the complete file data.
  * Note that this function formats all the fields into readable values.
+ * @param cache Initialized cache class.
  * @param offsetTable The offset table (used to get the file data offsets).
  * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param fileMetadataTable The file metadata table (used to link data to metadata).
  * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
+ * @param includeData Whether to include the file data in the result (defaults to false).
  * @returns The formatted files into an array.
  */
 export function readBigFileFiles(
+    cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
-    numberOfFiles: number
+    numberOfFiles: number,
+    includeData = false
 ) {
     const resultArray: NsBigFile.IsFile[] = [];
 
@@ -150,28 +149,36 @@ export function readBigFileFiles(
         const tbOffset = offsetTable[i];
         const tbFileMetadata = fileMetadataTable[i];
 
-        if (directoryMetadataTable[tbFileMetadata.directoryIndex as number] === undefined) {
-            console.error(
-                `Directory index ${tbFileMetadata.directoryIndex} is not defined in the directory metadata table.`
-            );
-        }
+        // Skip the first 4 bytes of the file data (representing the file size)
+        const dataOffset = tbOffset.dataOffset as number + 4;
+        const dataSize = tbFileMetadata.fileSize as number;
 
         const dirName = directoryMetadataTable[tbFileMetadata.directoryIndex as number].dirname;
 
         resultArray[i] = {
             name: tbFileMetadata.filename as string,
             key: tbOffset.key as string,
-            offset: tbOffset.dataOffset as number + 4,
-            size: tbFileMetadata.fileSize as number,
+            offset: dataOffset,
+            size: dataSize,
             nextIndex: tbFileMetadata.nextIndex as number,
             previousIndex: tbFileMetadata.previousIndex as number,
             directoryName: dirName as string,
             directoryIndex: tbFileMetadata.directoryIndex as number,
             unixTimestamp: tbFileMetadata.unixTimestamp as number,
         };
+
+        let data: Uint8Array | undefined;
+        if (includeData) {
+            data = cache.readNBytes(dataOffset, dataSize);
+            resultArray[i].data = data;
+        }
     }
 
     return resultArray;
+}
+
+export function createBigFileDirectoryStructure() {
+    //
 }
 
 /**
@@ -183,6 +190,8 @@ export function readBigFile(relativePath: string) {
     const cache = new Cache(relativePath, CHUNK_SIZE);
 
     const header = readBigFileHeader(cache);
+
+    // exportAsJson(header, "bigFileHeader.json");
 
     const offsetTable = readBigFileOffsetTable(
         cache,
@@ -209,18 +218,15 @@ export function readBigFile(relativePath: string) {
     // exportAsJson(directoryMetadataTable, "bigFileDirectoryMetadataTable.json");
 
     const files = readBigFileFiles(
+        cache,
         offsetTable,
         directoryMetadataTable,
         fileMetadataTable,
-        header.data.fileCount as number
+        header.data.fileCount as number,
+        false
     );
 
-    // console.log(files);
     // exportAsJson(files, "bigFileFiles.json");
-
-    // console.log(directoryMetadataTable.length);
-    // console.log(files);
-    // exportAsJson(files, "bigFile.json");
 
     cache.closeFile();
 }

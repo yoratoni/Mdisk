@@ -58,11 +58,3 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
     parentIndex: { position: 16, type: "number" },
     dirname: { position: 20, length: 64, type: "str" }
 };
-
-/**
- * Mapping for the Big File file data.
- */
-export const MpBigFileFileData: NsMappings.IsMapping = {
-    fileSize: 0,
-    data: { position: 4, length: 0 }
-};

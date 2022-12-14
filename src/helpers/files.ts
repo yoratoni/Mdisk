@@ -11,6 +11,10 @@ export function getAbsolutePath(relativePath: string): string {
     const projectRoot = path.resolve(__dirname);
     const absolutePath = path.dirname(projectRoot ?? "").replace(/\\/g,"/") + `/${relativePath}`;
 
+    if (!fs.existsSync(absolutePath)) {
+        throw new Error(`${absolutePath} does not exist, please check the path.`);
+    }
+
     return absolutePath;
 }
 

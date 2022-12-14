@@ -39,7 +39,7 @@ add files if necessary, without modifying the whole BigFile system.
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
 - `*.waa`, `*.wac`, `*.wad`, `*.wam` are `wav` files (MS-ADPCM).
 - `*.bik` are Bink videos.
-- `*.mtx` ?
+- `*.mtx` seems to be some videos for the trailer (PAL or NTSC).
 - `*.omd` ?
 - `*.ofc` are binarized functions to perform specific actions.
 - `*.oin` ?

@@ -9,6 +9,7 @@ declare namespace NsBigFile {
         directoryName: string;
         directoryIndex: number;
         unixTimestamp: number;
+        data?: Uint8Array;
     }
 }
 
