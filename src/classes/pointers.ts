@@ -57,27 +57,37 @@ export class Pointers {
 
     /**
      * Increment the absolute pointer.
+     * @param increment The increment value (defaults to 1).
      */
-    public incrementAbsolutePointer() {
-        this._absolutePointer++;
+    public incrementAbsolutePointer(increment = 1) {
+        this._absolutePointer += increment;
     }
 
     /**
      * Increment the chunk pointer.
+     * @param increment The increment value (defaults to 1).
      */
-    public incrementChunkPointer() {
-        this._chunkPointer++;
+    public incrementChunkPointer(increment = 1) {
+        this._chunkPointer += increment;
     }
 
     /**
      * Increment the byte pointer.
+     * @param increment The increment value (defaults to 1).
      */
-    public incrementBytePointer() {
-        this._bytePointer++;
+    public incrementBytePointer(increment = 1) {
+        this._bytePointer += increment;
     }
 
     /**
      * Reset the absolute pointer.
+     */
+    public resetAbsolutePointer() {
+        this._absolutePointer = 0;
+    }
+
+    /**
+     * Reset the chunk pointer.
      */
     public resetChunkPointer() {
         this._chunkPointer = 0;

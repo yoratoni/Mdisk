@@ -11,6 +11,12 @@ declare namespace NsBigFile {
         unixTimestamp: number;
         data?: Uint8Array;
     }
+
+    interface IsDirectory {
+        name: string;
+        subdirIndexes: number[];
+        fileIndexes: number[];
+    }
 }
 
 

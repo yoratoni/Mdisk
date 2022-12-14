@@ -177,8 +177,22 @@ export function readBigFileFiles(
     return resultArray;
 }
 
-export function createBigFileDirectoryStructure() {
-    //
+export function readBigFileStructure(
+    directoryMetadataTable: NsBytes.IsMappingByteObject[],
+    files: NsBigFile.IsFile[]
+) {
+    const resultArray: NsBigFile.IsDirectory[] = [];
+
+    for (let i = 0; i < directoryMetadataTable.length; i++) {
+
+        
+
+        resultArray[i] = {
+            name: directoryMetadataTable[i].dirname as string,
+            subdirIndexes: [],
+            fileIndexes: []
+        };
+    }
 }
 
 /**
@@ -225,6 +239,13 @@ export function readBigFile(relativePath: string) {
         header.data.fileCount as number,
         false
     );
+
+    const structure = readBigFileStructure(
+        directoryMetadataTable,
+        files
+    );
+
+    console.log(structure);
 
     // exportAsJson(files, "bigFileFiles.json");
 

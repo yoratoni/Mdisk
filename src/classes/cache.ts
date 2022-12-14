@@ -95,11 +95,15 @@ export class Cache {
     }
 
     /**
-     * Reads an unique byte from the file.
-     * @param absolutePointer The absolute pointer to the byte.
-     * @returns The byte.
+     * Reads a certain amount of bytes from the file.
+     * @param absolutePointer The absolute pointer to the first byte.
+     * @param numberOfBytes The number of bytes to read (defaults to 4).
+     * @returns The number of bytes in an array.
      */
-    public readByte(absolutePointer: number) {
+    public readNBytes(
+        absolutePointer: number,
+        numberOfBytes = 4
+    ): Uint8Array {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
 
@@ -115,25 +119,12 @@ export class Cache {
             );
         }
 
-        return this._buffer[this._pointers.bytePointer];
-    }
+        const bytes = this._buffer.slice(
+            this._pointers.absolutePointer,
+            this._pointers.absolutePointer + numberOfBytes
+        );
 
-    /**
-     * Reads a certain amount of bytes from the file.
-     * @param absolutePointer The absolute pointer to the first byte.
-     * @param numberOfBytes The number of bytes to read (defaults to 4).
-     * @returns The number of bytes in an array.
-     */
-    public readNBytes(
-        absolutePointer: number,
-        numberOfBytes = 4
-    ): Uint8Array {
-        const bytes = new Uint8Array(numberOfBytes);
-
-        for (let i = 0; i < numberOfBytes; i++) {
-            bytes[i] = this.readByte(absolutePointer + i);
-            this._pointers.incrementAbsolutePointer();
-        }
+        this._pointers.incrementAbsolutePointer(numberOfBytes);
 
         return bytes;
     }
