@@ -23,14 +23,14 @@ Big File
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
 uncompressed.
 
-The header of the file contains the offsets of the .. offsets of the data, linking to an offset table,
-this table have a **max** length that can also be found inside of the header (generally **11165**),
-this length is not the number of bytes of the table but the number of entries.
+The whole extraction thing is now fully done, I also added the option to also export some JSON
+files are the root the extracted directory:
 
-Each of these entries contains two data (u32), the offset of the file data and a resource key,
-used to quickly identify the file, note that these 11166 "slots" are not all used,
-it's the max amount of files that the Big File can contain, certainly allowing the devs to
-add files if necessary, without modifying the whole BigFile system.
+- `bigFileDirectoryMetadataTable` Metadata of each directory.
+- `bigFileFileMetadataTable` Metadata of the files.
+- `bigFileHeader` The header of the Big File.
+- `bigFileOffsetTable` The offset table (useful to get the keys).
+- `bigFileStructure` Contains the whole archive structure.
 
 *More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
 
