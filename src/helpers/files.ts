@@ -19,21 +19,30 @@ export function getAbsolutePath(relativePath: string): string {
 }
 
 /**
+ * Generates a path from a string stack.
+ * @param pathStack The path stack.
+ * @returns The path.
+ */
+export function generatePathFromStringStack(pathStack: string[]): string {
+    return pathStack.join("/");
+}
+
+/**
  * Exports any data as a JSON file.
  * @param data The data to export.
- * @param fileName The name of the file.
- * @param relativePath The relative path to the file.
+ * @param absolutePath The absolute path to the file.
+ * * @param fileName The name of the file.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function exportAsJson(data: any, fileName: string, relativePath = "exports") {
-    const absolutePath = getAbsolutePath(relativePath) + `/${fileName}`;
+export function exportAsJson(data: any, absolutePath: string, fileName: string) {
+    const path = absolutePath + `/${fileName}`;
     const dataString = JSON.stringify(data, null, 4);
 
     if (dataString === undefined) {
         throw new Error("Could not stringify data");
     }
 
-    fs.writeFileSync(absolutePath, dataString);
+    fs.writeFileSync(path, dataString);
 }
 
 /**

@@ -1,3 +1,3 @@
 import { readBigFile } from "tools/bigFileReader";
 
-readBigFile("binary/sally_clean.bf", "C:/Users/terci/Desktop/test");
+readBigFile("F:/Yoratoni/Mdisk/src/binary/sally_clean.bf", "C:/Users/terci/Desktop/BigFile", true);

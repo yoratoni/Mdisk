@@ -1,5 +1,6 @@
+import fs from "fs";
+
 import Cache from "classes/cache";
-import { PathStack } from "classes/pathStack";
 import { CHUNK_SIZE } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
@@ -12,7 +13,7 @@ import {
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
-import { exportAsJson } from "helpers/files";
+import { exportAsJson, generatePathFromStringStack } from "helpers/files";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
@@ -156,31 +157,39 @@ function readBigFileFiles(
 
 /**
  * Reads the directory structure of the Big File, linking all the subdirs and files.
+ * @param absoluteOutputDirPath The absolute path of the output directory.
  * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param files The formatted files into an array.
  * @returns The formatted directory structure including all the matching indexes.
  */
 function readBigFileStructure(
+    absoluteOutputDirPath: string,
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     files: NsBigFile.IsFile[]
 ) {
     const structure: NsBigFile.IsDirectory[] = [];
+    const pathStacks: string[][] = [];
 
     for (let i = 0; i < directoryMetadataTable.length; i++) {
         const dir = directoryMetadataTable[i];
         const parentIndex = dir.parentIndex as number;
 
-        if (parentIndex !== -1) {
-            structure[parentIndex as number].subdirIndexes.push(i);
+        // Add the current directory name to the parent path stack.
+        // If the parent index is -1, replace it by the absolute path (it's the root dir).
+        if (parentIndex === -1) {
+            pathStacks[i] = [absoluteOutputDirPath];
+        } else {
+            pathStacks[i] = [...pathStacks[parentIndex], dir.dirname as string];
         }
 
         structure[i] = {
             name: dir.dirname as string,
-            subdirIndexes: [],
+            path: generatePathFromStringStack(pathStacks[i]),
             fileIndexes: []
         };
     }
 
+    // Link all the files to their directories.
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         structure[file.directoryIndex as number].fileIndexes.push(i);
@@ -189,42 +198,57 @@ function readBigFileStructure(
     return structure;
 }
 
-function generateBigFileStructure(
-    absoluteOutputDirPath: string,
+/**
+ * Extracts the Big File to the output directory.
+ * @param structure The directory structure of the Big File (including file indexes per dir).
+ * @param files The formatted files into an array.
+ */
+function extractBigFile(
     structure: NsBigFile.IsDirectory[],
     files: NsBigFile.IsFile[]
 ) {
-    const stack = new PathStack(absoluteOutputDirPath);
-
     for (let i = 0; i < structure.length; i++) {
         const dir = structure[i];
 
-        for (const subdirIndex of dir.subdirIndexes) {
-            const subdir = structure[subdirIndex];
-            stack.push(subdir.name);
+        // Create the current directory if it doesn't exist.
+        if (!fs.existsSync(dir.path)) {
+            fs.mkdirSync(dir.path, { recursive: true });
+        }
+
+        // Write all the files of the current directory.
+        for (let j = 0; j < dir.fileIndexes.length; j++) {
+            const fileIndex = dir.fileIndexes[j];
+            const file = files[fileIndex];
+
+            const filePath = `${dir.path}/${file.name}`;
+            fs.writeFileSync(filePath, file.data as Uint8Array);
         }
     }
 }
 
 /**
  * Main function to read the Big File.
- * @param relativeBigFilePath The relative path to the Big File.
+ * @param bigFilePath The absolute path to the Big File (sally.bf or sally_clean.bf).
+ * @param outputDirPath The absolute path to the output directory.
+ * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to false).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export function readBigFile(relativeBigFilePath: string, absoluteOutputDirPath: string) {
-    const cache = new Cache(relativeBigFilePath, CHUNK_SIZE);
+export function readBigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+    const cache = new Cache(bigFilePath, CHUNK_SIZE);
 
-    const header = readBigFileHeader(cache);
+    if (!fs.existsSync(outputDirPath)) {
+        fs.mkdirSync(outputDirPath, { recursive: true });
+    }
 
-    // exportAsJson(header, "bigFileHeader.json");
+    const header = readBigFileHeader(
+        cache
+    );
 
     const offsetTable = readBigFileOffsetTable(
         cache,
         header.data.offsetTableOffset as number,
         header.data.offsetTableMaxLength as number
     );
-
-    // exportAsJson(offsetTable, "bigFileOffsetTable.json");
 
     const fileMetadataTable = readBigFileMetadataTable(
         cache,
@@ -233,8 +257,6 @@ export function readBigFile(relativeBigFilePath: string, absoluteOutputDirPath: 
         header.data.fileCount as number
     );
 
-    // exportAsJson(fileMetadataTable, "bigFileFileMetadataTable.json");
-
     const directoryMetadataTable = readBigFileMetadataTable(
         cache,
         MpBigFileDirectoryMetadataTableEntry,
@@ -242,25 +264,33 @@ export function readBigFile(relativeBigFilePath: string, absoluteOutputDirPath: 
         header.data.directoryCount as number
     );
 
-    // exportAsJson(directoryMetadataTable, "bigFileDirectoryMetadataTable.json");
-
     const files = readBigFileFiles(
         cache,
         offsetTable,
         directoryMetadataTable,
         fileMetadataTable,
         header.data.fileCount as number,
-        false
+        true
     );
 
     const structure = readBigFileStructure(
+        outputDirPath,
         directoryMetadataTable,
         files
     );
 
-    generateBigFileStructure(absoluteOutputDirPath, structure, files);
+    extractBigFile(
+        structure,
+        files
+    );
 
-    // exportAsJson(structure, "bigFileStructure.json");
+    if (exportJSON) {
+        exportAsJson(header, outputDirPath, "bigFileHeader.json");
+        exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
+        exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
+        exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
+        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+    }
 
     cache.closeFile();
 }

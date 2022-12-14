@@ -14,7 +14,7 @@ declare namespace NsBigFile {
 
     interface IsDirectory {
         name: string;
-        subdirIndexes: number[];
+        path: string;
         fileIndexes: number[];
     }
 }

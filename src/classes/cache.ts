@@ -1,6 +1,6 @@
 import Pointers from "classes/pointers";
 import { convertMegaBytesToBytes } from "helpers/bytes";
-import { closeFile, getAbsolutePath, getFileSize, openFile, readFileByChunk } from "helpers/files";
+import { closeFile, getFileSize, openFile, readFileByChunk } from "helpers/files";
 
 
 export default class Cache {
@@ -15,14 +15,14 @@ export default class Cache {
 
     /**
      * Constructor -> Loads the file into the cache.
-     * @param relativePath The relative path to the file.
+     * @param absolutePath The absolute path to the file.
      * @param chunkSize The size of the chunk in MB.
      */
     constructor(
-        relativePath: string,
+        absolutePath: string,
         chunkSize: number
     ) {
-        this._filePath = getAbsolutePath(relativePath);
+        this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._chunkNumber = 0;
         this._chunkSize = convertMegaBytesToBytes(chunkSize);
@@ -43,10 +43,10 @@ export default class Cache {
 
     /**
      * Loads a new file into the cache.
-     * @param relativePath The relative path to the file.
+     * @param absolutePath The absolute path to the file.
      */
-    public loadFile(relativePath: string) {
-        this._filePath = getAbsolutePath(relativePath);
+    public loadFile(absolutePath: string) {
+        this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._file = openFile(this._filePath);
         this._chunkNumber = 0;
@@ -77,14 +77,14 @@ export default class Cache {
     /**
      * Sets the absolute path to a new file.
      * Note that it also loads the new file into the cache.
-     * @param relativePath The relative path to the file.
+     * @param absolutePath The absolute path to the file.
      */
-    public set filePath(relativePath: string) {
-        if (getAbsolutePath(relativePath) === this._filePath) {
+    public set filePath(absolutePath: string) {
+        if (absolutePath === this._filePath) {
             return;
         }
 
-        this.loadFile(relativePath);
+        this.loadFile(absolutePath);
     }
 
     /**
