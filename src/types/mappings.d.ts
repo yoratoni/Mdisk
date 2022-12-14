@@ -1,5 +1,8 @@
 declare namespace NsMappings {
-    interface IsMappingWithLength {
+    /**
+     * Used to map data more precisely.
+     */
+    interface IsPreciseMapping {
         position: number;
         length?: number;
         type?: "str" | "hex" | "number";
@@ -9,7 +12,7 @@ declare namespace NsMappings {
      * The linear mapping for a bytes array.
      */
     interface IsMapping {
-        [key: string]: number | IsMappingWithLength
+        [key: string]: number | IsPreciseMapping
     }
 }
 
