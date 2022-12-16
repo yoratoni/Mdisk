@@ -10,7 +10,6 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
-    convertUint8ArrayToHexStringArray,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
@@ -138,7 +137,7 @@ function readBigFileFiles(
         resultArray[i] = {
             name: tbFileMetadata.filename as string,
             key: tbOffset.key as string,
-            offset: dataOffset - 4,  // -4 to show the original offset
+            offset: dataOffset,
             size: dataSize,
             nextIndex: tbFileMetadata.nextIndex as number,
             previousIndex: tbFileMetadata.previousIndex as number,
@@ -285,18 +284,18 @@ export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON =
         files
     );
 
-    extractBigFile(
-        structure,
-        files
-    );
+    // extractBigFile(
+    //     structure,
+    //     files
+    // );
 
-    if (exportJSON) {
-        exportAsJson(header, outputDirPath, "bigFileHeader.json");
-        exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
-        exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
-        exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
-        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
-    }
+    // if (exportJSON) {
+    //     exportAsJson(header, outputDirPath, "bigFileHeader.json");
+    //     exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
+    //     exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
+    //     exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
+    //     exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+    // }
 
     cache.closeFile();
 }
