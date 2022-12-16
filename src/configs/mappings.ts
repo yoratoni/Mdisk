@@ -19,6 +19,7 @@ import NsMappings from "types/mappings";
  * Mapping for the Big File header.
  */
 export const MpBigFileHeader: NsMappings.IsMapping = {
+    magic: { position: 0, type: "str" },
     formatVersion: { position: 4, type: "hex" },
     fileCount: { position: 8, type: "number" },
     directoryCount: { position: 12, type: "number" },
@@ -57,4 +58,9 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
     previousIndex: { position: 12, type: "number" },
     parentIndex: { position: 16, type: "number" },
     dirname: { position: 20, length: 64, type: "str" }
+};
+
+
+export const MpAudioHeader: NsMappings.IsMapping = {
+
 };

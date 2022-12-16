@@ -10,7 +10,6 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
-    convertUint8ArrayToString,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
@@ -28,12 +27,12 @@ import NsMappings from "types/mappings";
  */
 function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readBytes(0, headerSize);
-
-    if (convertUint8ArrayToString(rawHeader.slice(0, 3)) !== "BIG") {
-        throw new Error("Invalid Big File format");
-    }
-
     const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
+
+    // Verify the magic str
+    if (header.data.magic !== "BIG") {
+        throw new Error("Invalid Big File magic string");
+    }
 
     // Converts to numbers before operation
     const offsetTableOffset = header.data.offsetTableOffset as number;
