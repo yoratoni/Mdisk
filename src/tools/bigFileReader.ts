@@ -10,6 +10,7 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
+    convertUint8ArrayToString,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
@@ -27,6 +28,11 @@ import NsMappings from "types/mappings";
  */
 function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readBytes(0, headerSize);
+
+    if (convertUint8ArrayToString(rawHeader.slice(0, 3)) !== "BIG") {
+        throw new Error("Invalid Big File format");
+    }
+
     const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Converts to numbers before operation
@@ -278,26 +284,24 @@ export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON =
         true
     );
 
-    console.log(files[2442]);
-
     const structure = readBigFileStructure(
         outputDirPath,
         directoryMetadataTable,
         files
     );
 
-    // extractBigFile(
-    //     structure,
-    //     files
-    // );
+    extractBigFile(
+        structure,
+        files
+    );
 
-    // if (exportJSON) {
-    //     exportAsJson(header, outputDirPath, "bigFileHeader.json");
-    //     exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
-    //     exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
-    //     exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
-    //     exportAsJson(structure, outputDirPath, "bigFileStructure.json");
-    // }
+    if (exportJSON) {
+        exportAsJson(header, outputDirPath, "bigFileHeader.json");
+        exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
+        exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
+        exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
+        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+    }
 
     cache.closeFile();
 }

@@ -1,3 +1,7 @@
+import fs from "fs";
+
+import Cache from "classes/cache";
+import { CHUNK_SIZE } from "configs/constants";
 import {
     convertStringToUint8Array,
     convertUint8ArrayToHexString,
@@ -5,19 +9,12 @@ import {
 } from "helpers/bytes";
 
 
-export function Audio() {
-    // const test = new Uint8Array([
-    //     0x0E,
-    //     0xE8,
-    //     0x0F,
-    //     0x70
-    // ]);
+function readAudioHeader(cache: Cache, headerSize = 68) {
+    //
+}
 
-    const test2 = convertStringToUint8Array("RIFF");
-
-    console.log(
-        "RIFF:",
-        convertUint8ArrayToHexString(test2),
-        test2
-    );
+export function Audio(audioFilePath: string) {
+    if (!fs.existsSync(audioFilePath)) {
+        throw new Error(`The audio file doesn't exist: ${audioFilePath}`);
+    }
 }
