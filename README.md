@@ -39,7 +39,7 @@ files are the root the extracted directory:
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
 - `*.waa`, `*.wac`, `*.wad`, `*.wam` are `wav` files (MS-ADPCM).
 - `*.waa` are ambient sounds.
-- `*.wad` are sound effects.
+- `*.wad` are dialogs.
 - `*.wam` are game musics.
 - `*.bik` are Bink videos.
 - `*.mtx` seems to be some videos for the trailer (PAL or NTSC).
