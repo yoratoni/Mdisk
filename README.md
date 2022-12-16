@@ -4,7 +4,7 @@ A tool for the game Beyond Good & Evil.
 
 Technical Summary
 -----------------
-This tool is build with TS-Node and Typescript, I made the whole fully scalable by creating
+This tool is build with TS-Node and Typescript, I made the whole thing fully scalable by creating
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
