@@ -13,8 +13,14 @@ function readAudioHeader(cache: Cache, headerSize = 68) {
     //
 }
 
-export function Audio(audioFilePath: string) {
+export function Audio(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {
         throw new Error(`The audio file doesn't exist: ${audioFilePath}`);
+    }
+
+    const cache = new Cache(audioFilePath, CHUNK_SIZE);
+
+    if (!fs.existsSync(outputDirPath)) {
+        fs.mkdirSync(outputDirPath, { recursive: true });
     }
 }

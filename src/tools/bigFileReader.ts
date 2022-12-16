@@ -242,7 +242,7 @@ function extractBigFile(
  */
 export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
     if (!fs.existsSync(bigFilePath)) {
-        throw new Error(`The Big File doesn't exist: ${bigFilePath}`);
+        process.exit(1);
     }
 
     const cache = new Cache(bigFilePath, CHUNK_SIZE);
