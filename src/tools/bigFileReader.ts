@@ -10,6 +10,7 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
+    convertUint8ArrayToHexStringArray,
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
@@ -26,8 +27,8 @@ import NsMappings from "types/mappings";
  * @returns The formatted header.
  */
 function readBigFileHeader(cache: Cache, headerSize = 68) {
-    const rawHeader = cache.readNBytes(0, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader, true);
+    const rawHeader = cache.readBytes(0, headerSize);
+    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Converts to numbers before operation
     const offsetTableOffset = header.data.offsetTableOffset as number;
@@ -59,7 +60,8 @@ function readBigFileOffsetTable(
     const mappingLength = calculateMappingsLength(MpBigFileOffsetTableEntry);
     const bytesArrayLength = mappingLength * offsetTableMaxLength;
 
-    const rawOffsetTable = cache.readNBytes(offsetTableOffset, bytesArrayLength);
+    const rawOffsetTable = cache.readBytes(offsetTableOffset, bytesArrayLength);
+
     const offsetTable = generateByteTableFromMapping(
         rawOffsetTable,
         MpBigFileOffsetTableEntry,
@@ -87,7 +89,7 @@ function readBigFileMetadataTable(
     const mappingLength = calculateMappingsLength(mapping);
     const bytesArrayLength = mappingLength * numberOfEntries;
 
-    const rawMetadataTable = cache.readNBytes(metadataOffset, bytesArrayLength);
+    const rawMetadataTable = cache.readBytes(metadataOffset, bytesArrayLength);
     const metadataTable = generateByteTableFromMapping(rawMetadataTable,
         mapping,
         mappingLength,
@@ -136,7 +138,7 @@ function readBigFileFiles(
         resultArray[i] = {
             name: tbFileMetadata.filename as string,
             key: tbOffset.key as string,
-            offset: dataOffset,
+            offset: dataOffset - 4,  // -4 to show the original offset
             size: dataSize,
             nextIndex: tbFileMetadata.nextIndex as number,
             previousIndex: tbFileMetadata.previousIndex as number,
@@ -147,7 +149,7 @@ function readBigFileFiles(
 
         let data: Uint8Array | undefined;
         if (includeData) {
-            data = cache.readNBytes(dataOffset, dataSize);
+            data = cache.readBytes(dataOffset, dataSize);
             resultArray[i].data = data;
         }
     }
@@ -227,13 +229,17 @@ function extractBigFile(
 }
 
 /**
- * Main function to read the Big File.
+ * Main function to extract the Big File archive.
  * @param bigFilePath The absolute path to the Big File (sally.bf or sally_clean.bf).
  * @param outputDirPath The absolute path to the output directory.
  * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to false).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export function readBigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+    if (!fs.existsSync(bigFilePath)) {
+        throw new Error(`The Big File doesn't exist: ${bigFilePath}`);
+    }
+
     const cache = new Cache(bigFilePath, CHUNK_SIZE);
 
     if (!fs.existsSync(outputDirPath)) {
@@ -273,23 +279,23 @@ export function readBigFile(bigFilePath: string, outputDirPath: string, exportJS
         true
     );
 
-    const structure = readBigFileStructure(
-        outputDirPath,
-        directoryMetadataTable,
-        files
-    );
+    // const structure = readBigFileStructure(
+    //     outputDirPath,
+    //     directoryMetadataTable,
+    //     files
+    // );
 
-    extractBigFile(
-        structure,
-        files
-    );
+    // extractBigFile(
+    //     structure,
+    //     files
+    // );
 
     if (exportJSON) {
         exportAsJson(header, outputDirPath, "bigFileHeader.json");
         exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
         exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
         exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
-        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+        // exportAsJson(structure, outputDirPath, "bigFileStructure.json");
     }
 
     cache.closeFile();

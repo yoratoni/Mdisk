@@ -100,12 +100,14 @@ export default class Cache {
      * @param numberOfBytes The number of bytes to read (defaults to 4).
      * @returns The number of bytes in an array.
      */
-    public readNBytes(
+    public readBytes(
         absolutePointer: number,
         numberOfBytes = 4
     ): Uint8Array {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
+
+        console.log(this._pointers);
 
         if (this._pointers.chunkPointer !== this._chunkNumber) {
             this._chunkNumber = this._pointers.chunkPointer;

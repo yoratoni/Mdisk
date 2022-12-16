@@ -5,6 +5,7 @@
 **/sally_clean.bf
 **/exports
 archives/BigFile
+**/binary
 
 # IDE
 **/.vscode
