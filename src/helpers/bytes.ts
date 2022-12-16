@@ -83,11 +83,22 @@ export function convertUint8ArrayToNumber(bytesArray: Uint8Array, littleEndian =
         return -1;
     }
 
-    if (littleEndian) {
-        bytesArray = bytesArray.reverse();
-    }
+    // if (littleEndian) {
+    //     bytesArray = bytesArray.reverse();
+    // }
 
-    return bytesArray.reduce((acc, value) => (acc << 8) | value, 0);
+    // return bytesArray.reduce((acc, value) => (acc << 8) | value, 0);
+
+    const view = new DataView(bytesArray.buffer);
+
+    switch (bytesArray.length) {
+        case 1:
+            return view.getUint8(0);
+        case 2:
+            return view.getUint16(0, littleEndian);
+        case 4:
+            return view.getUint32(0, littleEndian);
+    }
 }
 
 /**
