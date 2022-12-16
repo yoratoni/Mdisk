@@ -6,6 +6,7 @@ export default class Pointers {
     private _chunkPointer = 0;
     private _bytePointer = 0;
     private _absolutePointer = 0;
+    private _chunkSize = convertMegaBytesToBytes(CHUNK_SIZE);
 
     /**
      * Get the chunk pointer.
@@ -105,10 +106,8 @@ export default class Pointers {
      * @returns The chunk and byte pointers.
      */
     public getChunkAndBytePointersFromAbsolutePointer() {
-        const bytes = convertMegaBytesToBytes(CHUNK_SIZE);
-
-        this._chunkPointer = Math.floor(this._absolutePointer / bytes);
-        this._bytePointer = this._absolutePointer % bytes;
+        this._chunkPointer = Math.floor(this._absolutePointer / this._chunkSize);
+        this._bytePointer = this._absolutePointer % this._chunkSize;
 
         return {
             chunkPointer: this._chunkPointer,
@@ -121,9 +120,7 @@ export default class Pointers {
      * @returns The absolute pointer.
      */
     public getAbsolutePointerFromChunkAndBytePointers() {
-        const bytes = convertMegaBytesToBytes(CHUNK_SIZE);
-
-        this._absolutePointer = (this._chunkPointer) * bytes + this._bytePointer;
+        this._absolutePointer = (this._chunkPointer) * this._chunkSize + this._bytePointer;
 
         return this._absolutePointer;
     }

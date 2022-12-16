@@ -8,7 +8,7 @@ import NsMappings from "types/mappings";
  * @returns The number of bytes.
  */
 export function convertMegaBytesToBytes(megaBytes: number) {
-    return megaBytes * 1024 * 1024;
+    return megaBytes * 1000 * 1000;
 }
 
 /**

@@ -278,6 +278,8 @@ export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON =
         true
     );
 
+    console.log(files[2442]);
+
     const structure = readBigFileStructure(
         outputDirPath,
         directoryMetadataTable,

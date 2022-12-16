@@ -120,8 +120,8 @@ export default class Cache {
         }
 
         const bytes = this._buffer.slice(
-            this._pointers.absolutePointer,
-            this._pointers.absolutePointer + numberOfBytes
+            this._pointers.bytePointer,
+            this._pointers.bytePointer + numberOfBytes
         );
 
         this._pointers.incrementAbsolutePointer(numberOfBytes);
