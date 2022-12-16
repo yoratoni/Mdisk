@@ -107,8 +107,6 @@ export default class Cache {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
 
-        console.log(this._pointers);
-
         if (this._pointers.chunkPointer !== this._chunkNumber) {
             this._chunkNumber = this._pointers.chunkPointer;
 

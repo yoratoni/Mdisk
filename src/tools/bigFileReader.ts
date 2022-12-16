@@ -279,23 +279,23 @@ export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON =
         true
     );
 
-    // const structure = readBigFileStructure(
-    //     outputDirPath,
-    //     directoryMetadataTable,
-    //     files
-    // );
+    const structure = readBigFileStructure(
+        outputDirPath,
+        directoryMetadataTable,
+        files
+    );
 
-    // extractBigFile(
-    //     structure,
-    //     files
-    // );
+    extractBigFile(
+        structure,
+        files
+    );
 
     if (exportJSON) {
         exportAsJson(header, outputDirPath, "bigFileHeader.json");
         exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
         exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
         exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
-        // exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
     }
 
     cache.closeFile();
