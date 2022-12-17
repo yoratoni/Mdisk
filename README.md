@@ -67,3 +67,4 @@ Credits
 * Some info [here](https://raymanpc.com/forum/viewtopic.php?t=74804) that helped me to complete the list made by **Kapouett**.
 * I'm also using [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
 * I used [this file](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c) as a reference to extract audio files.
+* And [this video](https://www.youtube.com/watch?v=udbA7u1zYfc) to understand the WAV format.
