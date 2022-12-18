@@ -39,7 +39,8 @@ files are the root the extracted directory:
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
 - `*.waa`, `*.wac`, `*.wad`, `*.wam` are `wav` files (MS-ADPCM).
 - `*.waa` are ambient sounds.
-- `*.wad` are sound effects.
+- `*.wac` are SFX.
+- `*.wad` are dialogs.
 - `*.wam` are game musics.
 - `*.bik` are Bink videos.
 - `*.mtx` seems to be some videos for the trailer (PAL or NTSC).
@@ -66,3 +67,4 @@ Credits
 * Some info [here](https://raymanpc.com/forum/viewtopic.php?t=74804) that helped me to complete the list made by **Kapouett**.
 * I'm also using [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
 * I used [this file](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c) as a reference to extract audio files.
+* And [this video](https://www.youtube.com/watch?v=udbA7u1zYfc) to understand the WAV format.
