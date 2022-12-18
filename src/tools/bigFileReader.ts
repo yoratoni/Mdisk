@@ -13,7 +13,7 @@ import {
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
-import { exportAsJson, generatePathFromStringStack } from "helpers/files";
+import { checkFileExtension, exportAsJson, generatePathFromStringStack } from "helpers/files";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
@@ -29,9 +29,9 @@ function readBigFileHeader(cache: Cache, headerSize = 68) {
     const rawHeader = cache.readBytes(0, headerSize);
     const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
 
-    // Verify the magic str
+    // Verify the magic string
     if (header.data.magic !== "BIG") {
-        throw new Error("Invalid Big File magic string");
+        throw new Error("Invalid Big File file format (magic)");
     }
 
     // Converts to numbers before operation
@@ -77,7 +77,11 @@ function readBigFileOffsetTable(
 }
 
 /**
- * Reads the directory metadata table of the Big File.
+ * Reads a metadata table of the Big File.
+ *
+ * Note that the mapping values should all follow each other in the table
+ * as the mapping length is calculated from each key of the mapping.
+ *
  * @param cache Initialized cache class.
  * @param mapping The mapping to use to read the table.
  * @param metadataOffset The offset of the directory metadata table.
@@ -106,7 +110,9 @@ function readBigFileMetadataTable(
 /**
  * Reads the file data table of the Big File and links it to the file metadata,
  * creating an array containing the complete file data.
+ *
  * Note that this function formats all the fields into readable values.
+ *
  * @param cache Initialized cache class.
  * @param offsetTable The offset table (used to get the file data offsets).
  * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
@@ -239,9 +245,13 @@ function extractBigFile(
  * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to false).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export function BigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+export default function BigFile(bigFilePath: string, outputDirPath: string, exportJSON = false) {
     if (!fs.existsSync(bigFilePath)) {
         process.exit(1);
+    }
+
+    if (!checkFileExtension(bigFilePath, "bf")) {
+        throw new Error("Invalid Big File file extension");
     }
 
     const cache = new Cache(bigFilePath, CHUNK_SIZE);

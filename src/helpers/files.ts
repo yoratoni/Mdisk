@@ -19,6 +19,22 @@ export function getAbsolutePath(relativePath: string): string {
 }
 
 /**
+ * Checks if a file has a specific extension.
+ * @param filePath The path to the file.
+ * @param extension The extension to check.
+ * @returns Whether the file has the extension.
+ */
+export function checkFileExtension(filePath: string, extension: string | string[]): boolean {
+    const fileExtension = path.extname(filePath);
+
+    if (Array.isArray(extension)) {
+        return extension.includes(fileExtension);
+    } else {
+        return fileExtension === extension;
+    }
+}
+
+/**
  * Generates a path from a string stack.
  * @param pathStack The path stack.
  * @returns The path.

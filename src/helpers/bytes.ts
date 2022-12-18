@@ -13,7 +13,9 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 
 /**
  * Converts an Uint8Array to a string.
+ *
  * Note that this function removes "0" from the array before conversion.
+ *
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The decoded string.
@@ -73,7 +75,9 @@ export function convertUint8ArrayToHexString(
 
 /**
  * Converts an Uint8Array to a number.
+ *
  * Note that 0xFFFFFFFF is converted to -1.
+ *
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The number.
@@ -82,12 +86,6 @@ export function convertUint8ArrayToNumber(bytesArray: Uint8Array, littleEndian =
     if (bytesArray.every(b => b === 0xff)) {
         return -1;
     }
-
-    // if (littleEndian) {
-    //     bytesArray = bytesArray.reverse();
-    // }
-
-    // return bytesArray.reduce((acc, value) => (acc << 8) | value, 0);
 
     const view = new DataView(bytesArray.buffer);
 
@@ -98,6 +96,29 @@ export function convertUint8ArrayToNumber(bytesArray: Uint8Array, littleEndian =
             return view.getUint16(0, littleEndian);
         case 4:
             return view.getUint32(0, littleEndian);
+        default:
+            return 0;
+    }
+}
+
+/**
+ * Converts an Uint8Array to a signed number.
+ * @param bytesArray The bytes array.
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @returns The signed number.
+ */
+export function convertUint8ArrayToSignedNumber(bytesArray: Uint8Array, littleEndian = true) {
+    const view = new DataView(bytesArray.buffer);
+
+    switch (bytesArray.length) {
+        case 1:
+            return view.getInt8(0);
+        case 2:
+            return view.getInt16(0, littleEndian);
+        case 4:
+            return view.getInt32(0, littleEndian);
+        default:
+            return 0;
     }
 }
 
@@ -144,6 +165,9 @@ export function convertUint8ArrayToHexStringArray(
 /**
  * Based on a mapping, calculate its total length, including the entries that have a custom length.
  *
+ * Note that the mapping values should all follow each other in the table
+ * as the mapping length is calculated from each key of the mapping.
+ *
  * Example:
  *     unixTimestamp: 16,  // 4 bytes by default
  *     filename: { position: 20, length: 64 }  // 64 bytes
@@ -173,7 +197,9 @@ export function calculateMappingsLength(mapping: NsMappings.IsMapping) {
 
 /**
  * Reads a number of bytes from a bytes array.
+ *
  * Note that this function populates the bytes array with 0 to match the number of bytes.
+ *
  * @param bytesArray The bytes array.
  * @param offset The offset to start reading from (defaults to 0).
  * @param numberOfBytes The number of bytes to read (defaults to 4).
@@ -193,13 +219,29 @@ export function readNBytesFromBytesArray(bytesArray: Uint8Array, offset = 0, num
  * @param value The value to check.
  * @returns Whether the value is empty.
  */
-export function checkValueEmptiness(value: string | number | Uint8Array | undefined) {
+export function checkValueEmptiness(
+    value: string | number | Uint8Array | undefined | boolean | Uint8Array[] | number[]
+) {
     if (typeof value === "string") {
         return value === "" || value === "0x00000000";
     } else if (typeof value === "number") {
         return value === -1 || value === 0;
     } else if (value instanceof Uint8Array) {
         return value.every(b => b === 0);
+    } else if (typeof value === "boolean") {
+        return !value;
+    } else if (Array.isArray(value)) {
+        if (value.length === 0) {
+            return true;
+        } else {
+            if (value[0] instanceof Uint8Array) {
+                const array = value as Uint8Array[];
+                return array.every(b => b.every(bb => bb === 0));
+            } else {
+                const array = value as number[];
+                return array.every(b => b === 0);
+            }
+        }
     } else {
         return true;
     }
@@ -207,7 +249,9 @@ export function checkValueEmptiness(value: string | number | Uint8Array | undefi
 
 /**
  * Read bytes from a mapping and a bytes array and returns an object based on the mapping.
+ *
  * Returns an object containing the data and secondly a boolean indicating if the data is empty.
+ *
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
  * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
@@ -220,7 +264,7 @@ export function generateByteObjectFromMapping(
     ignoreEmptiness = true,
     littleEndian = true,
     hexPrefix = true
-) {
+): NsBytes.IsMappingByteObjectResultWithEmptiness {
     const resultObject: NsBytes.IsMappingByteObject = {};
 
     for (const [key, value] of Object.entries(mapping)) {
@@ -276,7 +320,9 @@ export function generateByteObjectFromMapping(
 
 /**
  * Generates a bytes array from a mapping.
+ *
  * Don't forget to calculate the bytes array length (in the case of countable entries).
+ *
  * @param bytesArray The bytes array.
  * @param mapping The mapping.
  * @param mappingLength The length of the mapping.

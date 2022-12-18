@@ -8,8 +8,6 @@ import NsMappings from "types/mappings";
  * The default length used for each key is 4 bytes, but you can specify a length
  * by using an object instead of a number { position: 20, length: 64 }.
  *
- * If the length is 0, it will use the previous key's value.
- *
  * The custom object can also contain a "type" key, which can be used to specify
  * the type of the value. The default type is "Uint8Array", "number" converts it to a number
  * and "str" to a string (ISO-8859-1).
@@ -61,6 +59,23 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
 };
 
 
+/**
+ * Mapping for the audio header (.waa, .wac, .wad, .wam).
+ * https://www.youtube.com/watch?v=udbA7u1zYfc
+ */
 export const MpAudioHeader: NsMappings.IsMapping = {
-
+    headerSize: { position: 0, length: 0 },
+    chunkID: { position: 0, type: "str" },
+    chunkSize: { position: 4, type: "number" },
+    format: { position: 8, type: "str" },
+    subChunk1ID: { position: 12, type: "str" },
+    subChunk1Size: { position: 16, type: "number" },
+    codec: { position: 20, length: 2, type: "number" },
+    numChannels: { position: 22, length: 2, type: "number" },
+    sampleRate: { position: 24, type: "number" },
+    byteRate: { position: 28, type: "number" },
+    blockAlign: { position: 32, length: 2, type: "number" },
+    bitsPerSample: { position: 34, length: 2, type: "number" },
+    subChunk2ID: { position: 38, type: "str" },
+    subChunk2Size: { position: 42, type: "number" }
 };

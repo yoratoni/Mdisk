@@ -64,7 +64,9 @@ export default class Cache {
      * Closes the file.
      */
     public closeFile() {
-        closeFile(this._file);
+        if (this._file) {
+            closeFile(this._file);
+        }
     }
 
     /**
