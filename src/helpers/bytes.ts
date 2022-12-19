@@ -293,6 +293,8 @@ export function generateByteObjectFromMapping(
                     case "number":
                         res = convertUint8ArrayToNumber(rawRes, littleEndian);
                         break;
+                    case "signed":
+                        res = convertUint8ArrayToSignedNumber(rawRes, littleEndian);
                 }
             } else {
                 res = rawRes;

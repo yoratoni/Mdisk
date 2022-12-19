@@ -1,5 +1,7 @@
 declare namespace NsAudio {
-    interface IsMsadpcmState {
-        //
+    interface IsMsadpcmHeader {
+        predictor: number;
+        delta: number;
+        samples: number;
     }
 }

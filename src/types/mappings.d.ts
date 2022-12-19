@@ -5,7 +5,7 @@ declare namespace NsMappings {
     interface IsPreciseMapping {
         position: number;
         length?: number;
-        type?: "str" | "hex" | "number";
+        type?: "str" | "hex" | "number" | "signed";
     }
 
     /**

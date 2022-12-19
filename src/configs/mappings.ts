@@ -60,7 +60,7 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
 
 
 /**
- * Mapping for the audio header (.waa, .wac, .wad, .wam).
+ * Mapping for the audio (MS-ADPCM) header (.waa, .wac, .wad, .wam).
  * https://www.youtube.com/watch?v=udbA7u1zYfc
  */
 export const MpAudioHeader: NsMappings.IsMapping = {
@@ -68,14 +68,14 @@ export const MpAudioHeader: NsMappings.IsMapping = {
     chunkID: { position: 0, type: "str" },
     chunkSize: { position: 4, type: "number" },
     format: { position: 8, type: "str" },
-    subChunk1ID: { position: 12, type: "str" },
-    subChunk1Size: { position: 16, type: "number" },
+    fmtBlockID: { position: 12, type: "str" },
+    fmtBlockSize: { position: 16, type: "number" },
     codec: { position: 20, length: 2, type: "number" },
     numChannels: { position: 22, length: 2, type: "number" },
     sampleRate: { position: 24, type: "number" },
     byteRate: { position: 28, type: "number" },
-    blockAlign: { position: 32, length: 2, type: "number" },
+    dataBlockAlign: { position: 32, length: 2, type: "number" },
     bitsPerSample: { position: 34, length: 2, type: "number" },
-    subChunk2ID: { position: 38, type: "str" },
-    subChunk2Size: { position: 42, type: "number" }
+    dataBlockID: { position: 38, type: "str" },
+    dataBlockSize: { position: 42, type: "number" }
 };
