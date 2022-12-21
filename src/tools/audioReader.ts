@@ -106,8 +106,8 @@ function readAudioDataBlock(
         const mapping: NsMappings.IsMapping = {
             predictor: { position: i, length: 1, type: "number" },
             delta: { position: i * 2 + numChannels, length: 2, type: "signed" },
-            sample1: { position: i * 2 + 3 * numChannels, length: 2, type: "number" },
-            sample2: { position: i * 2 + 5 * numChannels, length: 2, type: "number" }
+            sample1: { position: i * 2 + 3 * numChannels, length: 2, type: "signed" },
+            sample2: { position: i * 2 + 5 * numChannels, length: 2, type: "signed" }
         };
 
         const blockHeader = generateByteObjectFromMapping(rawBlock, mapping);
@@ -213,7 +213,7 @@ function decodeAudioData(
     dataBlockAlign: number,
     dataBlockSize: number
 ) {
-    const numBlocks = Math.ceil(dataBlockSize / dataBlockAlign);
+    const numBlocks = 3;// Math.ceil(dataBlockSize / dataBlockAlign);
 
     const output: number[] = [];
 
@@ -222,7 +222,13 @@ function decodeAudioData(
 
         // For each channel -> data block
         for (let i = 0; i < channelBlocks.length; i++) {
+            console.log(channelBlocks[i]);
+
             const block = decodeBlockSamples(channelBlocks[i]);
+
+            console.log(
+                convertNumberArrayToHexString(block)
+            );
 
             // Add the decoded samples to the output
             // Note that we can't directly use push(...block)
@@ -293,10 +299,10 @@ export function AudioFileExtractor(audioFilePath: string, outputDirPath: string)
         header.data.dataBlockSize as number
     );
 
-    generateAudioData(
-        header,
-        decodedData
-    );
+    // generateAudioData(
+    //     header,
+    //     decodedData
+    // );
 
     cache.closeFile();
 }
