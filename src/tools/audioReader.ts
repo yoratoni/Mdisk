@@ -1,12 +1,9 @@
 import fs from "fs";
-import { Readable } from "stream";
-
-import Speaker from "speaker";
 
 import Cache from "classes/cache";
 import { AUDIO_MS_ADPCM_TABLES , CHUNK_SIZE } from "configs/constants";
 import { MpAudioHeader } from "configs/mappings";
-import { convertNumberArrayToHexString, generateByteObjectFromMapping } from "helpers/bytes";
+import { generateByteObjectFromMapping } from "helpers/bytes";
 import { checkFileExtension } from "helpers/files";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
@@ -47,7 +44,7 @@ function readAudioHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
 
     header.data.headerSize = headerSize;
 
-    if (header.data.chunkID !== "RIFF" || header.data.format !== "WAVE") {
+    if (header.data.fileID !== "RIFF" || header.data.format !== "WAVE") {
         throw new Error("Invalid audio file format (RIFF/WAVE)");
     }
 
@@ -213,7 +210,7 @@ function decodeAudioData(
     dataBlockAlign: number,
     dataBlockSize: number
 ) {
-    const numBlocks = 3;// Math.ceil(dataBlockSize / dataBlockAlign);
+    const numBlocks = Math.ceil(dataBlockSize / dataBlockAlign);
 
     const output: number[] = [];
 
@@ -222,13 +219,7 @@ function decodeAudioData(
 
         // For each channel -> data block
         for (let i = 0; i < channelBlocks.length; i++) {
-            console.log(channelBlocks[i]);
-
             const block = decodeBlockSamples(channelBlocks[i]);
-
-            console.log(
-                convertNumberArrayToHexString(block)
-            );
 
             // Add the decoded samples to the output
             // Note that we can't directly use push(...block)
@@ -246,18 +237,37 @@ function decodeAudioData(
  * Generates the extracted PCM data (including the header) to an output Uint8Array.
  * @param header The audio file header.
  * @param data The decoded audio data.
+ * @link http://soundfile.sapp.org/doc/WaveFormat/
  */
 function generateAudioData(
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     data: number[]
 ) {
-    const dataBlockSize = data.length * 2;
+    const sampleRate = header.data.sampleRate as number;
+    const numChannels = header.data.numChannels as number;
 
-    console.log(dataBlockSize);
+    // 2 bytes per sample
+    header.data.dataBlockSize = data.length * 2;
 
-    const output = convertNumberArrayToHexString(data);
+    // 36 bytes for the header
+    header.data.fileSize = header.data.dataBlockSize + 36;
 
-    fs.writeFileSync("test.txt", output);
+    // Changing the fmt block size to 16 (removing the extra Jade Engine padding)
+    header.data.fmtBlockSize = 16;
+
+    // Changing the codec to PCM
+    header.data.codec = 1;
+
+    // Changing the bits per sample
+    header.data.bitsPerSample = 16;
+
+    // Changing the block align
+    header.data.dataBlockAlign = numChannels * (header.data.bitsPerSample / 8);
+
+    // Changing the byte rate
+    header.data.byteRate = (sampleRate * numChannels * header.data.bitsPerSample) / 8;
+
+    console.log(header);
 }
 
 /**
@@ -299,10 +309,10 @@ export function AudioFileExtractor(audioFilePath: string, outputDirPath: string)
         header.data.dataBlockSize as number
     );
 
-    // generateAudioData(
-    //     header,
-    //     decodedData
-    // );
+    generateAudioData(
+        header,
+        decodedData
+    );
 
     cache.closeFile();
 }

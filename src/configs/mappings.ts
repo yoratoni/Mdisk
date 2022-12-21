@@ -65,8 +65,8 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
  */
 export const MpAudioHeader: NsMappings.IsMapping = {
     headerSize: { position: 0, length: 0 },
-    chunkID: { position: 0, type: "str" },
-    chunkSize: { position: 4, type: "number" },
+    fileID: { position: 0, type: "str" },
+    fileSize: { position: 4, type: "number" },
     format: { position: 8, type: "str" },
     fmtBlockID: { position: 12, type: "str" },
     fmtBlockSize: { position: 16, type: "number" },
