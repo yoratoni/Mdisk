@@ -51,6 +51,12 @@ files are the root the extracted directory:
 - `*.wol` are useless prototypes made during development.
 
 
+Audio File
+----------
+It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed, I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program (yeah, I decided to not use any external lib).
+So, the goal was to convert from a custom `ADPCM` format to `PCM`, it is, of course, fully written in Typescript.
+
+
 File Format
 -----------
 Byte order is little endian and the character encoding seems to be ISO-8859-1.
@@ -67,4 +73,3 @@ Credits
 * Some info [here](https://raymanpc.com/forum/viewtopic.php?t=74804) that helped me to complete the list made by **Kapouett**.
 * I'm also using [ChatGPT](https://chat.openai.com/chat) to interpret some file structures.
 * I used [this file](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c) as a reference to extract audio files.
-* And [this video](https://www.youtube.com/watch?v=udbA7u1zYfc) to understand the WAV format.
