@@ -53,18 +53,26 @@ export function convertStringToUint8Array(string: string, littleEndian = true) {
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @param prefix Whether to add the "0x" prefix (defaults to true).
+ * @param separateBySpace Whether to separate the bytes by space (defaults to false).
  * @returns The hex string.
  */
 export function convertUint8ArrayToHexString(
     bytesArray: Uint8Array,
     littleEndian = true,
-    prefix = true
+    prefix = true,
+    separateBySpace = false
 ) {
     if (!littleEndian) {
         bytesArray = bytesArray.reverse();
     }
 
     const hex = bytesArray.reduce((acc, value) => acc + value.toString(16).padStart(2, "0"), "");
+
+    // Split the hex string into pairs of 2 characters
+    if (separateBySpace) {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return `${prefix ? "0x" : ""}${hex.match(/.{2}/g)!.join(" ")}`.toUpperCase();
+    }
 
     if (prefix) {
         return `0x${hex.toUpperCase()}`;
@@ -125,10 +133,11 @@ export function convertUint8ArrayToSignedNumber(bytesArray: Uint8Array, littleEn
 /**
  * Converts a number to an Uint8Array (limited to 4 bytes).
  * @param number The number.
+ * @param bytes The number of bytes (defaults to 4).
  * @returns The bytes array.
  */
-export function convertNumberToUint8Array(number: number) {
-    const bytesArray = new Uint8Array(4);
+export function convertNumberToUint8Array(number: number, bytes = 4) {
+    const bytesArray = new Uint8Array(bytes);
 
     for (let i = bytesArray.length - 1; i >= 0; i--) {
         bytesArray[i] = number & 0xff;
@@ -160,6 +169,24 @@ export function convertUint8ArrayToHexStringArray(
     }
 
     return hexArray;
+}
+
+/**
+ * Converts a number array to an hex string separated by spaces.
+ * Mostly used for previewing the data.
+ * @param numberArray The number[] array to preview.
+ */
+export function convertNumberArrayToHexString(numberArray: number[]) {
+    const convertedData: string[] = [];
+
+    for (const sample of numberArray) {
+        const uint8Arr = convertNumberToUint8Array(sample, 2);
+        const hexStringArr = convertUint8ArrayToHexString(uint8Arr, false, false, true);
+
+        convertedData.push(hexStringArr);
+    }
+
+    return convertedData.join(" ");
 }
 
 /**
