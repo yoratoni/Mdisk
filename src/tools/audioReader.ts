@@ -1,13 +1,14 @@
-import fs from "fs";
+import fs from "fs";Object
 
 import Cache from "classes/cache";
 import { AUDIO_MS_ADPCM_TABLES , CHUNK_SIZE } from "configs/constants";
 import { MpAudioHeader } from "configs/mappings";
-import { generateByteObjectFromMapping } from "helpers/bytes";
+import { convertNumberToUint8Array, convertStringToUint8Array, generateByteObjectFromMapping } from "helpers/bytes";
 import { checkFileExtension } from "helpers/files";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
+import path from "path";
 
 
 /**
@@ -249,7 +250,7 @@ function generateAudioData(
     // 2 bytes per sample
     header.data.dataBlockSize = data.length * 2;
 
-    // 36 bytes for the header
+    // 36 bytes for the subheader
     header.data.fileSize = header.data.dataBlockSize + 36;
 
     // Changing the fmt block size to 16 (removing the extra Jade Engine padding)
@@ -267,7 +268,50 @@ function generateAudioData(
     // Changing the byte rate
     header.data.byteRate = (sampleRate * numChannels * header.data.bitsPerSample) / 8;
 
-    console.log(header);
+    /*
+     * =====================
+     * Generating the header
+     * =====================
+     */
+
+    const headerArray: Uint8Array[] = [];
+
+    // Generate the header (as a Uint8Array)
+    // Manually done because the header is not a simple mapping
+    headerArray.push(
+        convertStringToUint8Array(header.data.fileID as string),
+        convertNumberToUint8Array(header.data.fileSize as number, 4, false),
+        convertStringToUint8Array(header.data.format as string),
+        convertStringToUint8Array(header.data.fmtBlockID as string),
+        convertNumberToUint8Array(header.data.fmtBlockSize as number, 4, false),
+        convertNumberToUint8Array(header.data.codec as number, 2, false),
+        convertNumberToUint8Array(header.data.numChannels as number, 2, false),
+        convertNumberToUint8Array(header.data.sampleRate as number, 4, false),
+        convertNumberToUint8Array(header.data.byteRate as number, 4, false),
+        convertNumberToUint8Array(header.data.dataBlockAlign as number, 2, false),
+        convertNumberToUint8Array(header.data.bitsPerSample as number, 2, false),
+        convertStringToUint8Array(header.data.dataBlockID as string),
+        convertNumberToUint8Array(header.data.dataBlockSize as number, 4, false)
+    );
+
+    const headerOutput = Buffer.concat(headerArray);
+
+    /*
+     * ===================
+     * Generating the data
+     * ===================
+     */
+
+    const dataArray: Uint8Array[] = [];
+
+    // Generate the data (as a Uint8Array)
+    for (const sample of data) {
+        dataArray.push(convertNumberToUint8Array(sample, 2, false));
+    }
+
+    const dataOutput = Buffer.concat(dataArray);
+
+    return Buffer.concat([headerOutput, dataOutput]);
 }
 
 /**
@@ -309,10 +353,17 @@ export function AudioFileExtractor(audioFilePath: string, outputDirPath: string)
         header.data.dataBlockSize as number
     );
 
-    generateAudioData(
+    const finalData = generateAudioData(
         header,
         decodedData
     );
+
+    const outputFilePath = path.join(
+        outputDirPath,
+        path.basename(audioFilePath, path.extname(audioFilePath)) + ".wav"
+    );
+
+    fs.writeFileSync(outputFilePath, finalData);
 
     cache.closeFile();
 }

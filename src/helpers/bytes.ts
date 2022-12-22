@@ -134,14 +134,19 @@ export function convertUint8ArrayToSignedNumber(bytesArray: Uint8Array, littleEn
  * Converts a number to an Uint8Array (limited to 4 bytes).
  * @param number The number.
  * @param bytes The number of bytes (defaults to 4).
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @returns The bytes array.
  */
-export function convertNumberToUint8Array(number: number, bytes = 4) {
+export function convertNumberToUint8Array(number: number, bytes = 4, littleEndian = true) {
     const bytesArray = new Uint8Array(bytes);
 
     for (let i = bytesArray.length - 1; i >= 0; i--) {
         bytesArray[i] = number & 0xff;
         number = number >> 8;
+    }
+
+    if (!littleEndian) {
+        return bytesArray.reverse();
     }
 
     return bytesArray;
