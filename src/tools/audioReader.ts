@@ -1,4 +1,5 @@
-import fs from "fs";Object
+import fs from "fs";
+import path from "path";
 
 import Cache from "classes/cache";
 import { AUDIO_MS_ADPCM_TABLES , CHUNK_SIZE } from "configs/constants";
@@ -8,7 +9,6 @@ import { checkFileExtension } from "helpers/files";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
-import path from "path";
 
 
 /**
