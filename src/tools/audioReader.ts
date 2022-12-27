@@ -69,9 +69,9 @@ function readFileHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
     );
 
     // Jade Engine V1 loops by extension, try to detect incorrectly looped jingles (too short)
-    // < 15s is generally too short for a looped jingle
+    // < 30s is generally too short for a looped jingle
     const sampleRate = header.data.sampleRate as number;
-    header.data.loopFlag = loopFlag && header.data.samples >= 15 * sampleRate;
+    header.data.loopFlag = loopFlag && header.data.samples >= 30 * sampleRate;
 
     header.data.loopStart = 0;
     header.data.loopEnd = header.data.samples;
