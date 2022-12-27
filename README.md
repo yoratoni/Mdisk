@@ -53,8 +53,18 @@ files are the root the extracted directory:
 
 Audio File
 ----------
-It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed, I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program (yeah, I decided to not use any external lib).
-So, the goal was to convert from a custom `ADPCM` format to `PCM`, it is, of course, fully written in Typescript.
+It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed, I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program.
+
+So, the goal was to convert from a custom `ADPCM` format to `PCM`, it is, of course, fully written in Typescript, without any audio library..
+
+Now, it is common for some game sounds to have looping information, as an example, an ambient sound
+will be played in a loop. In BG&E, the fact that the file should be played in a loop is simply described by the file extension, mostly `.waa` and `.wam`, so I added the looping information for these two file extensions, but these songs are not looped 100% of the time.
+
+As an example, the song `Cine_M_atterrissage beluga fin.waa` is not really played as a loop, but it's still a `.waa` file, so, I decided to declare as non-looped all the sounds that have a duration of less than 30 seconds.
+
+Looping information is stored inside the name of the `.wav` file: `beluga_demo_0.00_17.99.wav`.
+
+
 
 
 File Format
