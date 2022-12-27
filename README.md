@@ -15,7 +15,7 @@ of the byte into the currently loaded chunk).
 The `Cache` class allows to load a file, close it and read bytes while updating the chunk if necessary.
 
 There's also a ton of helper functions that are used to do different stuff such as conversions,
-reading N bytes etc.. Most of the values extracted from files are represented as Typescript's `Uint8Array`.
+reading N bytes etc.. Most of the values extracted from files are represented as Node's `Uint8Array` / `number[]`.
 
 
 Support
@@ -27,7 +27,7 @@ Support
 | `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **SUPPORTED**               |
 | `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
-| `.bin`  | Binary files      | **WORK IN PROGRESS**        |
+| `.bin`  | Binary files      | **-----------------------** |
 | `.wol`  | Prototypes ?      | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
 | `.oin`  | Binarized actions | **-----------------------** |
