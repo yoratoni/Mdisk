@@ -337,6 +337,7 @@ function generateAudioData(
 
 /**
  * Main function for reading audio files (.waa, .wac, .wad, .wam).
+ * Converts the audio file to a PCM audio file (WAV).
  * @param audioFilePath The absolute path to the audio file.
  * @param outputDirPath The absolute path to the output directory.
  * @link https://wiki.multimedia.cx/index.php/Microsoft_ADPCM
