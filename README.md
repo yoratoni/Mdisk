@@ -26,8 +26,8 @@ Support
 | `.bf`   | Big File          | **SUPPORTED**               |
 | `.bik`  | Video             | **ALREADY WORKING**         |
 | `.wa*`  | Audio             | **SUPPORTED**               |
-| `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
+| `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.wol`  | Prototypes ?      | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
 | `.oin`  | Binarized actions | **-----------------------** |
@@ -68,8 +68,16 @@ files containing some data, inside the root of the extracted directory:
 - `*.wol` are prototypes made during development.
 
 
-Audio File
-----------
+Video Files
+-----------
+These did not require any work, `.bik` files are actually already readable using VLC media player.
+
+Some of these files are actually only used as "frames" or something like that, only a few kiloBytes,
+but yeah, you can read them and convert them, so I didn't have that much to do.
+
+
+Audio Files
+-----------
 It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed,
 I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program.
 
@@ -86,6 +94,33 @@ so, I decided to declare as non-looped all the sounds that have a duration of le
 Looping information is stored inside the name of the `.wav` file: `beluga_demo_0.00_17.99.wav`.
 
 
+30987531-29349131
+61449974-56637174
+Trailer Files
+-------------
+I suppose, for now, that these files are actually some trailer videos or something like that.
+There's only 4 of these files inside the Big File, they all ends with `NTSC` and `PAL`.
+
+Note that `NTSC` data are uncompressed, compared to `PAL`, this can be seen inside the
+uncompressed data size field, if the file size == the uncompressed data size (- 2004), it uses `NTSC`.
+
+An `*.mtx` file seems to contain a table that starts  just after the header,
+after that, a big padding containing only 0x00 separates the actual data from the table.
+
+Here's a table containing what I found out about the file header:
+
+| Size | Type | `NTSC`      | `PAL`       | Description                              |
+|------|------|-------------|-------------|------------------------------------------|
+| 4    | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
+| 4    | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
+| 4    | ?    | 28 10 FF 01 | 28 20 65 02 | Uncompressed data size (- 0x07D4)        |
+| 4    | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table and data           |
+| 4    | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
+| 4    | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
+| 4    | ?    | 02 00 00 00 | -- -- -- -- | ?                                        |
+| 4    | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
+| 4    | ?    | 00 7D 00 00 | 00 7D 00 00 | Depends on one video no matter the codec |
+| 4    | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
 
 
 File Format
