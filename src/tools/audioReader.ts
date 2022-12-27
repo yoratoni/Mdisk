@@ -96,8 +96,8 @@ function convertSamplesToNibbles(rawSamples: Uint8Array) {
 }
 
 /**
- * Reads an unique MS-ADPCM audio block returning an array
- * the data for each channel, including the samples (not filtered).
+ * Reads an unique MS-ADPCM audio block returning an array containing
+ * the data for each channel, including the nibbles (not filtered).
  * Note that this function supports any number of channels.
  * @param cache Initialized cache class.
  * @param header The audio file header.
@@ -157,7 +157,7 @@ function readDataBlock(
 
 /**
  * Takes a formatted block as an argument and returns the decoded samples.
- * Note that this function supports only two channels.
+ * Note that this function supports any number of channels.
  * @param channelBlock The channel-block to decode.
  * @returns The decoded samples.
  */
