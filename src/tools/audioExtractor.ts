@@ -336,7 +336,7 @@ function generateAudioData(
 }
 
 /**
- * Main function for reading audio files (.waa, .wac, .wad, .wam).
+ * Main function for reading/extracting audio files (.waa, .wac, .wad, .wam).
  * Converts the audio file to a PCM audio file (WAV).
  * @param audioFilePath The absolute path to the audio file.
  * @param outputDirPath The absolute path to the output directory.
@@ -344,7 +344,7 @@ function generateAudioData(
  * @link https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c
  * @link https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js
  */
-export function AudioFileExtractor(audioFilePath: string, outputDirPath: string) {
+export function AudioExtractor(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {
         throw new Error(`The audio file doesn't exist: ${audioFilePath}`);
     }
