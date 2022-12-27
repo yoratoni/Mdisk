@@ -94,8 +94,6 @@ so, I decided to declare as non-looped all the sounds that have a duration of le
 Looping information is stored inside the name of the `.wav` file: `beluga_demo_0.00_17.99.wav`.
 
 
-30987531-29349131
-61449974-56637174
 Trailer Files
 -------------
 I suppose, for now, that these files are actually some trailer videos or something like that.
