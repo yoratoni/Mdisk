@@ -14,7 +14,7 @@ export const VERBOSE = true;
 export const LOGGER_PREFIX = ">";
 
 /**
- * Audio MS-ADPCM coefficient tables.
+ * Audio MS-ADPCM tables.
  */
 export const AUDIO_MS_ADPCM_TABLES = {
     adaptationTable: [

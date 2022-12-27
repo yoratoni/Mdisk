@@ -4,7 +4,11 @@ import path from "path";
 import Cache from "classes/cache";
 import { AUDIO_MS_ADPCM_TABLES , CHUNK_SIZE } from "configs/constants";
 import { MpAudioHeader } from "configs/mappings";
-import { convertNumberToUint8Array, convertStringToUint8Array, generateByteObjectFromMapping } from "helpers/bytes";
+import {
+    convertNumberToUint8Array,
+    convertStringToUint8Array,
+    generateByteObjectFromMapping
+} from "helpers/bytes";
 import { checkFileExtension } from "helpers/files";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
@@ -39,7 +43,7 @@ function convertMsadpcmBytesToSamples(dataBlockSize: number, dataBlockAlign: num
  * @param headerSize The size of the header (defaults to 46 bytes).
  * @returns The formatted header.
  */
-function readAudioHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
+function readFileHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
     const rawHeader = cache.readBytes(0, headerSize);
     const header = generateByteObjectFromMapping(rawHeader, MpAudioHeader);
 
@@ -76,8 +80,24 @@ function readAudioHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
 }
 
 /**
+ * Converts a byte array of samples to an array of nibbles (UPPER - LOWER).
+ * @param rawSamples The byte array of samples.
+ * @returns The array of nibbles.
+ */
+function convertSamplesToNibbles(rawSamples: Uint8Array) {
+    const nibbles: number[] = [];
+
+    for (let i = 0; i < rawSamples.length; i++) {
+        nibbles.push(rawSamples[i] >> 4);  // Upper nibble
+        nibbles.push(rawSamples[i] & 0xF);  // Lower nibble
+    }
+
+    return nibbles;
+}
+
+/**
  * Reads an unique MS-ADPCM audio block returning an array
- * where each value are the data for a channel (stereo, etc..).
+ * the data for each channel, including the samples (not filtered).
  * Note that this function supports any number of channels.
  * @param cache Initialized cache class.
  * @param header The audio file header.
@@ -85,7 +105,7 @@ function readAudioHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
  * @param dataBlockAlign The size of one data block.
  * @returns The formatted MS-ADPCM audio data (array -> each value = channel).
  */
-function readAudioDataBlock(
+function readDataBlock(
     cache: Cache,
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     dataBlockNumber: number,
@@ -111,6 +131,10 @@ function readAudioDataBlock(
         const blockHeader = generateByteObjectFromMapping(rawBlock, mapping);
         const blockHeaderSize = numChannels * 7;
 
+        // Records the channel number & numChannels
+        blockHeader.data.channel = i;
+        blockHeader.data.numChannels = numChannels;
+
         // The predictor is in the range 0 to 6
         blockHeader.data.predictor = clamp(blockHeader.data.predictor as number, 0, 6);
 
@@ -122,10 +146,8 @@ function readAudioDataBlock(
         // Note: don't remove blockHeaderSize from the length
         const rawSamples = rawBlock.slice(blockHeaderSize, dataBlockAlign);
 
-        // Filter the samples for the current channel
-        blockHeader.data.samples = rawSamples.filter((_, index) => {
-            return index % numChannels === i;
-        });
+        // Convert the samples to nibbles
+        blockHeader.data.nibbles = convertSamplesToNibbles(rawSamples);
 
         channelBlocks.push(blockHeader);
     }
@@ -134,63 +156,61 @@ function readAudioDataBlock(
 }
 
 /**
- * Takes a formatted block as an argument and returns the decoded samples,
- * note that the input blocks should already be separated by channel.
- * @param block The mono-block to decode.
+ * Takes a formatted block as an argument and returns the decoded samples.
+ * Note that this function supports only two channels.
+ * @param channelBlock The channel-block to decode.
  * @returns The decoded samples.
  */
-function decodeBlockSamples(
-    block: NsBytes.IsMappingByteObjectResultWithEmptiness
+function decodeChannelSamples(
+    channelBlock: NsBytes.IsMappingByteObjectResultWithEmptiness
 ) {
-    const coeff1 = block.data.coeff1 as number;
-    const coeff2 = block.data.coeff2 as number;
-    const samples = block.data.samples as Uint8Array;
-    let delta = block.data.delta as number;
-    let sample1 = block.data.sample1 as number;
-    let sample2 = block.data.sample2 as number;
+    const numChannels = channelBlock.data.numChannels as number;
+    const channel = channelBlock.data.channel as number;
+    const coeff1 = channelBlock.data.coeff1 as number;
+    const coeff2 = channelBlock.data.coeff2 as number;
+    const nibbles = channelBlock.data.nibbles as number[];
+
+    let delta = channelBlock.data.delta as number;
+    let sample1 = channelBlock.data.sample1 as number;
+    let sample2 = channelBlock.data.sample2 as number;
 
     const output: number[] = [];
 
-    // The initial 2 samples from the block preamble are sent directly to the output.
+    // The initial 2 samples from the channelBlock preamble are sent directly to the output.
     // Sample 2 is first, then sample 1.
     output[0] = sample2;
     output[1] = sample1;
 
-    for (let i = 0; i < samples.length; i++) {
-        const nibbles = [
-            samples[i] >> 4,  // High nibble
-            samples[i] & 0x0f  // Low nibble
-        ];
+    // Decode the remaining samples
+    // Note: the loop filters out the samples for the current channel
+    for (let i = channel; i < nibbles.length; i += numChannels) {
+        const nibble = nibbles[i];
 
-        // Though RIFFNEW writes "predictor / 256" (DIV), msadpcm.c uses "predictor >> 8" (SHR).
-        // They may seem the same but on negative values SHR gets different results
-        // (-128 / 256 = 0; -128 >> 8 = -1) = some output diffs.
-        for (const nibble of nibbles) {
-            const signed = 8 <= nibble ? nibble - 16 : nibble;
+        // Convert the nibble to a signed integer
+        const signed = nibble >= 8 ? nibble - 16 : nibble;
 
-            // Calculate the predictor
-            let predictor = (coeff1 * sample1 + coeff2 * sample2) >> 8;
-            predictor += signed * delta;
+        // Calculate the predictor
+        let predictor = (coeff1 * sample1 + coeff2 * sample2) >> 8;
+        predictor += signed * delta;
 
-            // Clamp the predictor to the range [-32768, 32767]
-            predictor = clamp(predictor, -32768, 32767);
+        // Clamp the predictor to the range [-32768, 32767]
+        predictor = clamp(predictor, -32768, 32767);
 
-            // Round the predictor to the nearest integer
-            predictor = Math.floor(predictor);
+        // Floor the predictor to the nearest integer
+        predictor = Math.floor(predictor);
 
-            // Add the predictor to the output
-            output.push(predictor);
+        // Add the predictor to the output
+        output.push(predictor);
 
-            // Shift the samples
-            sample2 = sample1;
-            sample1 = predictor;
+        // Shift the samples
+        sample2 = sample1;
+        sample1 = predictor;
 
-            // Adapt the delta
-            delta = Math.floor((delta * AUDIO_MS_ADPCM_TABLES.adaptationTable[nibble]) >> 8);
+        // Adapt the delta
+        delta = Math.floor((delta * AUDIO_MS_ADPCM_TABLES.adaptationTable[nibble & 0xF]) >> 8);
 
-            // Saturate the delta to lower bound of 16
-            delta = Math.max(delta, 16);
-        }
+        // Saturate the delta to lower bound of 16
+        delta = Math.max(delta, 16);
     }
 
     return output;
@@ -216,17 +236,18 @@ function decodeAudioData(
     const output: number[] = [];
 
     for (let i = 0; i < numBlocks; i++) {
-        const channelBlocks = readAudioDataBlock(cache, header, i, dataBlockAlign);
+        const channelBlocks = readDataBlock(cache, header, i, dataBlockAlign);
+        const allSamples: number[][] = [];
 
-        // For each channel -> data block
-        for (let i = 0; i < channelBlocks.length; i++) {
-            const block = decodeBlockSamples(channelBlocks[i]);
+        for (let j = 0; j < channelBlocks.length; j++) {
+            const channelSamples = decodeChannelSamples(channelBlocks[j]);
+            allSamples.push(channelSamples);
+        }
 
-            // Add the decoded samples to the output
-            // Note that we can't directly use push(...block)
-            // because it would exceed the maximum call stack size.
-            for (const sample of block) {
-                output.push(sample);
+        // Merge the channel samples together (interleaved)
+        for (let j = 0; j < allSamples[0].length; j++) {
+            for (let k = 0; k < allSamples.length; k++) {
+                output.push(allSamples[k][j]);
             }
         }
     }
@@ -319,6 +340,8 @@ function generateAudioData(
  * @param audioFilePath The absolute path to the audio file.
  * @param outputDirPath The absolute path to the output directory.
  * @link https://wiki.multimedia.cx/index.php/Microsoft_ADPCM
+ * @link https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c
+ * @link https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js
  */
 export function AudioFileExtractor(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {
@@ -338,10 +361,9 @@ export function AudioFileExtractor(audioFilePath: string, outputDirPath: string)
     // BG&E files don't contain looping information, so the looping is done by extension
     // wam and waa contain ambient sounds and music, so often they contain looped music,
     // later, if the file is too short looping will be disabled
-    // https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c
     const loopFlag = checkFileExtension(audioFilePath, [".waa", ".wam"]);
 
-    const header = readAudioHeader(
+    const header = readFileHeader(
         cache,
         loopFlag
     );

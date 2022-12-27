@@ -12,6 +12,37 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 }
 
 /**
+ * A debug function to convert an hex string to an array of numbers (int16).
+ * @param hexString The hex string to convert.
+ * @returns The array of numbers.
+ */
+export function convertHexStringToNumberArray(
+    hexString: string,
+    littleEndian = true
+) {
+    const hexArray = hexString.split(" ");
+    const numberArray: number[] = [];
+
+    for (let i = 0; i < hexArray.length; i += 2) {
+        let hexBytes = hexArray.slice(i, i + 2);
+
+        if (littleEndian) {
+            hexBytes = hexBytes.reverse();
+        }
+
+        let hex = parseInt(hexBytes.join(""), 16);
+
+        if (hex > 32767) {
+            hex -= 65536;
+        }
+
+        numberArray.push(hex);
+    }
+
+    return numberArray;
+}
+
+/**
  * Converts an Uint8Array to a string.
  *
  * Note that this function removes "0" from the array before conversion.
