@@ -24,7 +24,7 @@ Support
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
 | `.bf`   | Big File          | **SUPPORTED**               |
-| `.bik`  | Video             | **WORKING**                 |
+| `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **SUPPORTED**               |
 | `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
