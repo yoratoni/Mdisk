@@ -6,6 +6,7 @@
 **/exports
 archives/BigFile
 **/binary
+**/archives
 
 # IDE
 **/.vscode
