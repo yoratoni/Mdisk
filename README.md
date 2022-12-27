@@ -4,7 +4,7 @@ A tool for the game Beyond Good & Evil.
 
 Technical Summary
 -----------------
-This tool is build with TS-Node and Typescript, I made the whole thing fully scalable by creating
+This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
@@ -24,7 +24,7 @@ Support
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
 | `.bf`   | Big File          | **SUPPORTED**               |
-| `.bik`  | Video             | **ALREADY WORKING**         |
+| `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **SUPPORTED**               |
 | `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
 | `.bin`  | Binary files      | **WORK IN PROGRESS**        |
@@ -133,7 +133,7 @@ be a signed 32bit integer and the value is -1).
 
 Credits
 -------
-* Most of the information about general parsing comes from this [documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
+* Most of the information about general parsing comes from [this documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
 * Another good source of information comes from [this repository](https://github.com/panzi/bgebf) made by **panzi**.
 * There's also this mysterious [quickBMS script](https://zenhax.com/viewtopic.php?t=2478&start=80) wrote by **AnonBaiter**
 * Some info [here](https://raymanpc.com/forum/viewtopic.php?t=74804) that helped me to complete the list made by **Kapouett**.
