@@ -102,7 +102,7 @@ There's only 4 of these files inside the Big File, they all ends with `NTSC` and
 Note that `NTSC` data are uncompressed, compared to `PAL`, this can be seen inside the
 uncompressed data size field, if the file size == the uncompressed data size (- 2004), it uses `NTSC`.
 
-An `*.mtx` file seems to contain a table that starts  just after the header,
+A `*.mtx` file seems to contain a table that starts  just after the header,
 after that, a big padding containing only 0x00 separates the actual data from the table.
 
 Here's a table containing what I found out about the file header:
