@@ -40,8 +40,8 @@ Big File
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
 uncompressed.
 
-The whole extraction thing is now fully done, I also added the option to also export some JSON
-files in the root of the extracted directory:
+The whole extraction thing is now fully done, I also added the option to export some JSON
+files containing some data, inside the root of the extracted directory:
 
 - `bigFileDirectoryMetadataTable` Metadata of each directory.
 - `bigFileFileMetadataTable` Metadata of the files.
