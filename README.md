@@ -18,6 +18,23 @@ There's also a ton of helper functions that are used to do different stuff such 
 reading N bytes etc.. Most of the values extracted from files are represented as Typescript's `Uint8Array`.
 
 
+Support
+-------
+
+| File    | Description       | Status                      |
+|---------|-------------------|-----------------------------|
+| `.bf`   | Big File          | **SUPPORTED**               |
+| `.bik`  | Video             | **ALREADY WORKING**         |
+| `.wa*`  | Audio             | **SUPPORTED**               |
+| `.bin`  | Binary files      | **WORK IN PROGRESS**        |
+| `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
+| `.wol`  | Prototypes ?      | **-----------------------** |
+| `.ofc`  | Binarized actions | **-----------------------** |
+| `.oin`  | Binarized actions | **-----------------------** |
+| `.ova`  | Binarized actions | **-----------------------** |
+| `.omd`  | Binarized actions | **-----------------------** |
+
+
 Big File
 --------
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
@@ -53,14 +70,18 @@ files are the root the extracted directory:
 
 Audio File
 ----------
-It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed, I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program.
+It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed,
+I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program.
 
 So, the goal was to convert a custom `ADPCM` format to a `PCM` one, it is, of course, fully written in Typescript, without any audio library..
 
 Now, it is common for some game sounds to have looping information, as an example, an ambient sound
-will be played in a loop. In BG&E, the fact that the file should be played in a loop is simply described by the file extension, mostly `.waa` and `.wam`, so I added the looping information for these two file extensions, but these songs are not looped 100% of the time.
+will be played in a loop. In BG&E, the fact that the file should be played in a loop is simply described
+by the file extension, mostly `.waa` and `.wam`, so I added the looping information for these two file extensions,
+but these songs are not looped 100% of the time.
 
-As an example, the song `Cine_M_atterrissage beluga fin.waa` is not really played as a loop, but it's still a `.waa` file, so, I decided to declare as non-looped all the sounds that have a duration of less than 30 seconds.
+As an example, the song `Cine_M_atterrissage beluga fin.waa` is not really played as a loop, but it's still a `.waa` file,
+so, I decided to declare as non-looped all the sounds that have a duration of less than 30 seconds.
 
 Looping information is stored inside the name of the `.wav` file: `beluga_demo_0.00_17.99.wav`.
 
