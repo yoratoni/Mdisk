@@ -55,7 +55,7 @@ Audio File
 ----------
 It took much more time than I thought, but now, `.wa*` audio files can be decoded and decompressed, I used [VgmStream](https://github.com/vgmstream/vgmstream) to extract a test file and compare the data with my own program.
 
-So, the goal was to convert from a custom `ADPCM` format to `PCM`, it is, of course, fully written in Typescript, without any audio library..
+So, the goal was to convert a custom `ADPCM` format to a `PCM` one, it is, of course, fully written in Typescript, without any audio library..
 
 Now, it is common for some game sounds to have looping information, as an example, an ambient sound
 will be played in a loop. In BG&E, the fact that the file should be played in a loop is simply described by the file extension, mostly `.waa` and `.wam`, so I added the looping information for these two file extensions, but these songs are not looped 100% of the time.
