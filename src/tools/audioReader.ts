@@ -381,9 +381,27 @@ export function AudioFileExtractor(audioFilePath: string, outputDirPath: string)
         decodedData
     );
 
+    // Add the loop data to the name
+    let filename = path.basename(audioFilePath, path.extname(audioFilePath));
+
+    if (header.data.loopFlag) {
+        const loopStart = header.data.loopStart as number;
+        const loopEnd = header.data.loopEnd as number;
+
+        const loopStartSeconds = loopStart / (header.data.sampleRate as number);
+        const loopEndSeconds = loopEnd / (header.data.sampleRate as number);
+
+        const loopStartString = loopStartSeconds.toFixed(2);
+        const loopEndString = loopEndSeconds.toFixed(2);
+
+        const loopString = `_${loopStartString}_${loopEndString}`;
+
+        filename += loopString;
+    }
+
     const outputFilePath = path.join(
         outputDirPath,
-        path.basename(audioFilePath, path.extname(audioFilePath)) + ".wav"
+        filename + ".wav"
     );
 
     fs.writeFileSync(outputFilePath, finalData);
