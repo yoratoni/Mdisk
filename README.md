@@ -48,7 +48,7 @@ files are the root the extracted directory:
 - `*.ofc` are binarized functions to perform specific actions.
 - `*.oin` ?
 - `*.ova` ?
-- `*.wol` are useless prototypes made during development.
+- `*.wol` are prototypes made during development.
 
 
 Audio File
