@@ -38,7 +38,7 @@ Support
 Big File
 --------
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
-uncompressed.
+not compressed.
 
 The whole extraction thing is now fully done, I also added the option to export some JSON
 files containing some data, inside the root of the extracted directory:
@@ -99,8 +99,8 @@ Trailer Files
 I suppose, for now, that these files are actually some trailer videos or something like that.
 There's only 4 of these files inside the Big File, they all ends with `NTSC` and `PAL`.
 
-Note that `NTSC` data are uncompressed, compared to `PAL`, this can be seen inside the
-uncompressed data size field, if the file size == the uncompressed data size (- 2004), it uses `NTSC`.
+Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
+decompressed data size field, if the file size == the decompressed data size (- 2004), it uses `NTSC`.
 
 A `*.mtx` file seems to contain a table that starts  just after the header,
 after that, a big padding containing only 0x00 separates the actual data from the table.
@@ -111,7 +111,7 @@ Here's a table containing what I found out about the file header:
 |------|------|-------------|-------------|------------------------------------------|
 | 4    | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
 | 4    | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
-| 4    | ?    | 28 10 FF 01 | 28 20 65 02 | Uncompressed data size (- 0x07D4)        |
+| 4    | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed data size (- 0x07D4)        |
 | 4    | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table and data           |
 | 4    | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
 | 4    | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
