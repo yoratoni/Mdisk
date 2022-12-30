@@ -120,6 +120,7 @@ Here's a table containing what I found out about the file header:
 | 4    | ?    | 00 7D 00 00 | 00 7D 00 00 | Depends on one video no matter the codec |
 | 4    | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
 
+**Zeli** also gave some piece of information, he suppose that these files actually from old **Matrox** video capture cards.
 
 File Format
 -----------
