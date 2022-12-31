@@ -8,14 +8,7 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
-The `Pointer` class allows to work with an absolute pointer (position into file),
-a chunk pointer (chunk number) and a byte pointer (which corresponds to the position
-of the byte into the currently loaded chunk).
-
-The `Cache` class allows to load a file, close it and read bytes while updating the chunk if necessary.
-
-There's also a ton of helper functions that are used to do different stuff such as conversions,
-reading N bytes etc.. Most of the values extracted from files are represented as Node's `Uint8Array` / `number[]`.
+Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
 
 
 Support
@@ -66,6 +59,15 @@ files containing some data, inside the root of the extracted directory:
 - `*.oin` ?
 - `*.ova` ?
 - `*.wol` are prototypes made during development.
+
+
+BGE Executable
+--------------
+It's pretty hard to do, but in certain ways, an executable can actually be reverse engineered,
+it could help me to reverse engineer the rest of the files.
+
+The last Steam version of BG&E seems to be compiled with Microsoft Visual C/C++ (2003),
+with a WinAuth certificate (2.0) [PKCS #7].
 
 
 Video Files
@@ -154,14 +156,6 @@ About the last data set, it's a bit .. complicated, it is actually not 1,867,776
 but 1,332,496 bytes long, with 537,284 `0x00` bytes, so 1,869,780 bytes long in total,
 when 2004 is removed from this result (value obtained when I compare the size of the file with the size
 inside the header), we also obtain 1,867,776 bytes long which corresponds to the size of one block.
-
-
-File Format
------------
-Byte order is little endian and the character encoding seems to be ISO-8859-1.
-A value of 0xFFFFFFFF for any field denoting an index is a "null pointer". E.g.
-the root directory has a parent directory index of 0xFFFFFFFF. (It might actually
-be a signed 32bit integer and the value is -1).
 
 
 Credits
