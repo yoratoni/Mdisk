@@ -115,20 +115,20 @@ The table values seems to generally start with `0x0C`, I suppose that the first 
 to indicate the type of block, but note that it's not always the case.
 A clue is that the second byte is generally `0x00`.
 
-Here's a table containing what I found out about the file header (from `MO_***.mtx`):
+Here's a table containing what I found out about the file header (for `MO_NTSC.mtx`):
 
-| Offset | Type | `NTSC`      | `PAL`       | Description                              |
-|--------|------|-------------|-------------|------------------------------------------|
-| 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic ("mtx ")                           |
-| 4      | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
-| 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed file size (-2004)           |
-| 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | The size of the padding & one data block |
-| 16     | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
-| 20     | ?    | 00 C8 00 00 | -- -- -- -- | Size of a table                          |
-| 24     | ?    | 02 00 00 00 | -- -- -- -- | ?                                        |
-| 28     | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
-| 32     | ?    | 00 7D 00 00 | -- -- -- -- | Certainly a sample rate / data rate      |
-| 36     | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
+| Offset | `NTSC`      | Value      | Description                              |
+|--------|-------------|------------|------------------------------------------|
+| 0      | 6D 74 78 20 | ---------- | Magic ("mtx ")                           |
+| 4      | 01 10 00 00 | 4097       | Possibly the format/version              |
+| 8      | 28 10 FF 01 | 33,493,032 | Decompressed file size (-2004)           |
+| 12     | 00 80 1C 00 | 1,867,776  | The size of the padding & one data block |
+| 16     | 0B D5 BF 01 | 29,349,131 | ?                                        |
+| 20     | 00 C8 00 00 | 51,200     | Size of a table                          |
+| 24     | 02 00 00 00 | 2          | ?                                        |
+| 28     | 00 80 0C 00 | 819,200    | ?                                        |
+| 32     | 00 7D 00 00 | 32,000     | Certainly a sample rate / data rate      |
+| 36     | 00 00 80 3F | ---------- | Last value of the header                 |
 
 Here's the table of each block (for `MO_NTSC.mtx`):
 
@@ -149,7 +149,6 @@ Here's the table of each block (for `MO_NTSC.mtx`):
 | 31,574,056 | 51,200     | Table H (0x0C & empty)                   |
 | 31,625,256 | 1,867,776  | A set of data                            |
 | 33,493,032 | 2,004      | Padding                                  |
-
 
 About the last data set, it's a bit .. complicated, it is actually not 1,867,776 bytes long
 but 1,332,496 bytes long, with 537,284 `0x00` bytes, so 1,869,780 bytes long in total,
