@@ -13,7 +13,6 @@ and data. The files can be read by chunks instead of a complete loading.
 
 Support
 -------
-
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
 | `.bf`   | Big File          | **SUPPORTED**               |
@@ -26,6 +25,17 @@ Support
 | `.oin`  | Binarized actions | **-----------------------** |
 | `.ova`  | Binarized actions | **-----------------------** |
 | `.omd`  | Binarized actions | **-----------------------** |
+
+
+Bin Support
+-----------
+| File    | Description        | Status                      |
+|---------|--------------------|-----------------------------|
+| `ff4*`  | Sound effects      | **-----------------------** |
+| `fe*`   | Sound headers      | **-----------------------** |
+| `fd*`   | Translated strings | **WORK IN PROGRESS**        |
+| `ff8*`  | Textures           | **-----------------------** |
+| `ff0*`  | Miscellaneous      | **-----------------------** |
 
 
 Big File

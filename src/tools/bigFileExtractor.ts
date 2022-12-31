@@ -245,7 +245,7 @@ function extractBigFile(
  * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to false).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export default function bigFileExtractor(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+export default function BigFileExtractor(bigFilePath: string, outputDirPath: string, exportJSON = false) {
     if (!fs.existsSync(bigFilePath)) {
         process.exit(1);
     }

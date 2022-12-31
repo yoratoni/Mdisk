@@ -24,3 +24,14 @@ export const AUDIO_MS_ADPCM_TABLES = {
     coeff1: [ 256, 512, 0, 192, 240, 460, 392 ],
     coeff2: [ 0, -256, 0, 64, 0, -208, -232 ]
 };
+
+/**
+ * The file types of the bin files.
+ */
+export const BIN_FILE_TYPES = {
+    "ff4": "SOUND_EFFECT",
+    "fe": "SOUND_HEADER",
+    "fd": "TRANSLATION",
+    "ff8": "TEXTURE",
+    "ff0": "MISCELLANEOUS"
+};

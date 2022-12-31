@@ -19,6 +19,15 @@ export function getAbsolutePath(relativePath: string): string {
 }
 
 /**
+ * Returns the name of the file.
+ * @param filePath The path to the file.
+ * @returns The name of the file.
+ */
+export function getFileName(filePath: string): string {
+    return path.basename(filePath);
+}
+
+/**
  * Checks if a file has a specific extension.
  * @param filePath The path to the file.
  * @param extension The extension to check.

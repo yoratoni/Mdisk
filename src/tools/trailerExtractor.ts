@@ -1,3 +1,3 @@
-export function TrailerExtractor() {
+export default function TrailerExtractor() {
     //
 }

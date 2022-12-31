@@ -344,7 +344,7 @@ function generateAudioData(
  * @link https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c
  * @link https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js
  */
-export function AudioExtractor(audioFilePath: string, outputDirPath: string) {
+export default function AudioExtractor(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {
         throw new Error(`The audio file doesn't exist: ${audioFilePath}`);
     }
