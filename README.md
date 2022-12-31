@@ -109,7 +109,7 @@ A `*.mtx` file seems to contain a table that starts just after the header,
 this table is always 19,000 bytes long.
 after that, a big padding containing only 0x00 separates the actual data from the table.
 
-Here's a table containing what I found out about the file header:
+Here's a table containing what I found out about the file header (from `MO_***.mtx`):
 
 | Offset | Type | `NTSC`      | `PAL`       | Description                              |
 |--------|------|-------------|-------------|------------------------------------------|
