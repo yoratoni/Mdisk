@@ -150,8 +150,6 @@ Here's the table of each block (for `MO_NTSC.mtx`):
 | 31,625,256 | 1,332,496  | A set of data                            |
 | 32,957,752 | 537,284    | Padding                                  |
 
-Each table is linked to a data set, so 51,200 bytes in total, there's two of these blocks inside each file,
-so, 102,400 bytes for a complete block.
 
 File Format
 -----------
