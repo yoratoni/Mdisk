@@ -98,27 +98,29 @@ Trailer Files
 -------------
 I suppose, for now, that these files are actually some trailer videos or something like that.
 There's only 4 of these files inside the Big File, they all ends with `NTSC` and `PAL`.
+Certainly some video captures done with a **Matrox** video capture card.
 
 Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
 decompressed data size field, if the file size == the decompressed data size (- 2004), it uses `NTSC`.
 
-A `*.mtx` file seems to contain a table that starts  just after the header,
+A `*.mtx` file seems to contain a table that starts just after the header,
+this table is always 19,000 bytes long.
 after that, a big padding containing only 0x00 separates the actual data from the table.
 
 Here's a table containing what I found out about the file header:
 
-| Size | Type | `NTSC`      | `PAL`       | Description                              |
-|------|------|-------------|-------------|------------------------------------------|
-| 4    | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
-| 4    | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
-| 4    | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed data size (- 0x07D4)        |
-| 4    | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table and data           |
-| 4    | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
-| 4    | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
-| 4    | ?    | 02 00 00 00 | -- -- -- -- | ?                                        |
-| 4    | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
-| 4    | ?    | 00 7D 00 00 | 00 7D 00 00 | Depends on one video no matter the codec |
-| 4    | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
+| Offset | Type | `NTSC`      | `PAL`       | Description                              |
+|--------|------|-------------|-------------|------------------------------------------|
+| 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
+| 4      | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
+| 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed data size (-2004)           |
+| 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table and data           |
+| 16     | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
+| 20     | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
+| 24     | ?    | 02 00 00 00 | -- -- -- -- | Certainly the code (MPEG-2 ?)            |
+| 28     | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
+| 32     | ?    | 00 7D 00 00 | 00 7D 00 00 | Depends on one video no matter the codec |
+| 36     | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
 
 
 File Format
