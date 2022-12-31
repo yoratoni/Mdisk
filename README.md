@@ -98,10 +98,12 @@ Trailer Files
 -------------
 I suppose, for now, that these files are actually some trailer videos or something like that.
 There's only 4 of these files inside the Big File, they all ends with `NTSC` and `PAL`.
-Certainly some video captures done with a **Matrox** video capture card.
+
+These files can be found inside `01 Texture Bank/Video Library/Trailer BGE`,
+so it seems possible that these files could be some video that can be set as textures inside of the game..
 
 Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
-decompressed data size field, if the file size == the decompressed data size (- 2004), it uses `NTSC`.
+decompressed file size field, if the file size == the decompressed file size (- 2004), it uses `NTSC`.
 
 A `*.mtx` file seems to contain a table that starts just after the header,
 this table is always 19,000 bytes long.
@@ -113,7 +115,7 @@ Here's a table containing what I found out about the file header:
 |--------|------|-------------|-------------|------------------------------------------|
 | 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
 | 4      | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
-| 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed data size (-2004)           |
+| 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed file size (-2004)           |
 | 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table and data           |
 | 16     | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
 | 20     | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
