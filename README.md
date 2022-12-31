@@ -61,15 +61,6 @@ files containing some data, inside the root of the extracted directory:
 - `*.wol` are prototypes made during development.
 
 
-BGE Executable
---------------
-It's pretty hard to do, but in certain ways, an executable can actually be reverse engineered,
-it could help me to reverse engineer the rest of the files.
-
-The last Steam version of BG&E seems to be compiled with Microsoft Visual C/C++ (2003),
-with a WinAuth certificate (2.0) [PKCS #7].
-
-
 Video Files
 -----------
 These did not require any work, `.bik` files are actually already readable using VLC media player.
