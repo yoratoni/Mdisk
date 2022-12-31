@@ -122,12 +122,12 @@ Here's a table containing what I found out about the file header (from `MO_***.m
 | 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic byte ("mtx ")                      |
 | 4      | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
 | 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed file size (-2004)           |
-| 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | Padding between table(s) and data        |
+| 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | The size of the padding & one data block |
 | 16     | ?    | 0B D5 BF 01 | F0 0E 23 02 | ?                                        |
-| 20     | ?    | 00 C8 00 00 | -- -- -- -- | Size of a table with its data            |
-| 24     | ?    | 02 00 00 00 | -- -- -- -- | Maybe be the number of table/data        |
+| 20     | ?    | 00 C8 00 00 | -- -- -- -- | Size of a table                          |
+| 24     | ?    | 02 00 00 00 | -- -- -- -- | ?                                        |
 | 28     | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
-| 32     | ?    | 00 7D 00 00 | -- -- -- -- | Depends on one video no matter the codec |
+| 32     | ?    | 00 7D 00 00 | -- -- -- -- | Certainly a sample rate / data rate      |
 | 36     | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
 
 Here's the table of each block (for `MO_NTSC.mtx`):
@@ -147,8 +147,14 @@ Here's the table of each block (for `MO_NTSC.mtx`):
 | 29,655,080 | 1,867,776  | A set of data                            |
 | 31,522,856 | 51,200     | Table G (0x0C & empty)                   |
 | 31,574,056 | 51,200     | Table H (0x0C & empty)                   |
-| 31,625,256 | 1,332,496  | A set of data                            |
-| 32,957,752 | 537,284    | Padding                                  |
+| 31,625,256 | 1,867,776  | A set of data                            |
+| 33,493,032 | 2,004      | Padding                                  |
+
+
+About the last data set, it's a bit .. complicated, it is actually not 1,867,776 bytes long
+but 1,332,496 bytes long, with 537,284 `0x00` bytes, so 1,869,780 bytes long in total,
+when 2004 is removed from this result (value obtained when I compare the size of the file with the size
+inside the header), we also obtain 1,867,776 bytes long which corresponds to the size of one block.
 
 
 File Format
