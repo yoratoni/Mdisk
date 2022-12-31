@@ -4,11 +4,11 @@ A tool for the game Beyond Good & Evil.
 
 Technical Summary
 -----------------
+Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
+
 This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
-
-Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
 
 
 Support
@@ -20,7 +20,7 @@ Support
 | `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **SUPPORTED**               |
 | `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
-| `.bin`  | Binary files      | **-----------------------** |
+| `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.wol`  | Prototypes ?      | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
 | `.oin`  | Binarized actions | **-----------------------** |
