@@ -119,7 +119,7 @@ Here's a table containing what I found out about the file header (from `MO_***.m
 
 | Offset | Type | `NTSC`      | `PAL`       | Description                              |
 |--------|------|-------------|-------------|------------------------------------------|
-| 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic number ("mtx ")                      |
+| 0      | str  | 6D 74 78 20 | -- -- -- -- | Magic ("mtx ")                           |
 | 4      | ?    | 01 10 00 00 | -- -- -- -- | Possibly the format/version              |
 | 8      | ?    | 28 10 FF 01 | 28 20 65 02 | Decompressed file size (-2004)           |
 | 12     | ?    | 00 80 1C 00 | 00 18 1D 00 | The size of the padding & one data block |
