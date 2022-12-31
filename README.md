@@ -121,7 +121,7 @@ Here's a table containing what I found out about the file header (from `MO_***.m
 | 20     | ?    | 00 C8 00 00 | -- -- -- -- | ?                                        |
 | 24     | ?    | 02 00 00 00 | -- -- -- -- | Certainly the code (MPEG-2 ?)            |
 | 28     | ?    | 00 80 0C 00 | 00 D8 0E 00 | ?                                        |
-| 32     | ?    | 00 7D 00 00 | 00 7D 00 00 | Depends on one video no matter the codec |
+| 32     | ?    | 00 7D 00 00 | -- -- -- -- | Depends on one video no matter the codec |
 | 36     | ?    | 00 00 80 3F | -- -- -- -- | Last value of the header                 |
 
 
