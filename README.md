@@ -103,7 +103,7 @@ These files can be found inside `01 Texture Bank/Video Library/Trailer BGE`,
 so it seems possible that these files could be some video that can be set as textures inside of the game..
 
 Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
-decompressed file size field, if the file size == the decompressed file size (- 2004), it uses `NTSC`.
+decompressed file size field, if the file size == the decompressed file size (-2004), it uses `NTSC`.
 
 A `*.mtx` file seems to contain a table that starts just after the header,
 this table is always 19,000 bytes long.
