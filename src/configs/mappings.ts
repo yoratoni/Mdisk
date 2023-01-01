@@ -1,3 +1,5 @@
+import lzo from "lzo";
+
 import NsMappings from "types/mappings";
 
 
@@ -81,6 +83,6 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 };
 
 
-export const MpBinFDHeader: NsMappings.IsMapping = {
-    
+export const MpBinTexturesHeader: NsMappings.IsMapping = {
+
 };
