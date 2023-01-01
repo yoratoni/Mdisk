@@ -52,8 +52,6 @@ files containing some data, inside the root of the extracted directory:
 - `bf_fileMetadata` Metadata of the files (including the keys).
 - `bf_structure` Contains the whole archive structure.
 
-*More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
-
 ### Formats of files stored in the Big File
 
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
@@ -69,6 +67,8 @@ files containing some data, inside the root of the extracted directory:
 - `*.oin` ?
 - `*.ova` ?
 - `*.wol` are prototypes made during development.
+
+*More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
 
 
 Video Files
