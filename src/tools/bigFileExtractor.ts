@@ -242,15 +242,19 @@ function extractBigFile(
  * Main function to extract the Big File archive.
  * @param bigFilePath The absolute path to the Big File (sally.bf or sally_clean.bf).
  * @param outputDirPath The absolute path to the output directory.
- * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to false).
+ * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to true).
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
  */
-export default function BigFileExtractor(bigFilePath: string, outputDirPath: string, exportJSON = false) {
+export default function BigFileExtractor(
+    bigFilePath: string,
+    outputDirPath: string,
+    exportJSON = true
+) {
     if (!fs.existsSync(bigFilePath)) {
         process.exit(1);
     }
 
-    if (!checkFileExtension(bigFilePath, "bf")) {
+    if (!checkFileExtension(bigFilePath, ".bf")) {
         throw new Error("Invalid Big File file extension");
     }
 
@@ -284,6 +288,15 @@ export default function BigFileExtractor(bigFilePath: string, outputDirPath: str
         header.data.directoryCount as number
     );
 
+    const fileMetadata = readBigFileFiles(
+        cache,
+        offsetTable,
+        directoryMetadataTable,
+        fileMetadataTable,
+        header.data.fileCount as number,
+        false
+    );
+
     const files = readBigFileFiles(
         cache,
         offsetTable,
@@ -305,11 +318,11 @@ export default function BigFileExtractor(bigFilePath: string, outputDirPath: str
     );
 
     if (exportJSON) {
-        exportAsJson(header, outputDirPath, "bigFileHeader.json");
-        exportAsJson(offsetTable, outputDirPath, "bigFileOffsetTable.json");
-        exportAsJson(fileMetadataTable, outputDirPath, "bigFileFileMetadataTable.json");
-        exportAsJson(directoryMetadataTable, outputDirPath, "bigFileDirectoryMetadataTable.json");
-        exportAsJson(structure, outputDirPath, "bigFileStructure.json");
+        exportAsJson(header, outputDirPath, "bf_header.json");
+        exportAsJson(offsetTable, outputDirPath, "bf_offsetTable.json");
+        exportAsJson(directoryMetadataTable, outputDirPath, "bf_directoryMetadata.json");
+        exportAsJson(fileMetadata, outputDirPath, "bf_fileMetadata.json");
+        exportAsJson(structure, outputDirPath, "bf_structure.json");
     }
 
     cache.closeFile();

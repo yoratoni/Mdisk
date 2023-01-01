@@ -1,17 +1,9 @@
+import NsConstants from "types/constants";
+
 /**
  * The chunk size in Megabytes, to read the files.
  */
 export const CHUNK_SIZE = 512;
-
-/**
- * Defines if the application is running in verbose mode.
- */
-export const VERBOSE = true;
-
-/**
- * The prefix used by the logger.
- */
-export const LOGGER_PREFIX = ">";
 
 /**
  * Audio MS-ADPCM tables.
@@ -28,10 +20,11 @@ export const AUDIO_MS_ADPCM_TABLES = {
 /**
  * The file types of the bin files.
  */
-export const BIN_FILE_TYPES = {
+export const BIN_FILE_TYPES: NsConstants.IsBinFileTypes = {
     "ff4": "SOUND_EFFECT",
     "fe": "SOUND_HEADER",
     "fd": "TRANSLATION",
     "ff8": "TEXTURE",
-    "ff0": "MISCELLANEOUS"
+    "ff0": "MISCELLANEOUS",
+    "unknown": "UNKNOWN"
 };

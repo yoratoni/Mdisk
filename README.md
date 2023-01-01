@@ -46,11 +46,11 @@ not compressed.
 The whole extraction thing is now fully done, I also added the option to export some JSON
 files containing some data, inside the root of the extracted directory:
 
-- `bigFileDirectoryMetadataTable` Metadata of each directory.
-- `bigFileFileMetadataTable` Metadata of the files.
-- `bigFileHeader` The header of the Big File.
-- `bigFileOffsetTable` The offset table (useful to get the keys).
-- `bigFileStructure` Contains the whole archive structure.
+- `bf_header` The header of the Big File.
+- `bf_offsetTable` The offset table.
+- `bf_directoryMetadata` Metadata of each directory.
+- `bf_fileMetadata` Metadata of the files (including the keys).
+- `bf_structure` Contains the whole archive structure.
 
 *More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
 

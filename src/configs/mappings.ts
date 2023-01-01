@@ -79,3 +79,8 @@ export const MpAudioHeader: NsMappings.IsMapping = {
     dataBlockID: { position: 38, type: "str" },
     dataBlockSize: { position: 42, type: "number" }
 };
+
+
+export const MpBinFDHeader: NsMappings.IsMapping = {
+    
+};
