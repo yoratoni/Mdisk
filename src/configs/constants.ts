@@ -23,7 +23,7 @@ export const AUDIO_MS_ADPCM_TABLES = {
 export const BIN_FILE_TYPES: NsConstants.IsBinFileTypes = {
     "ff4": "SOUND_EFFECT",
     "fe": "SOUND_HEADER",
-    "fd": "TRANSLATION",
+    "fd": "TEXT",
     "ff8": "TEXTURE",
     "ff0": "MISCELLANEOUS",
     "unknown": "UNKNOWN"
