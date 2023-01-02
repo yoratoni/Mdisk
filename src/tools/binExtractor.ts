@@ -4,10 +4,15 @@ import path from "path";
 
 import Cache from "classes/cache";
 import { BIN_FILE_TYPES, CHUNK_SIZE } from "configs/constants";
-import { MpBinFileHeader } from "configs/mappings";
+import { MpBinFileDataBlockHeader } from "configs/mappings";
 import { generateByteObjectFromMapping } from "helpers/bytes";
 import { checkFileExtension, getFileName } from "helpers/files";
 import lzo from "lzo";
+import BinMiscellaneous from "tools/bin/binMiscellaneous";
+import BinSoundEffect from "tools/bin/binSoundEffect";
+import BinSoundHeader from "tools/bin/binSoundHeader";
+import BinText from "tools/bin/binText";
+import BinTexture from "tools/bin/binTexture";
 import NsBytes from "types/bytes";
 
 
@@ -65,7 +70,7 @@ function readDataBlockHeader(
     }
 
     const rawHeader = cache.readBytes(pointer, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBinFileHeader);
+    const header = generateByteObjectFromMapping(rawHeader, MpBinFileDataBlockHeader);
 
     header.data.headerSize = headerSize;
 
@@ -168,7 +173,29 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string)
     // Read all data blocks
     const dataBlocks = readDataBlocks(cache, fileType);
 
-    const outputFilePath = path.join(outputDirPath, path.basename(binFilePath));
+    // Extract the data blocks depending on the file type
+    switch (fileType) {
+        case "MISCELLANEOUS":
+            BinMiscellaneous(dataBlocks);
+            break;
+        case "SOUND_EFFECT":
+            BinSoundEffect(dataBlocks);
+            break;
+        case "SOUND_HEADER":
+            BinSoundHeader(dataBlocks);
+            break;
+        case "TEXT":
+            BinText(dataBlocks);
+            break;
+        case "TEXTURE":
+            BinTexture(dataBlocks);
+            break;
+        case "UNKNOWN":
+            throw new Error("Unknown bin file type");
+        default:
+            throw new Error("Invalid bin file type");
+    }
 
-    fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
+    // const outputFilePath = path.join(outputDirPath, path.basename(binFilePath));
+    // fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
 }

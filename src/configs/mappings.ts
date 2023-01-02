@@ -81,7 +81,11 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 };
 
 
-export const MpBinFileHeader: NsMappings.IsMapping = {
+/**
+ * Mapping for a Bin File data block header
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md
+ */
+export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
     decompressedSize: { position: 0, type: "number" },
     compressedSize: { position: 4, type: "number" }
 };

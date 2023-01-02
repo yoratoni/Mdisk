@@ -1,3 +1,5 @@
-export default function BinMiscellaneous() {
-    //
+export default function BinMiscellaneous(dataBlocks: Uint8Array[]) {
+    const result = new Uint8Array();
+
+    return result;
 }

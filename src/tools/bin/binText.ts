@@ -1,3 +1,3 @@
-export default function BinText() {
-    //
+export default function BinText(dataBlocks: Uint8Array[]) {
+    console.log("test");
 }
