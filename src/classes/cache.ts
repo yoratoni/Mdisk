@@ -91,9 +91,18 @@ export default class Cache {
 
     /**
      * Get the complete cached buffer.
+     * @returns The complete cached buffer.
      */
     public get buffer() {
         return this._buffer;
+    }
+
+    /**
+     * Get the size of the file in bytes.
+     * @returns The size of the file in bytes.
+     */
+    public getFileSize() {
+        return this._fileSize;
     }
 
     /**

@@ -31,7 +31,10 @@
         "baseUrl": "src",                                    /* Specify the base directory to resolve non-relative module names. */
         // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
         // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
-        // "typeRoots": [],                                  /* Specify multiple folders that act like './node_modules/@types'. */
+        "typeRoots": [                                       /* Specify multiple folders that act like './node_modules/@types'. */
+            "./src/@types",
+            "./node_modules/@types"
+        ],
         // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
         // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
         // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
@@ -80,7 +83,7 @@
         // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
         // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
         // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
-        // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
+        // "strictBindCallASadly, pply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
         // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
         // "noImplicitThis": true,                           /* Enable error reporting when 'this' is given the type 'any'. */
         // "useUnknownInCatchVariables": true,               /* Default catch clause variables as 'unknown' instead of 'any'. */
@@ -105,6 +108,10 @@
             "tsconfig-paths/register"
         ]
     },
+    "include": [
+        "./src/**/*",
+        ".src/@types/**/*"
+    ],
     "exclude": [
         "node_modules"
     ]

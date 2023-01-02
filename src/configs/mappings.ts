@@ -1,5 +1,3 @@
-import lzo from "lzo";
-
 import NsMappings from "types/mappings";
 
 
@@ -83,6 +81,7 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 };
 
 
-export const MpBinTexturesHeader: NsMappings.IsMapping = {
-
+export const MpBinFileHeader: NsMappings.IsMapping = {
+    decompressedSize: { position: 0, type: "number" },
+    compressedSize: { position: 4, type: "number" }
 };
