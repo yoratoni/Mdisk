@@ -58,7 +58,6 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
     dirname: { position: 20, length: 64, type: "str" }
 };
 
-
 /**
  * Mapping for the audio (MS-ADPCM) header (.waa, .wac, .wad, .wam).
  * https://www.youtube.com/watch?v=udbA7u1zYfc
@@ -80,7 +79,6 @@ export const MpAudioHeader: NsMappings.IsMapping = {
     dataBlockSize: { position: 42, type: "number" }
 };
 
-
 /**
  * Mapping for a Bin File data block header
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md
@@ -88,4 +86,36 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
     decompressedSize: { position: 0, type: "number" },
     compressedSize: { position: 4, type: "number" }
+};
+
+/**
+ * Mapping for a Bin File text group header
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ */
+export const MpBinFileTextGroup: NsMappings.IsMapping = {
+    groupIdEntrySize: { position: 0, type: "number" }
+};
+
+/**
+ * Mapping for a Bin File text group ID entry
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ */
+export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
+    groupID: { position: 0, type: "hex" },
+    magic: { position: 4, type: "str" }
+};
+
+/**
+ * Mapping for a Bin File text group string refs
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ */
+export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
+    groupStringRefsSize: { position: 0, type: "number" }
+};
+
+export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
+    textID: { position: 0, type: "hex" },
+    magic1: { position: 4, type: "str" },
+    stringID: { position: 8, type: "hex" },
+    magic2: { position: 12, type: "str" }
 };

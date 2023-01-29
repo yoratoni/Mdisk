@@ -384,7 +384,7 @@ export function generateByteObjectFromMapping(
 }
 
 /**
- * Generates a bytes array from a mapping.
+ * Generates a bytes array from a mapping (generateByteObjectFromMapping applied x times).
  *
  * Don't forget to calculate the bytes array length (in the case of countable entries).
  *

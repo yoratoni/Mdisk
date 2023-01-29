@@ -57,6 +57,13 @@ export default class Pointers {
     }
 
     /**
+     * Set a custom chunk size.
+     */
+    public customChunkSize(size: number) {
+        this._chunkSize = size;
+    }
+
+    /**
      * Increment the absolute pointer.
      * @param increment The increment value (defaults to 1).
      */

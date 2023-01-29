@@ -11,17 +11,38 @@ export default class Cache {
     private _chunkSize: number;
     private _buffer: Uint8Array;
     private _pointers: Pointers;
+    private _bufferLoaded: boolean;
 
 
     /**
-     * Constructor -> Loads the file into the cache.
+     * Constructor -> Loads the file / Buffer into the cache.
      * @param absolutePath The absolute path to the file.
      * @param chunkSize The size of the chunk in MB.
+     * @param buffer Allows to add a buffer, replacing the file (optional).
      */
     constructor(
         absolutePath: string,
-        chunkSize: number
+        chunkSize: number,
+        buffer?: Uint8Array
     ) {
+        if (buffer) {
+            this._bufferLoaded = true;
+
+            this._filePath = "";
+            this._fileSize = buffer.length;
+            this._chunkNumber = 0;
+            this._chunkSize = buffer.length;
+            this._file = -1;
+
+            this._buffer = buffer;
+
+            this._pointers = new Pointers();
+            this._pointers.customChunkSize(buffer.length);
+
+            return;
+        }
+
+        this._bufferLoaded = false;
         this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._chunkNumber = 0;
@@ -42,10 +63,22 @@ export default class Cache {
     }
 
     /**
-     * Loads a new file into the cache.
+     * Loads a new file / Buffer into the cache.
      * @param absolutePath The absolute path to the file.
+     * @param buffer buffer, replacing the file (optional).
      */
-    public loadFile(absolutePath: string) {
+    public loadFile(absolutePath: string, buffer?: Uint8Array) {
+        if (this._bufferLoaded && buffer) {
+            this._filePath = "";
+            this._fileSize = buffer.length;
+            this._file = -1;
+            this._chunkNumber = 0;
+
+            this._buffer = buffer;
+
+            return;
+        }
+
         this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._file = openFile(this._filePath);
@@ -70,6 +103,13 @@ export default class Cache {
     }
 
     /**
+     * Access the pointers.
+     */
+    public get pointers() {
+        return this._pointers;
+    }
+
+    /**
      * Returns the absolute path to the file.
      */
     public get filePath() {
@@ -82,6 +122,10 @@ export default class Cache {
      * @param absolutePath The absolute path to the file.
      */
     public set filePath(absolutePath: string) {
+        if (this._bufferLoaded) {
+            return;
+        }
+
         if (absolutePath === this._filePath) {
             return;
         }
@@ -118,7 +162,7 @@ export default class Cache {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
 
-        if (this._pointers.chunkPointer !== this._chunkNumber) {
+        if (this._pointers.chunkPointer !== this._chunkNumber && !this._bufferLoaded) {
             this._chunkNumber = this._pointers.chunkPointer;
 
             this._buffer = readFileByChunk(
