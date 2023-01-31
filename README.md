@@ -1,6 +1,8 @@
 # Mdisk
 A tool for the game Beyond Good & Evil.
 
+For now, I'm only doing the extraction part, then, I'll work on the file modification part.
+
 
 Technical Summary
 -----------------
