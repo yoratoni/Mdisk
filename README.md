@@ -1,8 +1,6 @@
 # Mdisk
 A tool for the game Beyond Good & Evil.
 
-For now, I'm only doing the extraction part, then, I'll work on the file modification part.
-
 
 Technical Summary
 -----------------
@@ -12,6 +10,8 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
+For now, I'm only doing the extraction part, then,
+I'll work on the file modification system.
 
 Support
 -------
