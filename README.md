@@ -159,6 +159,25 @@ when 2004 is removed from this result (value obtained when I compare the size of
 inside the header), we also obtain 1,867,776 bytes long which corresponds to the size of one block.
 
 
+Text Files
+----------
+Thanks to **Kapouett**, extracting the strings from the text (subtitles) files was not that hard.
+
+It seems that the text uses a system of keys to show keys/colors on the screen:
+| Key                   | Description                             |
+|-----------------------|-----------------------------------------|
+| \cFFFFFFFF\           | Some hex colors                         |
+| \p16\                 | Seems to identify a key to show         |
+| \pXX\                 | Certainly refers to an image to show    |
+| \aXX\ **\|** d, etc.. | The ID of the image following the \pXX\ |
+
+Here's some examples:
+```
+Organic matter.Gutter\cff6f6f6f\ (surface mining extraction)\cffffffff\
+\p16\? No     Yes \p16\0
+- Press \p16\\b24\O to select.
+```
+
 Credits
 -------
 * Most of the information about general parsing comes from [this documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.

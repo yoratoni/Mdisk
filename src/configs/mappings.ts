@@ -113,6 +113,10 @@ export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
     groupStringRefsSize: { position: 0, type: "number" }
 };
 
+/**
+ * Mapping for a Bin File text group string refs
+ * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ */
 export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
     textID: { position: 0, type: "hex" },
     magic1: { position: 4, type: "str" },
