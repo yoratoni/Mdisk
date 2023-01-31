@@ -33,7 +33,7 @@ Bin Support
 |---------|--------------------|-----------------------------|
 | `ff4*`  | Sound effects      | **-----------------------** |
 | `fe*`   | Sound headers      | **-----------------------** |
-| `fd*`   | Translated strings | **WORK IN PROGRESS**        |
+| `fd*`   | Translated strings | **SUPPORTED**               |
 | `ff8*`  | Textures           | **-----------------------** |
 | `ff0*`  | Miscellaneous      | **-----------------------** |
 
