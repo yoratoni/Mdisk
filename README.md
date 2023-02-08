@@ -180,6 +180,9 @@ Organic matter.Gutter\cff6f6f6f\ (surface mining extraction)\cffffffff\
 - Press \p16\\b24\O to select.
 ```
 
+These kind of codes are removed when the texts are extracted, my code normally supports all Unicode characters
+including Korean etc..
+
 Credits
 -------
 * Most of the information about general parsing comes from [this documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
