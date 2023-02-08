@@ -179,6 +179,8 @@ Organic matter.Gutter\cff6f6f6f\ (surface mining extraction)\cffffffff\
 \p16\? No     Yes \p16\0
 - Press \p16\\b24\O to select.
 ```
+These kind of codes are removed when the texts are extracted, my code normally supports all Unicode characters
+including Korean etc..
 
 
 Texture Files
@@ -199,8 +201,6 @@ Notes:
 - The `ASSOC` block contains 2 IDs, associating a Pixmap and a palette.
 - A palette can be used multiple times (same ID).
 
-These kind of codes are removed when the texts are extracted, my code normally supports all Unicode characters
-including Korean etc..
 
 Credits
 -------
