@@ -17,7 +17,6 @@ import {
     generateByteTableFromMapping
 } from "helpers/bytes";
 import NsBin from "types/bin";
-import NsBytes from "types/bytes";
 
 
 /**
@@ -162,7 +161,7 @@ function escapedUnicodeDecoder(strings: string[]) {
         let decodedString = strings[i];
 
         // Replace unescaped unicode characters
-        decodedString = decodedString.replace(/\\U\+(\d+)\\/g, (_, p1) => {
+        decodedString = decodedString.replace(/\\U\+(\d+)\\/gi, (_, p1) => {
             const code = parseInt(p1, 10);
             let character = "";
 
@@ -180,9 +179,14 @@ function escapedUnicodeDecoder(strings: string[]) {
             return character;
         });
 
-        // Removes the backslashes
-        // decodedString = decodedString.replace(/\\/g, "");
+        // Removes the codes (\p14\ etc..)
+        // console.log(decodedString);
+        decodedString = decodedString.replace(/\\[a-z][0-9]{1,2}\\/gi, "");
 
+        // Removes the colors (\cffffffff\ etc..)
+        decodedString = decodedString.replace(/\\c[a-z0-9]{8}\\/gi, "");
+
+        // Concatenate the decoded strings
         decodedStrings = decodedStrings.concat(decodedString);
     }
 

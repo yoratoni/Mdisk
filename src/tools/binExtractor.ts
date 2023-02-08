@@ -150,9 +150,10 @@ function readDataBlocks(cache: Cache, fileType: string) {
  * Main function for reading/extracting bin files.
  * @param binFilePath The absolute path to the bin file.
  * @param outputDirPath The absolute path to the output directory.
+ * @param exportDecompressedBin Whether to export the decompressed bin file or not.
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md
  */
-export default function BinExtractor(binFilePath: string, outputDirPath: string) {
+export default function BinExtractor(binFilePath: string, outputDirPath: string, exportDecompressedBin = false) {
     if (!fs.existsSync(binFilePath)) {
         throw new Error(`The bin file doesn't exist: ${binFilePath}`);
     }
@@ -196,6 +197,9 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string)
             throw new Error("Invalid bin file type");
     }
 
-    const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + "_DECOMPRESSED.bin");
-    fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
+    // Export the decompressed bin file
+    if (exportDecompressedBin) {
+        const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + "_DECOMPRESSED.bin");
+        fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
+    }
 }
