@@ -1,5 +1,5 @@
 import fs from "fs";
-// import path from "path";
+import path from "path";
 
 
 import Cache from "classes/cache";
@@ -185,7 +185,7 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string)
             BinSoundHeader(dataBlocks);
             break;
         case "TEXT":
-            BinText(dataBlocks);
+            BinText(outputDirPath, binFilePath, dataBlocks);
             break;
         case "TEXTURE":
             BinTexture(dataBlocks);
@@ -196,6 +196,6 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string)
             throw new Error("Invalid bin file type");
     }
 
-    // const outputFilePath = path.join(outputDirPath, path.basename(binFilePath));
-    // fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
+    const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + "_DECOMPRESSED.bin");
+    fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
 }

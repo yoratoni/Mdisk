@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 import Cache from "classes/cache";
 import {
     MpBinFileTextGroup,
@@ -7,6 +10,7 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
+    convertStringToUint8Array,
     convertUint8ArrayToNumber,
     convertUint8ArrayToString,
     generateByteObjectFromMapping,
@@ -92,6 +96,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
  * @param cache Initialized cache class.
  * @param dataBlockSize The size of the data block.
  * @param textIDs The group ID entries, the group string refs and the pointer.
+ * @returns The group strings in a list.
  */
 function readGroupStrings(
     cache: Cache,
@@ -102,7 +107,7 @@ function readGroupStrings(
     const groupSize = dataBlockSize - pointer;
 
     const breakPositions: number[] = [];
-    let strings = "";
+    const strings: string[] = [];
 
     while (pointer < groupSize) {
         // Breaks size
@@ -139,20 +144,59 @@ function readGroupStrings(
         }
 
         // Push the string to the strings array
-        strings = strings.concat(string + "\n");
+        strings.push(string);
     }
-
-    console.log(strings);
 
     return strings;
 }
 
 /**
+ * Decode the escaped unicode string.
+ * @param strings An array of all the encoded strings.
+ * @returns The decoded string with line breaks.
+ */
+function escapedUnicodeDecoder(strings: string[]) {
+    let decodedStrings = "";
+
+    for (let i = 0; i < strings.length; i++) {
+        let decodedString = strings[i];
+
+        // Replace unescaped unicode characters
+        decodedString = decodedString.replace(/\\U\+(\d+)\\/g, (_, p1) => {
+            const code = parseInt(p1, 10);
+            let character = "";
+
+            if (code < 61) {
+                console.log(code);
+            }
+
+            // Character validity check
+            if (code !== undefined && code >= 0x0061 && code <= 0x10FFFF) {
+                character = String.fromCharCode(code);
+            } else {
+                character = " ";
+            }
+
+            return character;
+        });
+
+        // Removes the backslashes
+        // decodedString = decodedString.replace(/\\/g, "");
+
+        decodedStrings = decodedStrings.concat(decodedString);
+    }
+
+    return decodedStrings;
+}
+
+/**
  * Subfunction of BinFile to decompress "fd*".
+ * @param outputDirPath The output directory path.
+ * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
  * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
  */
-export default function BinText(dataBlocks: Uint8Array[]) {
+export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks[0]);
 
@@ -166,5 +210,11 @@ export default function BinText(dataBlocks: Uint8Array[]) {
         textIDs
     );
 
-    // console.log(groupStrings);
+    const test = escapedUnicodeDecoder(groupStrings);
+
+    const result = convertStringToUint8Array(test);
+    const filename = path.basename(binFilePath, ".bin") + ".txt";
+
+    const outputFilePath = path.join(outputDirPath, filename);
+    fs.writeFileSync(outputFilePath, result);
 }
