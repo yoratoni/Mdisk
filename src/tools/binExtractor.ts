@@ -199,7 +199,7 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
 
     // Export the decompressed bin file
     if (exportDecompressedBin) {
-        const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + "_DECOMPRESSED.bin");
+        const outputFilePath = path.join(outputDirPath, "DEC_" + path.basename(binFilePath));
         fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
     }
 }

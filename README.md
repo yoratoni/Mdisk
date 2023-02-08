@@ -180,6 +180,26 @@ Organic matter.Gutter\cff6f6f6f\ (surface mining extraction)\cffffffff\
 - Press \p16\\b24\O to select.
 ```
 
+
+Texture Files
+-------------
+Different types of blocks inside a Texture file:
+| Code       | Types               |
+|------------|---------------------|
+| 0x5        | **PROC**            |
+| 0x7        | **ASSOC**           |
+| 0x1001     | **RGB_HEADER**      |
+| 0x2001     | **RGBA_HEADER**     |
+| 0x4006     | **INDEXED8_HEADER** |
+| 0x5006     | **INDEXED4_HEADER** |
+| `FONTDESC` | **FONT_DESC**       |
+
+Notes:
+- These types can be found at the beginning of the blocks.
+- The `ASSOC` block contains 2 IDs, associating a Pixmap and a palette.
+- A palette can be used multiple times (same ID).
+
+
 Credits
 -------
 * Most of the information about general parsing comes from [this documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
