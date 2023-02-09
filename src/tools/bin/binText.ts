@@ -214,9 +214,14 @@ export default function BinText(outputDirPath: string, binFilePath: string, data
         textIDs
     );
 
-    const test = escapedUnicodeDecoder(groupStrings);
+    const decoded = escapedUnicodeDecoder(
+        groupStrings
+    );
 
-    const result = convertStringToUint8Array(test);
+    const result = convertStringToUint8Array(
+        decoded
+    );
+
     const filename = path.basename(binFilePath, ".bin") + ".txt";
 
     const outputFilePath = path.join(outputDirPath, filename);
