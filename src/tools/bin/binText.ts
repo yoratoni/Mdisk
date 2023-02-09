@@ -202,7 +202,7 @@ function escapedUnicodeDecoder(strings: string[]) {
  */
 export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
     // Loading the cache in buffer mode (no file)
-    const cache = new Cache("", 0, dataBlocks[0]);
+    const cache = new Cache("", 0, dataBlocks);
 
     const textIDs = readTextIDs(
         cache
@@ -210,7 +210,7 @@ export default function BinText(outputDirPath: string, binFilePath: string, data
 
     const groupStrings = readGroupStrings(
         cache,
-        dataBlocks[0].length,
+        cache.bufferLength,
         textIDs
     );
 

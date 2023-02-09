@@ -12,6 +12,25 @@ export function convertMegaBytesToBytes(megaBytes: number) {
 }
 
 /**
+ * A function that concatenates Uint8Arrays into one.
+ * @param bytesArrays The Uint8Arrays to concatenate.
+ * @returns The concatenated Uint8Array.
+ */
+export function concatenateUint8Arrays(bytesArrays: Uint8Array[]) {
+    const totalLength = bytesArrays.reduce((acc, array) => acc + array.length, 0);
+
+    let offset = 0;
+    const result = new Uint8Array(totalLength);
+
+    for (const bytesArray of bytesArrays) {
+        result.set(bytesArray, offset);
+        offset += bytesArray.length;
+    }
+
+    return result;
+}
+
+/**
  * A debug function to convert an hex string to an array of numbers (int16).
  * @param hexString The hex string to convert.
  * @returns The array of numbers.

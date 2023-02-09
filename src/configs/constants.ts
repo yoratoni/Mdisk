@@ -2,7 +2,7 @@ import NsConstants from "types/constants";
 
 
 /**
- * The chunk size in Megabytes, to read the files.
+ * The chunk size in Megabytes, to read the Big File.
  */
 export const CHUNK_SIZE = 512;
 

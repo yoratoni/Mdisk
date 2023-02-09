@@ -1,5 +1,5 @@
 import Pointers from "classes/pointers";
-import { convertMegaBytesToBytes } from "helpers/bytes";
+import { concatenateUint8Arrays, convertMegaBytesToBytes } from "helpers/bytes";
 import { closeFile, getFileSize, openFile, readFileByChunk } from "helpers/files";
 
 
@@ -23,21 +23,24 @@ export default class Cache {
     constructor(
         absolutePath: string,
         chunkSize: number,
-        buffer?: Uint8Array
+        buffer?: Uint8Array[]
     ) {
         if (buffer) {
             this._bufferLoaded = true;
 
+            const concatenatedBuffer = concatenateUint8Arrays(buffer);
+            console.log(concatenatedBuffer);
+
             this._filePath = "";
-            this._fileSize = buffer.length;
+            this._fileSize = concatenatedBuffer.length;
             this._chunkNumber = 0;
-            this._chunkSize = buffer.length;
+            this._chunkSize = concatenatedBuffer.length;
             this._file = -1;
 
-            this._buffer = buffer;
+            this._buffer = concatenatedBuffer;
 
             this._pointers = new Pointers();
-            this._pointers.customChunkSize(buffer.length);
+            this._pointers.customChunkSize(concatenatedBuffer.length);
 
             return;
         }
@@ -139,6 +142,14 @@ export default class Cache {
      */
     public get buffer() {
         return this._buffer;
+    }
+
+    /**
+     * Get the length of the buffer.
+     * @returns The length of the buffer.
+     */
+    public get bufferLength() {
+        return this._buffer.length;
     }
 
     /**
