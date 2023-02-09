@@ -60,7 +60,7 @@ export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
 
 /**
  * Mapping for the audio (MS-ADPCM) header (.waa, .wac, .wad, .wam).
- * https://www.youtube.com/watch?v=udbA7u1zYfc
+ * @link [Making WAVs by Low Byte Productions.](https://www.youtube.com/watch?v=udbA7u1zYfc)
  */
 export const MpAudioHeader: NsMappings.IsMapping = {
     headerSize: { position: 0, length: 0 },
@@ -81,7 +81,7 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 
 /**
  * Mapping for a Bin File data block header
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md
+ * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
     decompressedSize: { position: 0, type: "number" },
@@ -90,7 +90,7 @@ export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
 
 /**
  * Mapping for a Bin File text group header
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroup: NsMappings.IsMapping = {
     groupIdEntrySize: { position: 0, type: "number" }
@@ -98,7 +98,7 @@ export const MpBinFileTextGroup: NsMappings.IsMapping = {
 
 /**
  * Mapping for a Bin File text group ID entry
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
     groupID: { position: 0, type: "hex" },
@@ -107,7 +107,7 @@ export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
 
 /**
  * Mapping for a Bin File text group string refs
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
     groupStringRefsSize: { position: 0, type: "number" }
@@ -115,7 +115,7 @@ export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
 
 /**
  * Mapping for a Bin File text group string refs
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
     textID: { position: 0, type: "hex" },

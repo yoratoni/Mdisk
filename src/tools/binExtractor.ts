@@ -151,7 +151,7 @@ function readDataBlocks(cache: Cache, fileType: string) {
  * @param binFilePath The absolute path to the bin file.
  * @param outputDirPath The absolute path to the output directory.
  * @param exportDecompressedBin Whether to export the decompressed bin file or not.
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md
+ * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export default function BinExtractor(binFilePath: string, outputDirPath: string, exportDecompressedBin = false) {
     if (!fs.existsSync(binFilePath)) {

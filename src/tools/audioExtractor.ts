@@ -259,7 +259,7 @@ function decodeAudioData(
  * Generates the extracted PCM data (including the header) to an output Uint8Array.
  * @param header The audio file header.
  * @param data The decoded audio data.
- * @link http://soundfile.sapp.org/doc/WaveFormat/
+ * @link [WAVE Format](http://soundfile.sapp.org/doc/WaveFormat/)
  */
 function generateAudioData(
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
@@ -340,9 +340,9 @@ function generateAudioData(
  * Converts the audio file to a PCM audio file (WAV).
  * @param audioFilePath The absolute path to the audio file.
  * @param outputDirPath The absolute path to the output directory.
- * @link https://wiki.multimedia.cx/index.php/Microsoft_ADPCM
- * @link https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c
- * @link https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js
+ * @link [ADPCM Data wiki.](https://wiki.multimedia.cx/index.php/Microsoft_ADPCM)
+ * @link [VgmStream for Jade Engine.](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ubi_jade.c)
+ * @link [Node MS ADPCM by Snack-X.](https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js)
  */
 export default function AudioExtractor(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {

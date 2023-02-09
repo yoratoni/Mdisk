@@ -198,7 +198,7 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @param outputDirPath The output directory path.
  * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md
+ * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
     // Loading the cache in buffer mode (no file)

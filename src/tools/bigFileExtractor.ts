@@ -243,7 +243,7 @@ function extractBigFile(
  * @param bigFilePath The absolute path to the Big File (sally.bf or sally_clean.bf).
  * @param outputDirPath The absolute path to the output directory.
  * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to true).
- * @link https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md
+ * @link [Big File doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md)
  */
 export default function BigFileExtractor(
     bigFilePath: string,

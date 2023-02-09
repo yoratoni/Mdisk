@@ -185,6 +185,9 @@ including Korean etc..
 
 Texture Files
 -------------
+I used some of the [Jade Engine](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
+source code to understand how the textures could be extracted, so, big thanks to him!
+
 Different types of blocks inside a Texture file:
 | Code       | Types               |
 |------------|---------------------|
@@ -204,7 +207,6 @@ Notes:
 - These types can be found at the beginning of the blocks.
 - The `PALETTE_LINK` block contains 2 IDs, associating a Pixmap and a palette.
 - A palette can be used multiple times (same ID).
-
 
 Credits
 -------
