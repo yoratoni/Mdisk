@@ -186,17 +186,21 @@ Texture Files
 Different types of blocks inside a Texture file:
 | Code       | Types               |
 |------------|---------------------|
-| 0x5        | **PROC**            |
-| 0x7        | **ASSOC**           |
+| 0x2        | **BMP**             |
+| 0x3        | **JPEG**            |
+| 0x4        | **SPRITE_GEN**      |
+| 0x5        | **PROCEDURAL**      |
+| 0x7        | **PALETTE_LINK**    |
+| 0x9        | **ANIMATED**        |
 | 0x1001     | **RGB_HEADER**      |
 | 0x2001     | **RGBA_HEADER**     |
-| 0x4006     | **INDEXED8_HEADER** |
-| 0x5006     | **INDEXED4_HEADER** |
+| 0x4006     | **PALETTE_8**       |
+| 0x5006     | **PALETTE_4**       |
 | `FONTDESC` | **FONT_DESC**       |
 
 Notes:
 - These types can be found at the beginning of the blocks.
-- The `ASSOC` block contains 2 IDs, associating a Pixmap and a palette.
+- The `PALETTE_LINK` block contains 2 IDs, associating a Pixmap and a palette.
 - A palette can be used multiple times (same ID).
 
 These kind of codes are removed when the texts are extracted, my code normally supports all Unicode characters

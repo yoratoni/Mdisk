@@ -1,9 +1,16 @@
 declare namespace NsConstants {
     /**
-     * The Bin file types.
+     * Any string file types.
      */
-    interface IsBinFileTypes {
+    interface IsStringFileTypes {
         [key: string]: string
+    }
+
+    /**
+     * Any number file types.
+     */
+    interface IsNumberAndStringFileTypes {
+        [key: string]: number | string
     }
 }
 
