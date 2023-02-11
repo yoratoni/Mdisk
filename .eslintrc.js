@@ -40,6 +40,7 @@ module.exports = {
             "warn",
             "double"
         ],
+        "prefer-const": "warn",
         "semi": [
             "warn",
             "always"

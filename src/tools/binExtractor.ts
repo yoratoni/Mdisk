@@ -189,7 +189,7 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
             BinText(outputDirPath, binFilePath, dataBlocks);
             break;
         case "TEXTURE":
-            BinTexture(dataBlocks);
+            BinTexture(outputDirPath, binFilePath, dataBlocks);
             break;
         case "UNKNOWN":
             throw new Error("Unknown bin file type");

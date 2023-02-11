@@ -31,18 +31,26 @@ export const BIN_FILE_TYPES: NsConstants.IsStringFileTypes = {
 };
 
 /**
+ * The configuration for texture files.
+ */
+export const TEXTURE_FILE_CONFIG = {
+    headerLength: 32,
+    magicHex: "0x3412D0CAFF00FF00DEC0DEC0"
+};
+
+/**
  * The internal texture types of the texture files.
  */
 export const TEXTURE_FILE_TYPES: NsConstants.IsNumberAndStringFileTypes = {
-    "BMP": 2,
-    "JPEG": 3,
-    "SPRITE_GEN": 4,
-    "PROCEDURAL": 5,
-    "PALETTE_LINK": 7,
-    "ANIMATED": 9,
-    "RGB_HEADER": 4097,
-    "RGBA_HEADER": 8193,
-    "PALETTE_8": 16390,
-    "PALETTE_4": 20486,
-    "FONT_DESC": "FONT_DESC",
+    2: "BMP",
+    3: "JPEG",
+    4: "SPRITE_GEN",
+    5: "PROCEDURAL",
+    7: "PALETTE_LINK",
+    9: "ANIMATED",
+    4097: "RGB_HEADER",
+    8193: "RGBA_HEADER",
+    16390: "PALETTE_8",
+    20486: "PALETTE_4",
+    "FONTDESC": "FONT_DESC"
 };

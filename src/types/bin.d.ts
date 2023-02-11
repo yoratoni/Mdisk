@@ -10,6 +10,17 @@ declare namespace NsBin {
         groupStringRefs: NsBytes.IsMappingByteObject[][];
         pointer: number;
     }
+
+    /**
+     * The result object of the chunk sorting inside a Bin texture file.
+     */
+    interface binTextureFileChunkResObj {
+        fonts: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        palettes: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        TGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        NoDataTGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+    }
 }
 
 

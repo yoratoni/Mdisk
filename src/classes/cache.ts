@@ -29,7 +29,6 @@ export default class Cache {
             this._bufferLoaded = true;
 
             const concatenatedBuffer = concatenateUint8Arrays(buffer);
-            console.log(concatenatedBuffer);
 
             this._filePath = "";
             this._fileSize = concatenatedBuffer.length;
