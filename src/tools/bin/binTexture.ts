@@ -106,6 +106,10 @@ function parseChunks(chunks: Uint8Array[]) {
     return parsedChunks;
 }
 
+function test() {
+    //
+}
+
 /**
  * Sort the chunks by putting them into different sections.
  * @param chunks The parsed chunks.
@@ -117,17 +121,19 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
         palettes: [],
         textures: [],
         TGAs: [],
-        NoDataTGAs: []
+        NoDataTGAs: [],
+        textureKeys: [],
+        paletteKeys: []
     };
 
-    for (const chunk of chunks) {
+    for (const { index, chunk } of chunks.map((chunk, index) => ({ index, chunk }))) {
         const chunkType = TEXTURE_FILE_TYPES[chunk.data.textureType as number];
         const chunkData = chunk.data.data as Uint8Array;
         const isWithData = chunkData !== undefined && chunkData.length > 0;
 
         // Font desc
         if (chunk.data.isFontDesc) {
-            resObject.fonts.push(chunk);
+            resObject.fonts[index - 1] = chunk;
         }
 
         // Palette
@@ -157,6 +163,20 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
 
             resObject.NoDataTGAs[i].data.linkedIndex = chunkIndexInsideTGA;
         }
+
+        // Get the keys for the texture and palette and add them to the object
+        if (chunkType === "PALETTE_LINK") {
+            const data = chunk.data.data as Uint8Array;
+
+            const textureKey = convertUint8ArrayToHexString(data.slice(0, 4), true, true);
+            const paletteKey = convertUint8ArrayToHexString(data.slice(4, 8), true, true);
+
+            resObject.textureKeys.push(textureKey);
+            resObject.paletteKeys.push(paletteKey);
+        }
+
+        // Link the palettes
+        const distinctPaletteKeys = Array.from(new Set(resObject.paletteKeys));
     }
 
     return resObject;
@@ -187,5 +207,5 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
         chunks
     );
 
-    console.log(chunks);
+    console.log(resObject);
 }
