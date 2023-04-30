@@ -129,7 +129,7 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
 
     for (const { index, chunk } of chunks.map((chunk, index) => ({ index, chunk }))) {
         const chunkType = TEXTURE_FILE_TYPES[chunk.data.textureType as number];
-        const chunkData = chunk.data.data as Uint8Array;
+        const chunkData = chunk.data.data as Uint8Array | undefined;
         const isWithData = chunkData !== undefined && chunkData.length > 0;
 
         // Font desc
@@ -177,6 +177,27 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
         }
     }
 
+    // Link palettes
+    const linkedPalettes: NsBin.binTextureLinkedData = {};
+    const distinctPaletteKeys = [...new Set(resObject.paletteKeys)];
+
+    console.log("distinctPaletteKeys", distinctPaletteKeys.length);
+    console.log("palettes", resObject.palettes.length);
+
+    // Link textures
+    const linkedTextures: NsBin.binTextureLinkedData = {};
+    const distinctTextureKeys = [...new Set(resObject.textureKeys)];
+    const textureHeadersWithoutData = chunks.filter((chunk) => {
+        const chunkType = chunk.data.chunkType as string;
+
+        // Palette 4 & palette 8 with no data
+        return (chunkType === "PALETTE_4" || chunkType === "PALETTE_8") && chunk.data.data === undefined;
+    });
+
+    for (let i = 0; i < distinctTextureKeys.length; i++) {
+        // linkedTextures[distinctTextureKeys[i]] = textureHeadersWithoutData[i];
+    }
+
     return resObject;
 }
 
@@ -203,6 +224,4 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
     const resObject = sortChunks(
         chunks
     );
-
-
 }
