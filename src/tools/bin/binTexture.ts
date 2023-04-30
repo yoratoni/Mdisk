@@ -5,6 +5,7 @@ import Cache from "classes/cache";
 import { TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "configs/constants";
 import { MpBinFileTexture } from "configs/mappings";
 import { convertUint8ArrayToHexString, convertUint8ArrayToNumber, generateByteObjectFromMapping } from "helpers/bytes";
+import { exportAsJson } from "helpers/files";
 import NsBin from "types/bin";
 import NsBytes from "types/bytes";
 
@@ -57,6 +58,9 @@ function parseChunks(chunks: Uint8Array[]) {
                 MpBinFileTexture
             );
 
+            // Add the chunk type
+            parsedChunk.data.chunkType = chunkType;
+
             // For later font desc / palette dictionary
             parsedChunk.data.isFontDesc = false;
             parsedChunk.data.isPalette = false;
@@ -87,11 +91,12 @@ function parseChunks(chunks: Uint8Array[]) {
             // Check if the chunk is a FONT DESC
             const isFontDesc = fontDescMagic === "FONTDESC";
 
-            // Check if the chunk is a palette (NOT === 7 | PALETTE_LINK)
+            // Check if the chunk is a palette (NOT PALETTE_LINK)
             const isPalette = chunkType !== "PALETTE_LINK";
 
             const parsedChunk = {
                 data: {
+                    chunkType: chunkType,
                     isFontDesc: isFontDesc,
                     isPalette: isPalette,
                     data: chunk
@@ -104,10 +109,6 @@ function parseChunks(chunks: Uint8Array[]) {
     }
 
     return parsedChunks;
-}
-
-function test() {
-    //
 }
 
 /**
@@ -174,9 +175,6 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
             resObject.textureKeys.push(textureKey);
             resObject.paletteKeys.push(paletteKey);
         }
-
-        // Link the palettes
-        const distinctPaletteKeys = Array.from(new Set(resObject.paletteKeys));
     }
 
     return resObject;
@@ -194,7 +192,6 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
-
     const rawChunks = getAllChunks(
         cache
     );
@@ -207,5 +204,5 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
         chunks
     );
 
-    console.log(resObject);
+
 }

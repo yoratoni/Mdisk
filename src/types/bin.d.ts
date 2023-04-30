@@ -19,6 +19,13 @@ declare namespace NsBin {
     }
 
     /**
+     * The linked data inside a Bin texture file.
+     */
+    interface binTextureLinkedData {
+        [key: string]: Uint8Array;
+    }
+
+    /**
      * The result object of the chunk sorting inside a Bin texture file.
      */
     interface binTextureFileChunkResObj {
@@ -27,8 +34,8 @@ declare namespace NsBin {
         textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         TGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         NoDataTGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        textureKeys: string[];
         paletteKeys: string[];
+        textureKeys: string[];
     }
 }
 

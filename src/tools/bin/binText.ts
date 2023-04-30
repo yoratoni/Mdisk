@@ -166,7 +166,7 @@ function escapedUnicodeDecoder(strings: string[]) {
             let character = "";
 
             if (code < 61) {
-                console.log(code);
+                // console.log(code);
             }
 
             // Character validity check
