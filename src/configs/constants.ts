@@ -52,5 +52,5 @@ export const TEXTURE_FILE_TYPES: NsConstants.IsNumberAndStringFileTypes = {
     8193: "RGBA_HEADER",
     16390: "PALETTE_8",
     20486: "PALETTE_4",
-    "FONTDESC": "FONT_DESC"
+    "FONTDESC": "FONTDESC"
 };

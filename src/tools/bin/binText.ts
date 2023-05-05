@@ -16,6 +16,8 @@ import {
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
+import { checkFileExtension } from "helpers/files";
+import logger from "helpers/logger";
 import NsBin from "types/bin";
 
 
@@ -201,6 +203,20 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
+    if (!fs.existsSync(binFilePath)) {
+        logger.error(`Invalid bin file path: ${binFilePath}`);
+        process.exit(1);
+    }
+
+    if (!fs.existsSync(outputDirPath)) {
+        fs.mkdirSync(outputDirPath, { recursive: true });
+    }
+
+    if (!checkFileExtension(binFilePath, ".bin")) {
+        logger.error(`Invalid bin file extension: ${binFilePath}`);
+        process.exit(1);
+    }
+
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 

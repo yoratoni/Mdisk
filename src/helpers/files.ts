@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+import logger from "helpers/logger";
+
 
 /**
  * Returns the absolute path based on the relative path
@@ -9,10 +11,11 @@ import path from "path";
  */
 export function getAbsolutePath(relativePath: string): string {
     const projectRoot = path.resolve(__dirname);
-    const absolutePath = path.dirname(projectRoot ?? "").replace(/\\/g,"/") + `/${relativePath}`;
+    const absolutePath = path.dirname(projectRoot ?? "").replace(/\\/g, "/") + `/${relativePath}`;
 
     if (!fs.existsSync(absolutePath)) {
-        throw new Error(`${absolutePath} does not exist, please check the path.`);
+        logger.error(`${absolutePath} does not exist, please check the path.`);
+        process.exit(1);
     }
 
     return absolutePath;
@@ -64,7 +67,8 @@ export function exportAsJson(data: any, absolutePath: string, fileName: string) 
     const dataString = JSON.stringify(data, null, 4);
 
     if (dataString === undefined) {
-        throw new Error("Could not stringify data");
+        logger.error("Could not stringify data");
+        process.exit(1);
     }
 
     fs.writeFileSync(path, dataString);

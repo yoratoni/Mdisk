@@ -5,7 +5,8 @@ import Cache from "classes/cache";
 import { TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "configs/constants";
 import { MpBinFileTexture } from "configs/mappings";
 import { convertUint8ArrayToHexString, convertUint8ArrayToNumber, generateByteObjectFromMapping } from "helpers/bytes";
-import { exportAsJson } from "helpers/files";
+import { checkFileExtension, exportAsJson } from "helpers/files";
+import logger from "helpers/logger";
 import NsBin from "types/bin";
 import NsBytes from "types/bytes";
 
@@ -45,7 +46,12 @@ function parseChunks(chunks: Uint8Array[]) {
         // Reads the type
         pointer += 6;
         const rawChunkType = convertUint8ArrayToNumber(chunk.slice(pointer, pointer + 2));
-        const chunkType = TEXTURE_FILE_TYPES[rawChunkType];
+        let chunkType = TEXTURE_FILE_TYPES[rawChunkType];
+
+        // Fallback for unknown chunk types
+        if (!chunkType) {
+            chunkType = "UNKNOWN_TYPE";
+        }
 
         // Reads the magic
         pointer += 14;
@@ -112,19 +118,24 @@ function parseChunks(chunks: Uint8Array[]) {
 }
 
 /**
- * Sort the chunks by putting them into different sections.
+ * Prepare the chunks by putting them into different sections
+ * and links palettes & textures.
  * @param chunks The parsed chunks.
- * @returns The object containing all the sorted chunks.
+ * @returns The resObject containing all the chunks and linked palettes/textures.
  */
-function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
+function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
     const resObject: NsBin.binTextureFileChunkResObj = {
         fonts: [],
         palettes: [],
         textures: [],
-        TGAs: [],
-        NoDataTGAs: [],
+        RGBHeaders: [],
+        NoDataRGBHeaders: [],
+        RGBAHeaders: [],
+        NoDataRGBAHeaders: [],
         textureKeys: [],
-        paletteKeys: []
+        paletteKeys: [],
+        linkedPalettes: {},
+        linkedTextures: {}
     };
 
     for (const { index, chunk } of chunks.map((chunk, index) => ({ index, chunk }))) {
@@ -147,22 +158,40 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
             resObject.textures.push(chunk);
         }
 
-        // TGAs + added to textures
+        // RGB headers + added to textures
         if (isWithData && chunkType === "RGB_HEADER") {
-            resObject.TGAs.push(chunk);
+            resObject.RGBHeaders.push(chunk);
             resObject.textures.push(chunk);
         }
 
-        // No data TGAs
+        // No data RGB headers
         if (!isWithData && chunkType === "RGB_HEADER") {
-            resObject.NoDataTGAs.push(chunk);
+            resObject.NoDataRGBHeaders.push(chunk);
         }
 
-        // Linked index between TGAs and NoDataTGAs
-        for (let i = 0; i < resObject.NoDataTGAs.length; i++) {
-            const chunkIndexInsideTGA = chunks.indexOf(resObject.TGAs[i]);
+        // RGBA Headers + added to textures
+        if (isWithData && chunkType === "RGBA_HEADER") {
+            resObject.RGBAHeaders.push(chunk);
+            resObject.textures.push(chunk);
+        }
 
-            resObject.NoDataTGAs[i].data.linkedIndex = chunkIndexInsideTGA;
+        // No data RGBA Headers
+        if (!isWithData && chunkType === "RGBA_HEADER") {
+            resObject.NoDataRGBAHeaders.push(chunk);
+        }
+
+        // Linked index between RGBHeaders and NoDataRGBHeaders
+        for (let i = 0; i < resObject.NoDataRGBHeaders.length; i++) {
+            const chunkIndexInsideRGBHeader = chunks.indexOf(resObject.RGBHeaders[i]);
+
+            resObject.NoDataRGBHeaders[i].data.linkedIndex = chunkIndexInsideRGBHeader;
+        }
+
+        // Linked index between RGBHeaders and NoDataRGBHeaders
+        for (let i = 0; i < resObject.NoDataRGBAHeaders.length; i++) {
+            const chunkIndexInsideRGBAHeader = chunks.indexOf(resObject.RGBAHeaders[i]);
+
+            resObject.NoDataRGBAHeaders[i].data.linkedIndex = chunkIndexInsideRGBAHeader;
         }
 
         // Get the keys for the texture and palette and add them to the object
@@ -178,27 +207,120 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
     }
 
     // Link palettes
-    const linkedPalettes: NsBin.binTextureLinkedData = {};
     const distinctPaletteKeys = [...new Set(resObject.paletteKeys)];
 
-    console.log("distinctPaletteKeys", distinctPaletteKeys.length);
-    console.log("palettes", resObject.palettes.length);
+    for (let i = 0; i < distinctPaletteKeys.length; i++) {
+        try {
+            resObject.linkedPalettes[distinctPaletteKeys[i]] = resObject.palettes[i];
+        } catch (e) {
+            // Doing nothing (sometimes, distinctPaletteKeys > palettes)
+        }
+    }
 
     // Link textures
-    const linkedTextures: NsBin.binTextureLinkedData = {};
     const distinctTextureKeys = [...new Set(resObject.textureKeys)];
     const textureHeadersWithoutData = chunks.filter((chunk) => {
         const chunkType = chunk.data.chunkType as string;
 
         // Palette 4 & palette 8 with no data
-        return (chunkType === "PALETTE_4" || chunkType === "PALETTE_8") && chunk.data.data === undefined;
+        return (
+            chunkType === "PALETTE_4" ||
+            chunkType === "PALETTE_8"
+        ) && chunk.data.data === undefined;
     });
 
     for (let i = 0; i < distinctTextureKeys.length; i++) {
-        // linkedTextures[distinctTextureKeys[i]] = textureHeadersWithoutData[i];
+        try {
+            resObject.linkedTextures[distinctTextureKeys[i]] = textureHeadersWithoutData[i];
+        } catch (e) {
+            // Doing nothing (sometimes, distinctTextureKeys > textureHeadersWithoutData)
+        }
     }
 
     return resObject;
+}
+
+/**
+ * Dump the textures.
+ * @param outputDirPath The output directory path.
+ * @param binFilePath The bin file path.
+ * @param chunks The parsed chunks.
+ * @param resObject The resObject containing all the chunks and linked palettes/textures.
+ */
+function dumpTextures(
+    outputDirPath: string,
+    binFilePath: string,
+    chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[],
+    resObject: NsBin.binTextureFileChunkResObj,
+) {
+    const remainingTextures = chunks.filter((chunk) => {
+        const chunkType = chunk.data.chunkType as string;
+
+        return (
+            chunkType != "PALETTE_4" &&
+            chunkType != "PALETTE_8" &&
+            chunkType != "RGB_HEADER" &&
+            chunkType != "RGBA_HEADER" &&
+            chunkType != "PALETTE_LINK" &&
+            !chunk.data.isPalette &&
+            !chunk.data.isFontDesc
+        ) && chunk.data.data != undefined;
+    });
+
+    // Dump remaining textures
+    for (const remainingTexture of remainingTextures) {
+        const chunkType = remainingTexture.data.chunkType as string;
+
+        // Filename: index_chunkType.bin
+        const filename = `${chunks.indexOf(remainingTexture)}_${chunkType}.bin`;
+
+        const outputFilePath = path.join(outputDirPath, filename);
+        fs.writeFileSync(outputFilePath, remainingTexture.data.data as Uint8Array);
+    }
+
+    // Total length of textures
+    const totalLength = resObject.paletteKeys.length +
+        resObject.NoDataRGBHeaders.length +
+        resObject.NoDataRGBAHeaders.length;
+
+    // Dump textures
+    for (let i = 0; i < totalLength; i++) {
+        const texture = resObject.textures[i];
+        const chunkType = texture.data.chunkType as string;
+
+        // Filename: index_chunkType.tga
+        const filename = `${chunks.indexOf(texture)}_${chunkType}.tga`;
+        const outputFilePath = path.join(outputDirPath, filename);
+
+        // Dump corresponding font desc and link the font desc to its texture
+        if (texture.data.isFontDesc) {
+            const chunkIndex = chunks.indexOf(texture);
+
+            const fontDescFilename = `${chunkIndex}_FONTDESC.bin`;
+            const fontDescOutputFilePath = path.join(outputDirPath, fontDescFilename);
+            fs.writeFileSync(fontDescOutputFilePath, texture.data.data as Uint8Array);
+        }
+
+        // Dump RGB Headers
+        if (chunkType === "RGB_HEADER") {
+            fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+            continue;
+        }
+
+        // Dump RGBA Headers
+        if (chunkType === "RGBA_HEADER") {
+            fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+            continue;
+        }
+
+        // Missing palettes
+        if (i >= resObject.paletteKeys.length) {
+            const missingPaletteFilename = `${i}_MISSING_PALETTE.bin`;
+            const missingPaletteOutputFilePath = path.join(outputDirPath, missingPaletteFilename);
+            fs.writeFileSync(missingPaletteOutputFilePath, texture.data.data as Uint8Array);
+            continue;
+        }
+    }
 }
 
 /**
@@ -210,6 +332,20 @@ function sortChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
  * @link [Jade Studio source code by 4g3v.](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
  */
 export default function BinTexture(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
+    if (!fs.existsSync(binFilePath)) {
+        logger.error(`Invalid bin file path: ${binFilePath}`);
+        process.exit(1);
+    }
+
+    if (!fs.existsSync(outputDirPath)) {
+        fs.mkdirSync(outputDirPath, { recursive: true });
+    }
+
+    if (!checkFileExtension(binFilePath, ".bin")) {
+        logger.error(`Invalid bin file extension: ${binFilePath}`);
+        process.exit(1);
+    }
+
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
@@ -221,7 +357,14 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
         rawChunks
     );
 
-    const resObject = sortChunks(
+    const resObject = prepareChunks(
         chunks
+    );
+
+    dumpTextures(
+        outputDirPath,
+        binFilePath,
+        chunks,
+        resObject
     );
 }

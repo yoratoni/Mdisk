@@ -14,6 +14,7 @@ import {
     generateByteTableFromMapping
 } from "helpers/bytes";
 import { checkFileExtension, exportAsJson, generatePathFromStringStack } from "helpers/files";
+import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
@@ -31,7 +32,8 @@ function readBigFileHeader(cache: Cache, headerSize = 68) {
 
     // Verify the magic string
     if (header.data.magic !== "BIG") {
-        throw new Error("Invalid Big File file format (magic)");
+        logger.error("Invalid Big File file format (magic)");
+        process.exit(1);
     }
 
     // Converts to numbers before operation
@@ -254,15 +256,17 @@ export default function BigFileExtractor(
         process.exit(1);
     }
 
-    if (!checkFileExtension(bigFilePath, ".bf")) {
-        throw new Error("Invalid Big File file extension");
-    }
-
-    const cache = new Cache(bigFilePath, CHUNK_SIZE);
-
     if (!fs.existsSync(outputDirPath)) {
         fs.mkdirSync(outputDirPath, { recursive: true });
     }
+
+    if (!checkFileExtension(bigFilePath, ".bf")) {
+        logger.error("Invalid Big File file extension");
+        process.exit(1);
+    }
+
+    // Loading the cache
+    const cache = new Cache(bigFilePath, CHUNK_SIZE);
 
     const header = readBigFileHeader(
         cache

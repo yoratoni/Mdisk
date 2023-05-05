@@ -22,7 +22,7 @@ declare namespace NsBin {
      * The linked data inside a Bin texture file.
      */
     interface binTextureLinkedData {
-        [key: string]: Uint8Array;
+        [key: string]: NsBytes.IsMappingByteObjectResultWithEmptiness;
     }
 
     /**
@@ -32,10 +32,14 @@ declare namespace NsBin {
         fonts: binTextureFileFonts;
         palettes: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        TGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        NoDataTGAs: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        RGBHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        NoDataRGBHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        RGBAHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        NoDataRGBAHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         paletteKeys: string[];
         textureKeys: string[];
+        linkedPalettes: binTextureLinkedData;
+        linkedTextures: binTextureLinkedData;
     }
 }
 

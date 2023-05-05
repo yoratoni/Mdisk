@@ -11,6 +11,9 @@ archives/BigFile
 # IDE
 **/.vscode
 
+# Logger
+**/logs
+
 # .env files
 .env
 

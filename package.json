@@ -16,7 +16,8 @@
         "lzo": "^0.4.11",
         "mocha": "^10.1.0",
         "speaker": "^0.5.4",
-        "ts-node": "^10.9.1"
+        "ts-node": "^10.9.1",
+        "winston": "^3.8.2"
     },
     "devDependencies": {
         "@types/chai": "^4.3.4",

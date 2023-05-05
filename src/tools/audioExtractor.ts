@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import Cache from "classes/cache";
-import { AUDIO_MS_ADPCM_TABLES , CHUNK_SIZE } from "configs/constants";
+import { AUDIO_MS_ADPCM_TABLES, CHUNK_SIZE } from "configs/constants";
 import { MpAudioHeader } from "configs/mappings";
 import {
     convertNumberToUint8Array,
@@ -10,6 +10,7 @@ import {
     generateByteObjectFromMapping
 } from "helpers/bytes";
 import { checkFileExtension } from "helpers/files";
+import logger from "helpers/logger";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
@@ -50,15 +51,18 @@ function readFileHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
     header.data.headerSize = headerSize;
 
     if (header.data.fileID !== "RIFF" || header.data.format !== "WAVE") {
-        throw new Error("Invalid audio file format (RIFF/WAVE)");
+        logger.error("Invalid audio file format (RIFF/WAVE)");
+        process.exit(1);
     }
 
     if (header.data.fmtBlockSize !== 0x12 && header.data.fmtBlockSize !== 0x32) {
-        throw new Error("Invalid audio file format (fmt block size)");
+        logger.error("Invalid audio file format (fmt block size)");
+        process.exit(1);
     }
 
     if (header.data.dataBlockAlign !== header.data.numChannels as number * 0x24) {
-        throw new Error("Invalid audio file format (data block align)");
+        logger.error("Invalid audio file format (data block align)");
+        process.exit(1);
     }
 
     // Calculate the number of samples
@@ -346,18 +350,21 @@ function generateAudioData(
  */
 export default function AudioExtractor(audioFilePath: string, outputDirPath: string) {
     if (!fs.existsSync(audioFilePath)) {
-        throw new Error(`The audio file doesn't exist: ${audioFilePath}`);
+        logger.error(`Invalid audio file path: ${audioFilePath}`);
+        process.exit(1);
     }
-
-    if (!checkFileExtension(audioFilePath, [".waa", ".wac", ".wad", ".wam"])) {
-        throw new Error("Invalid audio file extension");
-    }
-
-    const cache = new Cache(audioFilePath, CHUNK_SIZE);
 
     if (!fs.existsSync(outputDirPath)) {
         fs.mkdirSync(outputDirPath, { recursive: true });
     }
+
+    if (!checkFileExtension(audioFilePath, [".waa", ".wac", ".wad", ".wam"])) {
+        logger.error(`Invalid audio file extension: ${audioFilePath}`);
+        process.exit(1);
+    }
+
+    // Loading the cache
+    const cache = new Cache(audioFilePath, CHUNK_SIZE);
 
     // BG&E files don't contain looping information, so the looping is done by extension
     // wam and waa contain ambient sounds and music, so often they contain looped music,

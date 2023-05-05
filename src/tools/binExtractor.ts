@@ -7,6 +7,7 @@ import { BIN_FILE_TYPES, CHUNK_SIZE } from "configs/constants";
 import { MpBinFileDataBlockHeader } from "configs/mappings";
 import { generateByteObjectFromMapping } from "helpers/bytes";
 import { checkFileExtension, getFileName } from "helpers/files";
+import logger from "helpers/logger";
 import lzo from "lzo";
 import BinMiscellaneous from "tools/bin/binMiscellaneous";
 import BinSoundEffect from "tools/bin/binSoundEffect";
@@ -155,18 +156,21 @@ function readDataBlocks(cache: Cache, fileType: string) {
  */
 export default function BinExtractor(binFilePath: string, outputDirPath: string, exportDecompressedBin = false) {
     if (!fs.existsSync(binFilePath)) {
-        throw new Error(`The bin file doesn't exist: ${binFilePath}`);
+        logger.error(`Invalid bin file path: ${binFilePath}`);
+        process.exit(1);
     }
-
-    if (!checkFileExtension(binFilePath, ".bin")) {
-        throw new Error("Invalid bin file extension");
-    }
-
-    const cache = new Cache(binFilePath, CHUNK_SIZE);
 
     if (!fs.existsSync(outputDirPath)) {
         fs.mkdirSync(outputDirPath, { recursive: true });
     }
+
+    if (!checkFileExtension(binFilePath, ".bin")) {
+        logger.error(`Invalid bin file extension: ${binFilePath}`);
+        process.exit(1);
+    }
+
+    // Loading the cache
+    const cache = new Cache(binFilePath, CHUNK_SIZE);
 
     // File types (defined inside of the Kapouett's bge-formats-doc repository)
     const fileType = getBinType(binFilePath);
@@ -192,9 +196,11 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
             BinTexture(outputDirPath, binFilePath, dataBlocks);
             break;
         case "UNKNOWN":
-            throw new Error("Unknown bin file type");
+            logger.error(`Unknown bin file type: ${binFilePath}`);
+            process.exit(1);
         default:
-            throw new Error("Invalid bin file type");
+            logger.error(`Invalid bin file type: ${binFilePath}`);
+            process.exit(1);
     }
 
     // Export the decompressed bin file
