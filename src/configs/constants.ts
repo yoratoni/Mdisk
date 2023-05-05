@@ -35,7 +35,11 @@ export const BIN_FILE_TYPES: NsConstants.IsStringFileTypes = {
  */
 export const TEXTURE_FILE_CONFIG = {
     headerLength: 32,
-    magicHex: "0x3412D0CAFF00FF00DEC0DEC0"
+    magicHex: "0x3412D0CAFF00FF00DEC0DEC0",
+    RGBAPaletteLengths: [
+        0x40,
+        0x400
+    ]
 };
 
 /**

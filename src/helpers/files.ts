@@ -134,3 +134,39 @@ export function readFileByChunk(
 
     return buffer;
 }
+
+
+/**
+ * Check if the file path is valid and if the output directory exists,
+ * if not, creates the output directory recursively.
+ *
+ * In the case of the file path, it also checks if the file extension is valid.
+ * In either case, if the check fails, the process exits with code 1.
+ * @param filePath The path to the file.
+ * @param fileType The type of the file (ex: "Big File", "bin file", etc..).
+ * @param requiredFileExtension The required file extension(s) (ex: ".bf", [".waa", ".wac"], etc..).
+ * @param outputDirPath The path to the output directory.
+ */
+export function extractorChecker(
+    filePath: string,
+    fileType: string,
+    requiredFileExtension: string | string[],
+    outputDirPath: string
+) {
+    logger.info(`Beginning '${getFileName(filePath)}' extraction process..`);
+
+    if (!fs.existsSync(filePath)) {
+        logger.error(`Invalid ${fileType} path: ${filePath}`);
+        process.exit(1);
+    }
+
+    if (!fs.existsSync(outputDirPath)) {
+        logger.info(`Creating output directory: ${outputDirPath}`);
+        fs.mkdirSync(outputDirPath, { recursive: true });
+    }
+
+    if (!checkFileExtension(filePath, requiredFileExtension)) {
+        logger.error(`Invalid ${fileType} extension: ${filePath}`);
+        process.exit(1);
+    }
+}

@@ -16,7 +16,7 @@ import {
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
-import { checkFileExtension } from "helpers/files";
+import { getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBin from "types/bin";
 
@@ -27,6 +27,8 @@ import NsBin from "types/bin";
  * @returns The group ID entries, the group string refs and the pointer.
  */
 function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
+    logger.info("Reading text group IDs..");
+
     let rawValue: Uint8Array;
 
     // Group ID Entry Size
@@ -36,6 +38,8 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
     // Calculate the number of groups
     const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIdEntry);
     const numberOfGroups = groupIdEntrySize.data.groupIdEntrySize as number / groupIDEntryMappingLength;
+
+    logger.verbose(`Number of groups: ${numberOfGroups}`);
 
     // Group ID Entries
     rawValue = cache.readBytes(4, groupIdEntrySize.data.groupIdEntrySize as number);
@@ -107,6 +111,8 @@ function readGroupStrings(
     let pointer = textIDs.pointer;
     const groupSize = dataBlockSize - pointer;
 
+    logger.info(`Reading group strings with a group size of ${groupSize} bytes.`);
+
     const breakPositions: number[] = [];
     const strings: string[] = [];
 
@@ -148,6 +154,8 @@ function readGroupStrings(
         strings.push(string);
     }
 
+    logger.info(`Number of strings: ${strings.length}`);
+
     return strings;
 }
 
@@ -157,6 +165,8 @@ function readGroupStrings(
  * @returns The decoded string with line breaks.
  */
 function escapedUnicodeDecoder(strings: string[]) {
+    logger.info("Decoding escaped unicode characters..");
+
     let decodedStrings = "";
 
     for (let i = 0; i < strings.length; i++) {
@@ -203,20 +213,6 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
-    if (!fs.existsSync(binFilePath)) {
-        logger.error(`Invalid bin file path: ${binFilePath}`);
-        process.exit(1);
-    }
-
-    if (!fs.existsSync(outputDirPath)) {
-        fs.mkdirSync(outputDirPath, { recursive: true });
-    }
-
-    if (!checkFileExtension(binFilePath, ".bin")) {
-        logger.error(`Invalid bin file extension: ${binFilePath}`);
-        process.exit(1);
-    }
-
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
@@ -242,4 +238,6 @@ export default function BinText(outputDirPath: string, binFilePath: string, data
 
     const outputFilePath = path.join(outputDirPath, filename);
     fs.writeFileSync(outputFilePath, result);
+
+    logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
 }

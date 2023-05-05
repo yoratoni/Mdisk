@@ -6,7 +6,7 @@ import Cache from "classes/cache";
 import { BIN_FILE_TYPES, CHUNK_SIZE } from "configs/constants";
 import { MpBinFileDataBlockHeader } from "configs/mappings";
 import { generateByteObjectFromMapping } from "helpers/bytes";
-import { checkFileExtension, getFileName } from "helpers/files";
+import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import lzo from "lzo";
 import BinMiscellaneous from "tools/bin/binMiscellaneous";
@@ -31,12 +31,15 @@ function getBinType(binFilePath: string) {
         const filePrefix = fileLetters + fileNumber;
 
         if (filePrefix in BIN_FILE_TYPES) {
+            logger.verbose(`Bin file prefix: '${filePrefix}'.`);
             return BIN_FILE_TYPES[filePrefix];
         }
 
+        logger.verbose(`Bin file prefix unknown: '${filePrefix}'.`);
         return BIN_FILE_TYPES["unknown"];
     }
 
+    logger.verbose(`Bin file prefix: '${fileLetters}'.`);
     return BIN_FILE_TYPES[fileLetters];
 }
 
@@ -127,6 +130,7 @@ function readDataBlocks(cache: Cache, fileType: string) {
     let dataBlockHeader: NsBytes.IsMappingByteObjectResultWithEmptiness;
     let dataBlockData: Uint8Array;
     let pointer = 0;
+    let count = 0;
 
     while (pointer < fileSize) {
         dataBlockHeader = readDataBlockHeader(cache, fileType, pointer);
@@ -142,7 +146,11 @@ function readDataBlocks(cache: Cache, fileType: string) {
         }
 
         dataBlocks.push(dataBlockData);
+
+        count++;
     }
+
+    logger.info(`Found ${count.toLocaleString("en-US")} chunk(s) inside the buffer.`);
 
     return dataBlocks;
 }
@@ -155,25 +163,15 @@ function readDataBlocks(cache: Cache, fileType: string) {
  * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export default function BinExtractor(binFilePath: string, outputDirPath: string, exportDecompressedBin = false) {
-    if (!fs.existsSync(binFilePath)) {
-        logger.error(`Invalid bin file path: ${binFilePath}`);
-        process.exit(1);
-    }
-
-    if (!fs.existsSync(outputDirPath)) {
-        fs.mkdirSync(outputDirPath, { recursive: true });
-    }
-
-    if (!checkFileExtension(binFilePath, ".bin")) {
-        logger.error(`Invalid bin file extension: ${binFilePath}`);
-        process.exit(1);
-    }
+    extractorChecker(binFilePath, "bin file", ".bin", outputDirPath);
 
     // Loading the cache
     const cache = new Cache(binFilePath, CHUNK_SIZE);
 
     // File types (defined inside of the Kapouett's bge-formats-doc repository)
     const fileType = getBinType(binFilePath);
+
+    logger.info(`Bin file type: '${fileType}'.`);
 
     // Read all data blocks
     const dataBlocks = readDataBlocks(cache, fileType);
@@ -205,6 +203,8 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
 
     // Export the decompressed bin file
     if (exportDecompressedBin) {
+        logger.warn("Exporting the decompressed bin file, this may take a a bit more time..");
+
         const outputFilePath = path.join(outputDirPath, "DECOMP_" + path.basename(binFilePath));
         fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
     }

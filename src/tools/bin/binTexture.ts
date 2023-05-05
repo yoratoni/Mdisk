@@ -5,7 +5,7 @@ import Cache from "classes/cache";
 import { TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "configs/constants";
 import { MpBinFileTexture } from "configs/mappings";
 import { convertUint8ArrayToHexString, convertUint8ArrayToNumber, generateByteObjectFromMapping } from "helpers/bytes";
-import { checkFileExtension, exportAsJson } from "helpers/files";
+import { getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBin from "types/bin";
 import NsBytes from "types/bytes";
@@ -38,6 +38,8 @@ function getAllChunks(cache: Cache) {
  * @returns The parsed chunks.
  */
 function parseChunks(chunks: Uint8Array[]) {
+    logger.info("Parsing chunks..");
+
     const parsedChunks = [];
 
     for (const chunk of chunks) {
@@ -114,6 +116,8 @@ function parseChunks(chunks: Uint8Array[]) {
         }
     }
 
+    logger.info(`${parsedChunks.length.toLocaleString("en-US")} chunks parsed..`);
+
     return parsedChunks;
 }
 
@@ -124,6 +128,8 @@ function parseChunks(chunks: Uint8Array[]) {
  * @returns The resObject containing all the chunks and linked palettes/textures.
  */
 function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
+    logger.info("Preparing chunks..");
+
     const resObject: NsBin.binTextureFileChunkResObj = {
         fonts: [],
         palettes: [],
@@ -134,6 +140,7 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         NoDataRGBAHeaders: [],
         textureKeys: [],
         paletteKeys: [],
+        links: [],
         linkedPalettes: {},
         linkedTextures: {}
     };
@@ -201,6 +208,7 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
             const textureKey = convertUint8ArrayToHexString(data.slice(0, 4), true, true);
             const paletteKey = convertUint8ArrayToHexString(data.slice(4, 8), true, true);
 
+            resObject.links.push(chunk);
             resObject.textureKeys.push(textureKey);
             resObject.paletteKeys.push(paletteKey);
         }
@@ -237,6 +245,17 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         }
     }
 
+    logger.info(`Found ${resObject.palettes.length.toLocaleString("en-US")} palettes..`);
+    logger.info(`Found ${resObject.textures.length.toLocaleString("en-US")} textures..`);
+    logger.verbose(`Found ${resObject.RGBHeaders.length.toLocaleString("en-US")} RGB headers..`);
+    logger.verbose(`Found ${resObject.NoDataRGBHeaders.length.toLocaleString("en-US")} RGB headers without data..`);
+    logger.verbose(`Found ${resObject.RGBAHeaders.length.toLocaleString("en-US")} RGBA headers..`);
+    logger.verbose(`Found ${resObject.NoDataRGBAHeaders.length.toLocaleString("en-US")} RGBA headers without data..`);
+    logger.verbose(`Found ${resObject.paletteKeys.length.toLocaleString("en-US")} palette keys..`);
+    logger.verbose(`Found ${resObject.textureKeys.length.toLocaleString("en-US")} texture keys..`);
+    logger.verbose(`Found ${resObject.links.length.toLocaleString("en-US")} links..`);
+    logger.info("Chunks prepared..");
+
     return resObject;
 }
 
@@ -253,6 +272,8 @@ function dumpTextures(
     chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[],
     resObject: NsBin.binTextureFileChunkResObj,
 ) {
+    logger.info("Dumping textures..");
+
     const remainingTextures = chunks.filter((chunk) => {
         const chunkType = chunk.data.chunkType as string;
 
@@ -278,38 +299,55 @@ function dumpTextures(
         fs.writeFileSync(outputFilePath, remainingTexture.data.data as Uint8Array);
     }
 
+    logger.info(`Dumped ${remainingTextures.length.toLocaleString("en-US")} remaining texture(s)..`);
+
     // Total length of textures
     const totalLength = resObject.paletteKeys.length +
         resObject.NoDataRGBHeaders.length +
         resObject.NoDataRGBAHeaders.length;
 
+    // Counters for the logs
+    const counters = {
+        fontDescs: 0,
+        RGBHeaders: 0,
+        RGBAHeaders: 0,
+        missingPalettes: 0,
+        weirdPalettes: 0
+    };
+
     // Dump textures
     for (let i = 0; i < totalLength; i++) {
         const texture = resObject.textures[i];
-        const chunkType = texture.data.chunkType as string;
+        const textureIndex = chunks.indexOf(texture);
+        const textureType = texture.data.chunkType as string;
+        const textureHeaderChunk = resObject.linkedTextures[resObject.textureKeys[i]];
 
-        // Filename: index_chunkType.tga
-        const filename = `${chunks.indexOf(texture)}_${chunkType}.tga`;
+        // Filename: index_textureType.tga
+        const filename = `${chunks.indexOf(texture)}_${textureType}.tga`;
         const outputFilePath = path.join(outputDirPath, filename);
 
         // Dump corresponding font desc and link the font desc to its texture
         if (texture.data.isFontDesc) {
-            const chunkIndex = chunks.indexOf(texture);
-
-            const fontDescFilename = `${chunkIndex}_FONTDESC.bin`;
+            const fontDescFilename = `${textureIndex}_FONTDESC.bin`;
             const fontDescOutputFilePath = path.join(outputDirPath, fontDescFilename);
             fs.writeFileSync(fontDescOutputFilePath, texture.data.data as Uint8Array);
+
+            counters.fontDescs++;
         }
 
         // Dump RGB Headers
-        if (chunkType === "RGB_HEADER") {
+        if (textureType === "RGB_HEADER") {
             fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+
+            counters.RGBHeaders++;
             continue;
         }
 
         // Dump RGBA Headers
-        if (chunkType === "RGBA_HEADER") {
+        if (textureType === "RGBA_HEADER") {
             fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+
+            counters.RGBAHeaders++;
             continue;
         }
 
@@ -318,9 +356,50 @@ function dumpTextures(
             const missingPaletteFilename = `${i}_MISSING_PALETTE.bin`;
             const missingPaletteOutputFilePath = path.join(outputDirPath, missingPaletteFilename);
             fs.writeFileSync(missingPaletteOutputFilePath, texture.data.data as Uint8Array);
+
+            counters.missingPalettes++;
+            continue;
+        }
+
+        // Link texture chunk without data to the one with data and vice versa
+        textureHeaderChunk.data.linkedIndex = textureIndex;
+        texture.data.linkedIndex = chunks.indexOf(textureHeaderChunk);
+
+        // Link texture chunk with data to palette link
+        resObject.links[i].data.linkedIndex = textureIndex;
+
+        // Palette info
+        const linkedPalette = resObject.linkedPalettes[resObject.paletteKeys[i]];
+        const linkedPaletteData = linkedPalette.data.data as Uint8Array;
+
+        // Check if it's an RGBA Header
+        let usesRGBA = false;
+        for (const RGBAPaletteLength of TEXTURE_FILE_CONFIG.RGBAPaletteLengths) {
+            if (linkedPaletteData.length == RGBAPaletteLength) {
+                usesRGBA = true;
+                break;
+            }
+        }
+
+        // Dump weird palettes
+        if (!usesRGBA && linkedPaletteData.length != 0x30 && linkedPaletteData.length != 0x300) {
+            const weirdPaletteFilename = `${i}_WEIRD_PALETTE.bin`;
+            const weirdLinkedPaletteFilename = `${i}_WEIRD_PALETTE_LINKED.bin`;
+            const weirdPaletteOutputFilePath = path.join(outputDirPath, weirdPaletteFilename);
+            const weirdLinkedPaletteOutputFilePath = path.join(outputDirPath, weirdLinkedPaletteFilename);
+            fs.writeFileSync(weirdPaletteOutputFilePath, texture.data.data as Uint8Array);
+            fs.writeFileSync(weirdLinkedPaletteOutputFilePath, linkedPaletteData);
+
+            counters.weirdPalettes++;
             continue;
         }
     }
+
+    logger.info(`Dumped ${counters.fontDescs.toLocaleString("en-US")} font desc(s)`);
+    logger.info(`Dumped ${counters.RGBHeaders.toLocaleString("en-US")} RGB header(s)`);
+    logger.info(`Dumped ${counters.RGBAHeaders.toLocaleString("en-US")} RGBA header(s)`);
+    logger.info(`Dumped ${counters.missingPalettes.toLocaleString("en-US")} missing palette(s)`);
+    logger.info(`Dumped ${counters.weirdPalettes.toLocaleString("en-US")} weird palette(s)`);
 }
 
 /**
@@ -332,20 +411,6 @@ function dumpTextures(
  * @link [Jade Studio source code by 4g3v.](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
  */
 export default function BinTexture(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
-    if (!fs.existsSync(binFilePath)) {
-        logger.error(`Invalid bin file path: ${binFilePath}`);
-        process.exit(1);
-    }
-
-    if (!fs.existsSync(outputDirPath)) {
-        fs.mkdirSync(outputDirPath, { recursive: true });
-    }
-
-    if (!checkFileExtension(binFilePath, ".bin")) {
-        logger.error(`Invalid bin file extension: ${binFilePath}`);
-        process.exit(1);
-    }
-
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
@@ -367,4 +432,6 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
         chunks,
         resObject
     );
+
+    logger.info(`Successfully extracted textures: '${getFileName(binFilePath)}' => '${outputDirPath}'.`);
 }

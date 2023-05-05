@@ -9,7 +9,7 @@ import {
     convertStringToUint8Array,
     generateByteObjectFromMapping
 } from "helpers/bytes";
-import { checkFileExtension } from "helpers/files";
+import { checkFileExtension, extractorChecker } from "helpers/files";
 import logger from "helpers/logger";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
@@ -349,19 +349,7 @@ function generateAudioData(
  * @link [Node MS ADPCM by Snack-X.](https://github.com/Snack-X/node-ms-adpcm/blob/master/index.js)
  */
 export default function AudioExtractor(audioFilePath: string, outputDirPath: string) {
-    if (!fs.existsSync(audioFilePath)) {
-        logger.error(`Invalid audio file path: ${audioFilePath}`);
-        process.exit(1);
-    }
-
-    if (!fs.existsSync(outputDirPath)) {
-        fs.mkdirSync(outputDirPath, { recursive: true });
-    }
-
-    if (!checkFileExtension(audioFilePath, [".waa", ".wac", ".wad", ".wam"])) {
-        logger.error(`Invalid audio file extension: ${audioFilePath}`);
-        process.exit(1);
-    }
+    extractorChecker(audioFilePath, "audio file", [".waa", ".wac", ".wad", ".wam"], outputDirPath);
 
     // Loading the cache
     const cache = new Cache(audioFilePath, CHUNK_SIZE);

@@ -13,7 +13,7 @@ import {
     generateByteObjectFromMapping,
     generateByteTableFromMapping
 } from "helpers/bytes";
-import { checkFileExtension, exportAsJson, generatePathFromStringStack } from "helpers/files";
+import { exportAsJson, extractorChecker, generatePathFromStringStack } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
@@ -247,23 +247,8 @@ function extractBigFile(
  * @param exportJSON Whether to export the JSON files of the BigFile data (defaults to true).
  * @link [Big File doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md)
  */
-export default function BigFileExtractor(
-    bigFilePath: string,
-    outputDirPath: string,
-    exportJSON = true
-) {
-    if (!fs.existsSync(bigFilePath)) {
-        process.exit(1);
-    }
-
-    if (!fs.existsSync(outputDirPath)) {
-        fs.mkdirSync(outputDirPath, { recursive: true });
-    }
-
-    if (!checkFileExtension(bigFilePath, ".bf")) {
-        logger.error("Invalid Big File file extension");
-        process.exit(1);
-    }
+export default function BigFileExtractor(bigFilePath: string, outputDirPath: string, exportJSON = true) {
+    extractorChecker(bigFilePath, "Big File", ".bf", outputDirPath);
 
     // Loading the cache
     const cache = new Cache(bigFilePath, CHUNK_SIZE);

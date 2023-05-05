@@ -1,9 +1,11 @@
 import Pointers from "classes/pointers";
 import { concatenateUint8Arrays, convertMegaBytesToBytes } from "helpers/bytes";
-import { closeFile, getFileSize, openFile, readFileByChunk } from "helpers/files";
+import { closeFile, getFileName, getFileSize, openFile, readFileByChunk } from "helpers/files";
+import logger from "helpers/logger";
 
 
 export default class Cache {
+    private _fileName: string;
     private _filePath: string;
     private _fileSize: number;
     private _file: number;
@@ -30,6 +32,7 @@ export default class Cache {
 
             const concatenatedBuffer = concatenateUint8Arrays(buffer);
 
+            this._fileName = "";
             this._filePath = "";
             this._fileSize = concatenatedBuffer.length;
             this._chunkNumber = 0;
@@ -41,10 +44,14 @@ export default class Cache {
             this._pointers = new Pointers();
             this._pointers.customChunkSize(concatenatedBuffer.length);
 
+            logger.verbose(`Loaded cache from buffer with ${buffer.length.toLocaleString("en-US")} chunk(s).`);
+            logger.info(`Buffer size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+
             return;
         }
 
         this._bufferLoaded = false;
+        this._fileName = getFileName(absolutePath);
         this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._chunkNumber = 0;
@@ -62,6 +69,11 @@ export default class Cache {
         );
 
         this._pointers = new Pointers();
+
+        const numberOfChunks = Math.ceil(this._fileSize / this._chunkSize);
+        logger.verbose(`Loaded cache from file '${this._fileName}' with ${numberOfChunks.toLocaleString("en-US")} chunk(s).`);
+        logger.info(`Chunk size: ${this._chunkSize.toLocaleString("en-US")} bytes.`);
+        logger.info(`File size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
     }
 
     /**
@@ -78,9 +90,13 @@ export default class Cache {
 
             this._buffer = buffer;
 
+            logger.verbose(`Loaded cache from new buffer with ${buffer.length.toLocaleString("en-US")} chunk(s).`);
+            logger.info(`Buffer size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+
             return;
         }
 
+        this._fileName = getFileName(absolutePath);
         this._filePath = absolutePath;
         this._fileSize = getFileSize(this._filePath);
         this._file = openFile(this._filePath);
@@ -93,6 +109,11 @@ export default class Cache {
             this._chunkNumber,
             this._chunkSize
         );
+
+        const numberOfChunks = Math.ceil(this._fileSize / this._chunkSize);
+        logger.verbose(`Loaded cache from file '${this._fileName}' with ${numberOfChunks.toLocaleString("en-US")} chunk(s).`);
+        logger.info(`Chunk size: ${this._chunkSize.toLocaleString("en-US")} bytes.`);
+        logger.info(`File size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
     }
 
     /**
@@ -100,6 +121,8 @@ export default class Cache {
      */
     public closeFile() {
         if (this._file) {
+            logger.info(`Closed file '${this._fileName}'.`);
+
             closeFile(this._file);
         }
     }
@@ -124,6 +147,8 @@ export default class Cache {
      * @param absolutePath The absolute path to the file.
      */
     public set filePath(absolutePath: string) {
+        logger.info(`Changed file path to ${absolutePath}.`);
+
         if (this._bufferLoaded) {
             return;
         }
