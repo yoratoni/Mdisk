@@ -20,7 +20,7 @@ Support
 | `.bf`   | Big File          | **SUPPORTED**               |
 | `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **SUPPORTED**               |
-| `.mtx`  | Trailer videos ?  | **WORK IN PROGRESS**        |
+| `.mtx`  | Trailer videos ?  | **-----------------------** |
 | `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.wol`  | Prototypes ?      | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
