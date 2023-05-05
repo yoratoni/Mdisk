@@ -36,7 +36,7 @@ Bin Support
 | `ff4*`  | Sound effects      | **-----------------------** |
 | `fe*`   | Sound headers      | **-----------------------** |
 | `fd*`   | Translated strings | **SUPPORTED**               |
-| `ff8*`  | Textures           | **-----------------------** |
+| `ff8*`  | Textures           | **WORK IN PROGRESS**        |
 | `ff0*`  | Miscellaneous      | **-----------------------** |
 
 
