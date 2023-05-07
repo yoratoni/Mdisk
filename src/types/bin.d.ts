@@ -32,15 +32,25 @@ declare namespace NsBin {
         fonts: binTextureFileFonts;
         palettes: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        RGBHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        NoDataRGBHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        RGBAHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        NoDataRGBAHeaders: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        targa1: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        NoDataTarga1: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        targa2: NsBytes.IsMappingByteObjectResultWithEmptiness[];
+        NoDataTarga2: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         paletteKeys: string[];
         textureKeys: string[];
         links: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         linkedPalettes: binTextureLinkedData;
         linkedTextures: binTextureLinkedData;
+    }
+
+    /**
+     * Bin texture RGBA data.
+     */
+    interface binTextureRGBAData {
+        B: number;
+        G: number;
+        R: number;
+        A: number;
     }
 }
 

@@ -14,8 +14,8 @@ export const AUDIO_MS_ADPCM_TABLES = {
         230, 230, 230, 230, 307, 409, 512, 614,
         768, 614, 512, 409, 307, 230, 230, 230
     ],
-    coeff1: [ 256, 512, 0, 192, 240, 460, 392 ],
-    coeff2: [ 0, -256, 0, 64, 0, -208, -232 ]
+    coeff1: [256, 512, 0, 192, 240, 460, 392],
+    coeff2: [0, -256, 0, 64, 0, -208, -232]
 };
 
 /**
@@ -52,9 +52,38 @@ export const TEXTURE_FILE_TYPES: NsConstants.IsNumberAndStringFileTypes = {
     5: "PROCEDURAL",
     7: "PALETTE_LINK",
     9: "ANIMATED",
-    4097: "RGB_HEADER",
-    8193: "RGBA_HEADER",
+    4097: "TARGA_1",
+    8193: "TARGA_2",
     16390: "PALETTE_8",
     20486: "PALETTE_4",
     "FONTDESC": "FONTDESC"
+};
+
+/**
+ * Targa file header.
+ * @link https://www.fileformat.info/format/tga/egff.htm
+ * @link https://en.wikipedia.org/wiki/Truevision_TGA
+ * @link http://www.paulbourke.net/dataformats/tga/
+ */
+export const TARGA_FILE_HEADER = {
+    // Header length
+    headerLength: 18,
+
+    // Header
+    idLength: 0,
+    colorMapType: 0,
+    imageType: 2,
+
+    // Color Map Specification
+    firstEntryIndex: 0,
+    colorMapLength: 0,
+    colorMapEntrySize: 0,
+
+    // Image Specification
+    xOrigin: 0,
+    yOrigin: 0,
+    width: 0,
+    height: 0,
+    pixelDepth: 32,
+    imageDescriptor: 8
 };

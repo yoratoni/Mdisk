@@ -24,10 +24,17 @@ export function getAbsolutePath(relativePath: string): string {
 /**
  * Returns the name of the file.
  * @param filePath The path to the file.
+ * @param includeExtension Whether to include the extension.
  * @returns The name of the file.
  */
-export function getFileName(filePath: string): string {
-    return path.basename(filePath);
+export function getFileName(filePath: string, includeExtension = true): string {
+    const fileName = path.basename(filePath);
+
+    if (includeExtension) {
+        return fileName;
+    }
+
+    return fileName.split(".")[0];
 }
 
 /**

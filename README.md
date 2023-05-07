@@ -197,8 +197,8 @@ Different types of blocks inside a Texture file:
 | 0x5        | **PROCEDURAL**      |
 | 0x7        | **PALETTE_LINK**    |
 | 0x9        | **ANIMATED**        |
-| 0x1001     | **RGB_HEADER**      |
-| 0x2001     | **RGBA_HEADER**     |
+| 0x1001     | **TARGA_1**         |
+| 0x2001     | **TARGA_2**         |
 | 0x4006     | **PALETTE_8**       |
 | 0x5006     | **PALETTE_4**       |
 | `FONTDESC` | **FONTDESC**        |
@@ -208,7 +208,7 @@ Notes:
 - The `PALETTE_LINK` block contains 2 IDs, associating a Pixmap and a palette.
 - A palette can be used multiple times (same ID).
 - It is not rare to have more palette keys than actual palettes.
-- I replaced the `TGA` type (0x1001 & 0x2001) by `RGB_HEADER` & `RGBA_HEADER`.
+- I replaced the `TGA` type (0x1001 & 0x2001) by `TARGA_1` & `TARGA_2`.
 
 Credits
 -------

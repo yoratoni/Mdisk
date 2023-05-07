@@ -2,10 +2,15 @@ import fs from "fs";
 import path from "path";
 
 import Cache from "classes/cache";
-import { TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "configs/constants";
+import { TARGA_FILE_HEADER, TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "configs/constants";
 import { MpBinFileTexture } from "configs/mappings";
-import { convertUint8ArrayToHexString, convertUint8ArrayToNumber, generateByteObjectFromMapping } from "helpers/bytes";
-import { getFileName } from "helpers/files";
+import {
+    concatenateUint8Arrays,
+    convertUint8ArrayToHexString,
+    convertUint8ArrayToNumber,
+    generateByteObjectFromMapping
+} from "helpers/bytes";
+import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBin from "types/bin";
 import NsBytes from "types/bytes";
@@ -43,10 +48,9 @@ function parseChunks(chunks: Uint8Array[]) {
     const parsedChunks = [];
 
     for (const chunk of chunks) {
-        let pointer = 0;
+        let pointer = 6;
 
         // Reads the type
-        pointer += 6;
         const rawChunkType = convertUint8ArrayToNumber(chunk.slice(pointer, pointer + 2));
         let chunkType = TEXTURE_FILE_TYPES[rawChunkType];
 
@@ -79,7 +83,7 @@ function parseChunks(chunks: Uint8Array[]) {
             // Data linked to the chunk
             if (remainingBytes > 0) {
                 // Specific chunk parsing for procedural textures
-                if (chunkType == TEXTURE_FILE_TYPES[5]) {
+                if (chunkType === "PROCEDURAL") {
                     if (remainingBytes === 64) {
                         remainingBytes += 4;
                     }
@@ -134,10 +138,10 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         fonts: [],
         palettes: [],
         textures: [],
-        RGBHeaders: [],
-        NoDataRGBHeaders: [],
-        RGBAHeaders: [],
-        NoDataRGBAHeaders: [],
+        targa1: [],
+        NoDataTarga1: [],
+        targa2: [],
+        NoDataTarga2: [],
         textureKeys: [],
         paletteKeys: [],
         links: [],
@@ -161,52 +165,52 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         }
 
         // Texture
-        if (isWithData && (chunkType === "PALETTE_8" || chunkType === "PALETTE_4")) {
+        if (isWithData && (chunkType === "PALETTE_4" || chunkType === "PALETTE_8")) {
             resObject.textures.push(chunk);
         }
 
-        // RGB headers + added to textures
-        if (isWithData && chunkType === "RGB_HEADER") {
-            resObject.RGBHeaders.push(chunk);
+        // Targa 1 + added to textures
+        if (isWithData && chunkType === "TARGA_1") {
+            resObject.targa1.push(chunk);
             resObject.textures.push(chunk);
         }
 
-        // No data RGB headers
-        if (!isWithData && chunkType === "RGB_HEADER") {
-            resObject.NoDataRGBHeaders.push(chunk);
+        // No data targa 1
+        if (!isWithData && chunkType === "TARGA_1") {
+            resObject.NoDataTarga1.push(chunk);
         }
 
-        // RGBA Headers + added to textures
-        if (isWithData && chunkType === "RGBA_HEADER") {
-            resObject.RGBAHeaders.push(chunk);
+        // Targa 2 + added to textures
+        if (isWithData && chunkType === "TARGA_2") {
+            resObject.targa2.push(chunk);
             resObject.textures.push(chunk);
         }
 
-        // No data RGBA Headers
-        if (!isWithData && chunkType === "RGBA_HEADER") {
-            resObject.NoDataRGBAHeaders.push(chunk);
+        // No data targa 2
+        if (!isWithData && chunkType === "TARGA_2") {
+            resObject.NoDataTarga2.push(chunk);
         }
 
-        // Linked index between RGBHeaders and NoDataRGBHeaders
-        for (let i = 0; i < resObject.NoDataRGBHeaders.length; i++) {
-            const chunkIndexInsideRGBHeader = chunks.indexOf(resObject.RGBHeaders[i]);
-
-            resObject.NoDataRGBHeaders[i].data.linkedIndex = chunkIndexInsideRGBHeader;
+        // Linked index between targa1 and NoDataTarga1
+        const targa1LinkIndex = resObject.NoDataTarga1.length - 1;
+        if (resObject.targa1[targa1LinkIndex] !== undefined) {
+            resObject.NoDataTarga1[targa1LinkIndex].data.linkedIndex = chunks.indexOf(
+                resObject.targa1[targa1LinkIndex]
+            );
         }
 
-        // Linked index between RGBHeaders and NoDataRGBHeaders
-        for (let i = 0; i < resObject.NoDataRGBAHeaders.length; i++) {
-            const chunkIndexInsideRGBAHeader = chunks.indexOf(resObject.RGBAHeaders[i]);
-
-            resObject.NoDataRGBAHeaders[i].data.linkedIndex = chunkIndexInsideRGBAHeader;
+        // Linked index between targa2 and NoDataTarga2
+        const targa2LinkIndex = resObject.NoDataTarga2.length - 1;
+        if (resObject.targa2[targa2LinkIndex] !== undefined) {
+            resObject.NoDataTarga2[targa2LinkIndex].data.linkedIndex = chunks.indexOf(
+                resObject.targa2[targa2LinkIndex]
+            );
         }
 
         // Get the keys for the texture and palette and add them to the object
-        if (chunkType === "PALETTE_LINK") {
-            const data = chunk.data.data as Uint8Array;
-
-            const textureKey = convertUint8ArrayToHexString(data.slice(0, 4), true, true);
-            const paletteKey = convertUint8ArrayToHexString(data.slice(4, 8), true, true);
+        if (isWithData && chunkType === "PALETTE_LINK") {
+            const textureKey = convertUint8ArrayToHexString(chunkData.slice(0, 4), true, true);
+            const paletteKey = convertUint8ArrayToHexString(chunkData.slice(4, 8), true, true);
 
             resObject.links.push(chunk);
             resObject.textureKeys.push(textureKey);
@@ -231,10 +235,7 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         const chunkType = chunk.data.chunkType as string;
 
         // Palette 4 & palette 8 with no data
-        return (
-            chunkType === "PALETTE_4" ||
-            chunkType === "PALETTE_8"
-        ) && chunk.data.data === undefined;
+        return (chunkType === "PALETTE_4" || chunkType === "PALETTE_8") && chunk.data.data === undefined;
     });
 
     for (let i = 0; i < distinctTextureKeys.length; i++) {
@@ -247,10 +248,10 @@ function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
 
     logger.info(`Found ${resObject.palettes.length.toLocaleString("en-US")} palettes..`);
     logger.info(`Found ${resObject.textures.length.toLocaleString("en-US")} textures..`);
-    logger.verbose(`Found ${resObject.RGBHeaders.length.toLocaleString("en-US")} RGB headers..`);
-    logger.verbose(`Found ${resObject.NoDataRGBHeaders.length.toLocaleString("en-US")} RGB headers without data..`);
-    logger.verbose(`Found ${resObject.RGBAHeaders.length.toLocaleString("en-US")} RGBA headers..`);
-    logger.verbose(`Found ${resObject.NoDataRGBAHeaders.length.toLocaleString("en-US")} RGBA headers without data..`);
+    logger.verbose(`Found ${resObject.targa1.length.toLocaleString("en-US")} Targa 1 (TGA)..`);
+    logger.verbose(`Found ${resObject.NoDataTarga1.length.toLocaleString("en-US")} Targa 1 (TGA) without data..`);
+    logger.verbose(`Found ${resObject.targa2.length.toLocaleString("en-US")} Targa 2 (TGA)..`);
+    logger.verbose(`Found ${resObject.NoDataTarga2.length.toLocaleString("en-US")} Targa 2 (TGA) without data..`);
     logger.verbose(`Found ${resObject.paletteKeys.length.toLocaleString("en-US")} palette keys..`);
     logger.verbose(`Found ${resObject.textureKeys.length.toLocaleString("en-US")} texture keys..`);
     logger.verbose(`Found ${resObject.links.length.toLocaleString("en-US")} links..`);
@@ -280,8 +281,8 @@ function dumpTextures(
         return (
             chunkType != "PALETTE_4" &&
             chunkType != "PALETTE_8" &&
-            chunkType != "RGB_HEADER" &&
-            chunkType != "RGBA_HEADER" &&
+            chunkType != "TARGA_1" &&
+            chunkType != "TARGA_2" &&
             chunkType != "PALETTE_LINK" &&
             !chunk.data.isPalette &&
             !chunk.data.isFontDesc
@@ -302,23 +303,23 @@ function dumpTextures(
     logger.info(`Dumped ${remainingTextures.length.toLocaleString("en-US")} remaining texture(s)..`);
 
     // Total length of textures
-    const totalLength = resObject.paletteKeys.length +
-        resObject.NoDataRGBHeaders.length +
-        resObject.NoDataRGBAHeaders.length;
+    const totalLength = resObject.paletteKeys.length + resObject.targa1.length + resObject.targa2.length;
 
     // Counters for the logs
     const counters = {
         fontDescs: 0,
-        RGBHeaders: 0,
-        RGBAHeaders: 0,
+        targa1: 0,
+        targa2: 0,
         missingPalettes: 0,
-        weirdPalettes: 0
+        weirdPalettes: 0,
+        targaFiles: 0
     };
 
     // Dump textures
     for (let i = 0; i < totalLength; i++) {
         const texture = resObject.textures[i];
         const textureIndex = chunks.indexOf(texture);
+        const textureData = texture.data.data as Uint8Array;
         const textureType = texture.data.chunkType as string;
         const textureHeaderChunk = resObject.linkedTextures[resObject.textureKeys[i]];
 
@@ -330,24 +331,24 @@ function dumpTextures(
         if (texture.data.isFontDesc) {
             const fontDescFilename = `${textureIndex}_FONTDESC.bin`;
             const fontDescOutputFilePath = path.join(outputDirPath, fontDescFilename);
-            fs.writeFileSync(fontDescOutputFilePath, texture.data.data as Uint8Array);
+            fs.writeFileSync(fontDescOutputFilePath, textureData);
 
             counters.fontDescs++;
         }
 
-        // Dump RGB Headers
-        if (textureType === "RGB_HEADER") {
-            fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+        // Dump Targa 1
+        if (textureType === "TARGA_1") {
+            fs.writeFileSync(outputFilePath, textureData);
 
-            counters.RGBHeaders++;
+            counters.targa1++;
             continue;
         }
 
-        // Dump RGBA Headers
-        if (textureType === "RGBA_HEADER") {
-            fs.writeFileSync(outputFilePath, texture.data.data as Uint8Array);
+        // Dump Targa 2
+        if (textureType === "TARGA_2") {
+            fs.writeFileSync(outputFilePath, textureData);
 
-            counters.RGBAHeaders++;
+            counters.targa2++;
             continue;
         }
 
@@ -355,7 +356,7 @@ function dumpTextures(
         if (i >= resObject.paletteKeys.length) {
             const missingPaletteFilename = `${i}_MISSING_PALETTE.bin`;
             const missingPaletteOutputFilePath = path.join(outputDirPath, missingPaletteFilename);
-            fs.writeFileSync(missingPaletteOutputFilePath, texture.data.data as Uint8Array);
+            fs.writeFileSync(missingPaletteOutputFilePath, textureData);
 
             counters.missingPalettes++;
             continue;
@@ -372,10 +373,10 @@ function dumpTextures(
         const linkedPalette = resObject.linkedPalettes[resObject.paletteKeys[i]];
         const linkedPaletteData = linkedPalette.data.data as Uint8Array;
 
-        // Check if it's an RGBA Header
+        // Check if it uses RGBA
         let usesRGBA = false;
         for (const RGBAPaletteLength of TEXTURE_FILE_CONFIG.RGBAPaletteLengths) {
-            if (linkedPaletteData.length == RGBAPaletteLength) {
+            if (linkedPaletteData.length === RGBAPaletteLength) {
                 usesRGBA = true;
                 break;
             }
@@ -384,22 +385,165 @@ function dumpTextures(
         // Dump weird palettes
         if (!usesRGBA && linkedPaletteData.length != 0x30 && linkedPaletteData.length != 0x300) {
             const weirdPaletteFilename = `${i}_WEIRD_PALETTE.bin`;
-            const weirdLinkedPaletteFilename = `${i}_WEIRD_PALETTE_LINKED.bin`;
             const weirdPaletteOutputFilePath = path.join(outputDirPath, weirdPaletteFilename);
+            fs.writeFileSync(weirdPaletteOutputFilePath, textureData);
+
+            const weirdLinkedPaletteFilename = `${i}_WEIRD_LINKED_PALETTE.bin`;
             const weirdLinkedPaletteOutputFilePath = path.join(outputDirPath, weirdLinkedPaletteFilename);
-            fs.writeFileSync(weirdPaletteOutputFilePath, texture.data.data as Uint8Array);
             fs.writeFileSync(weirdLinkedPaletteOutputFilePath, linkedPaletteData);
 
             counters.weirdPalettes++;
             continue;
         }
+
+        // Get the pixel color data
+        const pixelColorData: NsBin.binTextureRGBAData[] = [];
+
+        let pointer = 0;
+        while (pointer < linkedPaletteData.length) {
+            const RGBA: NsBin.binTextureRGBAData = {
+                B: 0,
+                G: 0,
+                R: 0,
+                A: 0xFF
+            };
+
+            if (usesRGBA) {
+                RGBA.B = linkedPaletteData[pointer];
+                RGBA.G = linkedPaletteData[pointer + 1];
+                RGBA.R = linkedPaletteData[pointer + 2];
+                RGBA.A = linkedPaletteData[pointer + 3];
+
+                pointer += 4;
+            } else {
+                RGBA.B = linkedPaletteData[pointer];
+                RGBA.G = linkedPaletteData[pointer + 1];
+                RGBA.R = linkedPaletteData[pointer + 2];
+
+                pointer += 3;
+            }
+
+            pixelColorData.push(RGBA);
+        }
+
+        // Specs:
+        // - Little Endian
+        // - https://www.fileformat.info/format/tga/egff.htm
+        // - https://en.wikipedia.org/wiki/Truevision_TGA
+        // - http://www.paulbourke.net/dataformats/tga/
+
+        // Create the Targa file
+        const targaFileHeader = new Uint8Array(TARGA_FILE_HEADER.headerLength);
+
+        // Set the Targa file header image width and height
+        TARGA_FILE_HEADER.width = textureHeaderChunk.data.width as number;
+        TARGA_FILE_HEADER.height = textureHeaderChunk.data.height as number;
+
+        // Targa Header
+        targaFileHeader[0] = TARGA_FILE_HEADER.idLength;
+        targaFileHeader[1] = TARGA_FILE_HEADER.colorMapType;
+        targaFileHeader[2] = TARGA_FILE_HEADER.imageType;
+
+        // Color Map Specification
+        targaFileHeader[3] = TARGA_FILE_HEADER.firstEntryIndex;
+        targaFileHeader[4] = TARGA_FILE_HEADER.firstEntryIndex >> 8;
+        targaFileHeader[5] = TARGA_FILE_HEADER.colorMapLength;
+        targaFileHeader[6] = TARGA_FILE_HEADER.colorMapLength >> 8;
+        targaFileHeader[7] = TARGA_FILE_HEADER.colorMapEntrySize;
+
+        // Image Specification
+        targaFileHeader[8] = TARGA_FILE_HEADER.xOrigin;
+        targaFileHeader[9] = TARGA_FILE_HEADER.xOrigin >> 8;
+        targaFileHeader[10] = TARGA_FILE_HEADER.yOrigin;
+        targaFileHeader[11] = TARGA_FILE_HEADER.yOrigin >> 8;
+        targaFileHeader[12] = TARGA_FILE_HEADER.width;
+        targaFileHeader[13] = TARGA_FILE_HEADER.width >> 8;
+        targaFileHeader[14] = TARGA_FILE_HEADER.height;
+        targaFileHeader[15] = TARGA_FILE_HEADER.height >> 8;
+        targaFileHeader[16] = TARGA_FILE_HEADER.pixelDepth;
+        targaFileHeader[17] = TARGA_FILE_HEADER.imageDescriptor;
+
+        // if (i == 11) {
+
+        // Create the Targa data
+        const allocatedBytes = TARGA_FILE_HEADER.pixelDepth / 8;
+        const targaDataSize = TARGA_FILE_HEADER.width * TARGA_FILE_HEADER.height * allocatedBytes;
+        const targaData: Uint8Array = new Uint8Array(targaDataSize);
+
+        // console.log(
+        //     "i:", i,
+        //     " | textureType:", textureType,
+        //     " | targaDataSize:", targaDataSize,
+        //     " | textureData len:", textureData.length,
+        //     " | PixelColorData len:", pixelColorData.length
+        // );
+
+        // Targa Data
+        // for (let j = 0; j < targaDataSize; j += allocatedBytes) {
+        //     let currRGBA: NsBin.binTextureRGBAData;
+        //     const index = textureData[j / allocatedBytes];
+
+        //     if (textureType === "PALETTE_4") {
+        //         const index1 = (index & 0b11110000) >> 4;
+        //         const index2 = (index & 0b00001111);
+
+        //         currRGBA = pixelColorData[index1];
+        //         targaData[j] = currRGBA.B;
+        //         targaData[j + 1] = currRGBA.G;
+        //         targaData[j + 2] = currRGBA.R;
+        //         targaData[j + 3] = currRGBA.A;
+
+        //         currRGBA = pixelColorData[index2];
+        //         targaData[j + 4] = currRGBA.B;
+        //         targaData[j + 5] = currRGBA.G;
+        //         targaData[j + 6] = currRGBA.R;
+        //         targaData[j + 7] = currRGBA.A;
+
+        //         continue;
+        //     }
+
+        //     currRGBA = pixelColorData[index];
+
+        //     if (currRGBA === undefined) {
+        //         console.log(
+        //             " | textureType:", textureType,
+        //             " | Index:", index,
+        //             " | J:", j,
+        //             " | J / allocatedBytes:", j / allocatedBytes,
+        //             " | textureData len:", textureData.length,
+        //             " | PixelColorData len:", pixelColorData.length
+        //         );
+        //         continue;
+        //     }
+
+        //     targaData[j] = currRGBA.B;
+        //     targaData[j + 1] = currRGBA.G;
+        //     targaData[j + 2] = currRGBA.R;
+        //     targaData[j + 3] = currRGBA.A;
+        // }
+        // }
+
+        // Get the final Targa in Uint8Array format
+        const targa = concatenateUint8Arrays([
+            targaFileHeader,
+            targaData
+        ]);
+
+        // Write the Targa file
+        const targaFilename = `${getFileName(binFilePath, false)}_${i}.tga`;
+        const targaOutputFilePath = path.join(outputDirPath, targaFilename);
+        fs.writeFileSync(targaOutputFilePath, targa);
+
+        // Increment the counters
+        counters.targaFiles++;
     }
 
     logger.info(`Dumped ${counters.fontDescs.toLocaleString("en-US")} font desc(s)`);
-    logger.info(`Dumped ${counters.RGBHeaders.toLocaleString("en-US")} RGB header(s)`);
-    logger.info(`Dumped ${counters.RGBAHeaders.toLocaleString("en-US")} RGBA header(s)`);
+    logger.info(`Dumped ${counters.targa1.toLocaleString("en-US")} Targa 1`);
+    logger.info(`Dumped ${counters.targa2.toLocaleString("en-US")} Targa 2`);
     logger.info(`Dumped ${counters.missingPalettes.toLocaleString("en-US")} missing palette(s)`);
     logger.info(`Dumped ${counters.weirdPalettes.toLocaleString("en-US")} weird palette(s)`);
+    logger.info(`Dumped ${counters.targaFiles.toLocaleString("en-US")} TARGA (TGA) file(s)`);
 }
 
 /**
@@ -411,6 +555,11 @@ function dumpTextures(
  * @link [Jade Studio source code by 4g3v.](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
  */
 export default function BinTexture(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
+    // Add a folder to the output path (filename without extension)
+    outputDirPath = path.join(outputDirPath, getFileName(binFilePath));
+
+    extractorChecker(binFilePath, "bin file", ".bin", outputDirPath);
+
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
