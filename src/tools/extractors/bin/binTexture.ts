@@ -10,7 +10,7 @@ import {
     convertUint8ArrayToHexString,
     convertUint8ArrayToNumber,
     convertUint8ArrayToString,
-    generateByteObjectFromMapping
+    generateBytesObjectFromMapping
 } from "helpers/bytes";
 import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";

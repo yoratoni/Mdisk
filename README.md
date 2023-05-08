@@ -58,14 +58,8 @@ Big File
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
 not compressed.
 
-The whole extraction thing is now fully done, I also added the option to export some JSON
-files containing some data, inside the root of the extracted directory:
-
-- `bf_header` The header of the Big File.
-- `bf_offsetTable` The offset table.
-- `bf_directoryMetadata` Metadata of each directory.
-- `bf_fileMetadata` Metadata of the files (including the keys).
-- `bf_structure` Contains the whole archive structure.
+The whole extraction thing is now fully done, it also exports a `metadata.json` file that contains
+all the information about the files inside the Big File to be able to rebuild it.
 
 ### Formats of files stored in the Big File
 

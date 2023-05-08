@@ -57,9 +57,18 @@ declare namespace NsBigFile {
     }
 
     /**
+     * Metadata structure data.
+     */
+    interface IsMetadataStructure {
+        name: string;
+        fileIndexes: number[];
+    }
+
+    /**
      * Metadata format.
      */
     interface IsMetadata {
+        includeEmptyDirs: boolean;
         header: {
             magic: string;
             formatVersion: string;
@@ -84,6 +93,7 @@ declare namespace NsBigFile {
         offsets: IsMetadataOffset[];
         directories: IsMetadataDirectory[];
         files: IsMetadataFile[];
+        structures: IsMetadataStructure[];
     }
 }
 

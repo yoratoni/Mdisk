@@ -7,7 +7,7 @@ import { MpAudioHeader } from "configs/mappings";
 import {
     convertNumberToUint8Array,
     convertStringToUint8Array,
-    generateByteObjectFromMapping
+    generateBytesObjectFromMapping
 } from "helpers/bytes";
 import { checkFileExtension, extractorChecker } from "helpers/files";
 import logger from "helpers/logger";
@@ -46,7 +46,7 @@ function convertMsadpcmBytesToSamples(dataBlockSize: number, dataBlockAlign: num
  */
 function readFileHeader(cache: Cache, loopFlag: boolean, headerSize = 46) {
     const rawHeader = cache.readBytes(0, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpAudioHeader);
+    const header = generateBytesObjectFromMapping(rawHeader, MpAudioHeader);
 
     header.data.headerSize = headerSize;
 
@@ -132,7 +132,7 @@ function readDataBlock(
             sample2: { position: i * 2 + 5 * numChannels, length: 2, type: "signed" }
         };
 
-        const blockHeader = generateByteObjectFromMapping(rawBlock, mapping);
+        const blockHeader = generateBytesObjectFromMapping(rawBlock, mapping);
         const blockHeaderSize = numChannels * 7;
 
         // Records the channel number & numChannels

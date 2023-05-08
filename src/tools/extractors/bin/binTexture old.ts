@@ -9,7 +9,7 @@ import {
     convertNumberArrayToUint8Array,
     convertUint8ArrayToHexString,
     convertUint8ArrayToNumber,
-    generateByteObjectFromMapping
+    generateBytesObjectFromMapping
 } from "helpers/bytes";
 import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
@@ -66,7 +66,7 @@ function parseChunks(chunks: Uint8Array[]) {
 
         // Chunk verification with the magic hex (0x3412D0CAFF00FF00DEC0DEC0)
         if (chunkMagic === TEXTURE_FILE_CONFIG.magicHex) {
-            const parsedChunk = generateByteObjectFromMapping(
+            const parsedChunk = generateBytesObjectFromMapping(
                 chunk,
                 MpBinFileTexture
             );

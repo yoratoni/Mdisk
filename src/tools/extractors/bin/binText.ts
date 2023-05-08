@@ -13,8 +13,8 @@ import {
     convertStringToUint8Array,
     convertUint8ArrayToNumber,
     convertUint8ArrayToString,
-    generateByteObjectFromMapping,
-    generateByteTableFromMapping
+    generateBytesObjectFromMapping,
+    generateBytesTableFromMapping
 } from "helpers/bytes";
 import { getFileName } from "helpers/files";
 import logger from "helpers/logger";
@@ -33,7 +33,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
 
     // Group ID Entry Size
     rawValue = cache.readBytes(0);
-    const groupIdEntrySize = generateByteObjectFromMapping(rawValue, MpBinFileTextGroup);
+    const groupIdEntrySize = generateBytesObjectFromMapping(rawValue, MpBinFileTextGroup);
 
     // Calculate the number of groups
     const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIdEntry);
@@ -44,7 +44,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
     // Group ID Entries
     rawValue = cache.readBytes(4, groupIdEntrySize.data.groupIdEntrySize as number);
 
-    const groupIDEntries = generateByteTableFromMapping(
+    const groupIDEntries = generateBytesTableFromMapping(
         rawValue,
         MpBinFileTextGroupIdEntry,
         groupIDEntryMappingLength,
@@ -60,7 +60,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
         // Get the size of the group string refs
         rawValue = cache.readBytes(groupStringRefsPointer);
 
-        const groupStringRefsSize = generateByteObjectFromMapping(
+        const groupStringRefsSize = generateBytesObjectFromMapping(
             rawValue,
             MpBinFileTextGroupStringRefsSize
         );
@@ -73,7 +73,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
             groupStringRefsSize.data.groupStringRefsSize as number
         );
 
-        const oneGroupStringRefs = generateByteTableFromMapping(
+        const oneGroupStringRefs = generateBytesTableFromMapping(
             rawValue,
             MpBinFileTextGroupStringRefs,
             groupStringRefsMappingLength,

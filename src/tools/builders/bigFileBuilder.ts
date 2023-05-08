@@ -31,6 +31,58 @@ function getMetadata(bigFilePath: string) {
 }
 
 /**
+ * Calculates the number of files and directories in the Big File.
+ * @param metadata The metadata object.
+ * @param includeEmptyDirs Whether to include empty directories.
+ */
+function calculateFileAndDirCounts(metadata: NsBigFile.IsMetadata, includeEmptyDirs: boolean) {
+    let fileCount = 0;
+    let directoryCount = 0;
+
+    for (const structure of metadata.structures) {
+
+        if (!includeEmptyDirs) {
+            if (structure.fileIndexes.length > 0) {
+                fileCount += structure.fileIndexes.length;
+                directoryCount++;
+            }
+        } else {
+            fileCount += structure.fileIndexes.length;
+            directoryCount++;
+        }
+    }
+
+    return {
+        fileCount,
+        directoryCount
+    };
+}
+
+/**
+ * Generates the Big File header.
+ * @param metadata The metadata object.
+ * @param fileCount The number of files in the Big File.
+ * @param directoryCount The number of directories in the Big File.
+ * @returns The header as Uint8Array.
+ */
+function generateHeader(
+    metadata: NsBigFile.IsMetadata,
+    fileCount: number,
+    directoryCount: number
+) {
+    // Add the null terminator to the magic bytes
+    metadata.header.magic += "\0";
+
+    // Override the number of files and directories in the metadata.
+    metadata.header.fileCount = fileCount;
+    metadata.header.fileCount2 = fileCount;
+    metadata.header.directoryCount = directoryCount;
+    metadata.header.directoryCount2 = directoryCount;
+
+    return metadata.header;
+}
+
+/**
  * Main function to build the Big File archive.
  * @param inputDirPath The absolute path to the input Big File directory.
  * @param bigFilePath The absolute path to the output Big File.
@@ -48,5 +100,12 @@ export default function BigFileBuilder(
         inputDirPath
     );
 
-    console.log(metadata.header);
+    const { fileCount, directoryCount } = calculateFileAndDirCounts(
+        metadata,
+        includeEmptyDirs
+    );
+
+    const header = generateHeader(metadata, fileCount, directoryCount);
+
+    console.log(header);
 }

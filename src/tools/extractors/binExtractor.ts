@@ -5,7 +5,7 @@ import path from "path";
 import Cache from "classes/cache";
 import { BIN_FILE_TYPES, CHUNK_SIZE } from "configs/constants";
 import { MpBinFileDataBlockHeader } from "configs/mappings";
-import { generateByteObjectFromMapping } from "helpers/bytes";
+import { generateBytesObjectFromMapping } from "helpers/bytes";
 import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import lzo from "lzo";
@@ -74,7 +74,7 @@ function readDataBlockHeader(
     }
 
     const rawHeader = cache.readBytes(pointer, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBinFileDataBlockHeader);
+    const header = generateBytesObjectFromMapping(rawHeader, MpBinFileDataBlockHeader);
 
     header.data.headerSize = headerSize;
 

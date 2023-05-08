@@ -356,7 +356,7 @@ export function checkValueEmptiness(
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
  * @param hexPrefix Whether to add the "0x" prefix if outputting any hex string (defaults to true).
  */
-export function generateByteObjectFromMapping(
+export function generateBytesObjectFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
     ignoreEmptiness = true,
@@ -419,7 +419,7 @@ export function generateByteObjectFromMapping(
 }
 
 /**
- * Generates a bytes array from a mapping (generateByteObjectFromMapping applied x times).
+ * Generates a bytes array from a mapping (generateBytesObjectFromMapping applied x times).
  *
  * Don't forget to calculate the bytes array length (in the case of countable entries).
  *
@@ -428,7 +428,7 @@ export function generateByteObjectFromMapping(
  * @param mappingLength The length of the mapping.
  * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
  */
-export function generateByteTableFromMapping(
+export function generateBytesTableFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
     mappingLength: number,
@@ -439,7 +439,7 @@ export function generateByteTableFromMapping(
     for (let i = 0; i < bytesArray.length; i += mappingLength) {
         const slicedBytesArray = readNBytesFromBytesArray(bytesArray, i, mappingLength);
 
-        const resultObject = generateByteObjectFromMapping(
+        const resultObject = generateBytesObjectFromMapping(
             slicedBytesArray,
             mapping,
             ignoreEmptiness

@@ -10,8 +10,8 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
-    generateByteObjectFromMapping,
-    generateByteTableFromMapping
+    generateBytesObjectFromMapping,
+    generateBytesTableFromMapping
 } from "helpers/bytes";
 import { exportAsJson, extractorChecker, generatePathFromStringStack } from "helpers/files";
 import logger from "helpers/logger";
@@ -30,7 +30,7 @@ function readBigFileHeader(cache: Cache, headerSize = 68) {
     logger.info("Reading Big File header..");
 
     const rawHeader = cache.readBytes(0, headerSize);
-    const header = generateByteObjectFromMapping(rawHeader, MpBigFileHeader);
+    const header = generateBytesObjectFromMapping(rawHeader, MpBigFileHeader);
 
     // Verify the magic string
     if (header.data.magic !== "BIG") {
@@ -81,7 +81,7 @@ function readBigFileOffsetTable(
 
     const rawOffsetTable = cache.readBytes(offsetTableOffset, bytesArrayLength);
 
-    const offsetTable = generateByteTableFromMapping(
+    const offsetTable = generateBytesTableFromMapping(
         rawOffsetTable,
         MpBigFileOffsetTableEntry,
         mappingLength,
@@ -117,7 +117,7 @@ function readBigFileMetadataTable(
     const bytesArrayLength = mappingLength * numberOfEntries;
 
     const rawMetadataTable = cache.readBytes(metadataOffset, bytesArrayLength);
-    const metadataTable = generateByteTableFromMapping(rawMetadataTable,
+    const metadataTable = generateBytesTableFromMapping(rawMetadataTable,
         mapping,
         mappingLength,
         true
@@ -186,20 +186,20 @@ function readBigFileFiles(
 }
 
 /**
- * Reads the directory structure of the Big File, linking all the subdirs and files.
+ * Reads the directory structures of the Big File, linking all the subdirs and files.
  * @param absoluteOutputDirPath The absolute path of the output directory.
  * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param files The formatted files into an array.
- * @returns The formatted directory structure including all the matching indexes.
+ * @returns The formatted directory structures including all the matching indexes.
  */
 function readBigFileStructure(
     absoluteOutputDirPath: string,
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     files: NsBigFile.IsFile[]
 ) {
-    logger.info("Reading Big File structure..");
+    logger.info("Reading Big File structures..");
 
-    const structure: NsBigFile.IsFormattedDirectory[] = [];
+    const structures: NsBigFile.IsFormattedDirectory[] = [];
     const pathStacks: string[][] = [];
 
     for (let i = 0; i < directoryMetadataTable.length; i++) {
@@ -214,7 +214,7 @@ function readBigFileStructure(
             pathStacks[i] = [...pathStacks[parentIndex], dir.dirname as string];
         }
 
-        structure[i] = {
+        structures[i] = {
             name: dir.dirname as string,
             path: generatePathFromStringStack(pathStacks[i]),
             fileIndexes: []
@@ -226,20 +226,20 @@ function readBigFileStructure(
 
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        structure[file.directoryIndex as number].fileIndexes.push(i);
+        structures[file.directoryIndex as number].fileIndexes.push(i);
     }
 
-    return structure;
+    return structures;
 }
 
 /**
  * Extracts the Big File to the output directory.
- * @param structure The directory structure of the Big File (including file indexes per dir).
+ * @param structures The directory structures of the Big File (including file indexes per dir).
  * @param files The formatted files into an array.
  * @param includeEmptyDirs Whether to include empty directories in the output (defaults to false).
  */
 function extractBigFile(
-    structure: NsBigFile.IsFormattedDirectory[],
+    structures: NsBigFile.IsFormattedDirectory[],
     files: NsBigFile.IsFile[],
     includeEmptyDirs = false
 ) {
@@ -251,8 +251,8 @@ function extractBigFile(
         files: 0
     };
 
-    for (let i = 0; i < structure.length; i++) {
-        const dir = structure[i];
+    for (let i = 0; i < structures.length; i++) {
+        const dir = structures[i];
 
         const includeDir = includeEmptyDirs || dir.fileIndexes.length > 0;
         const dirExists = fs.existsSync(dir.path);
@@ -288,7 +288,7 @@ function extractBigFile(
     }
 
     if (!includeEmptyDirs && counters.dirs > 0) {
-        logger.warn(`Removed ${structure.length - counters.dirs} empty directories.`);
+        logger.warn(`Removed ${structures.length - counters.dirs} empty directories.`);
     }
 
     logger.info(
@@ -299,25 +299,38 @@ function extractBigFile(
 
 /**
  * Creates the metadata object from the header and the tables.
+ * @param includeEmptyDirs Whether to include empty directories in the output (defaults to false).
  * @param header The header object.
  * @param offsetTable The offset table.
  * @param fileMetadataTable The file metadata table.
  * @param directoryMetadataTable The directory metadata table.
+ * @param structures The directory structures of the Big File (including file indexes per dir).
  * @returns The metadata object.
  */
 function createMetadata(
+    includeEmptyDirs: boolean,
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     offsetTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
-    directoryMetadataTable: NsBytes.IsMappingByteObject[]
+    directoryMetadataTable: NsBytes.IsMappingByteObject[],
+    structures: NsBigFile.IsFormattedDirectory[]
 ) {
+    const structuresWithoutPaths = structures.map((dir) => {
+        return {
+            name: dir.name,
+            fileIndexes: dir.fileIndexes
+        };
+    });
+
     const metadata = {
+        includeEmptyDirs: includeEmptyDirs,
         header: {
             ...header.data
         },
         offsets: offsetTable,
         directories: directoryMetadataTable,
-        files: fileMetadataTable
+        files: fileMetadataTable,
+        structures: structuresWithoutPaths
     };
 
     return metadata as unknown as NsBigFile.IsMetadata;
@@ -374,14 +387,14 @@ export default function BigFileExtractor(
         header.data.fileCount as number
     );
 
-    const structure = readBigFileStructure(
+    const structures = readBigFileStructure(
         outputDirPath,
         directoryMetadataTable,
         files,
     );
 
     extractBigFile(
-        structure,
+        structures,
         files,
         includeEmptyDirs
     );
@@ -389,10 +402,12 @@ export default function BigFileExtractor(
     logger.info("Creating Metadata JSON file..");
 
     const metadata = createMetadata(
+        includeEmptyDirs,
         header,
         offsetTable,
         fileMetadataTable,
-        directoryMetadataTable
+        directoryMetadataTable,
+        structures
     );
 
     logger.info("Exporting Metadata JSON file..");
