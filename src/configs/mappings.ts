@@ -17,45 +17,55 @@ import NsMappings from "types/mappings";
  * Mapping for the Big File header.
  */
 export const MpBigFileHeader: NsMappings.IsMapping = {
-    magic: { position: 0, type: "str" },
-    formatVersion: { position: 4, type: "hex" },
-    fileCount: { position: 8, type: "number" },
-    directoryCount: { position: 12, type: "number" },
-    offsetTableMaxLength: { position: 32, type: "number" },
-    initialKey: { position: 40, type: "hex" },
-    offsetTableOffset: { position: 52, type: "number" }
+    magic: { position: 0, type: "str" },                          // [4, str] Magic bytes ("BIG\0")
+    formatVersion: { position: 4, type: "hex" },                  // [4, ???] The format version (Always 0x22000000)
+    fileCount: { position: 8, type: "number" },                   // [4, u32] The number of files in the Big File
+    directoryCount: { position: 12, type: "number" },             // [4, u32] The number of directories in the Big File
+    unknown1: { position: 16, type: "hex" },                      // [4, u32] Unknown value (Always 0x00000000)
+    unknown2: { position: 20, type: "hex" },                      // [4, ???] Unknown value
+    unknown3: { position: 24, type: "hex" },                      // [4, ???] Unknown value (Always 0xFFFFFFFF)
+    unknown4: { position: 28, type: "hex" },                      // [4, ???] Unknown value
+    offsetTableMaxLength: { position: 32, type: "number" },       // [4, u32] The maximum length of the offset table
+    unknown5: { position: 36, type: "hex" },                      // [4, ???] Unknown value (Always 0x01000000)
+    initialKey: { position: 40, type: "hex" },                    // [4, ???] The initial key
+    fileCount2: { position: 44, type: "number" },                 // [4, u32] The number of files in the Big File
+    directoryCount2: { position: 48, type: "number" },            // [4, u32] The number of directories in the Big File
+    offsetTableOffset: { position: 52, type: "number" },          // [4, u32] The offset of the offset table (always 68)
+    unknown6: { position: 56, type: "hex" },                      // [4, ???] Unknown value (Always 0xFFFFFFFF)
+    unknown7: { position: 60, type: "hex" },                      // [4, ???] Unknown value (Always 0x01000000)
+    offsetTableMaxLengthMinOne: { position: 64, type: "number" }  // [4, u32] The maximum length of the offset table - 1
 };
 
 /**
  * Mapping for the Big File offset table entries.
  */
 export const MpBigFileOffsetTableEntry: NsMappings.IsMapping = {
-    dataOffset: { position: 0, type: "number" },
-    key: { position: 4, type: "hex" }
+    dataOffset: { position: 0, type: "number" },                  // [4, u32] The offset of the file data
+    key: { position: 4, type: "hex" }                             // [4, ???] The key of the file
 };
 
 /**
  * Mapping for the Big File file metadata table entries.
  */
 export const MpBigFileFileMetadataTableEntry: NsMappings.IsMapping = {
-    fileSize: { position: 0, type: "number" },
-    nextIndex: { position: 4, type: "number" },
-    previousIndex: { position: 8, type: "number" },
-    directoryIndex: { position: 12, type: "number" },
-    unixTimestamp: { position: 16, type: "number" },
-    filename: { position: 20, length: 64, type: "str" }
+    fileSize: { position: 0, type: "number" },                    // [4, u32] The size of the file
+    nextIndex: { position: 4, type: "number" },                   // [4, u32] The index of the next file
+    previousIndex: { position: 8, type: "number" },               // [4, u32] The index of the previous file
+    directoryIndex: { position: 12, type: "number" },             // [4, u32] The index of the directory
+    unixTimestamp: { position: 16, type: "number" },              // [4, u32] The unix timestamp of the file
+    filename: { position: 20, length: 64, type: "str" }           // [64, str] The filename (null terminated)
 };
 
 /**
  * Mapping for the Big File directory metadata table entries.
  */
 export const MpBigFileDirectoryMetadataTableEntry: NsMappings.IsMapping = {
-    firstFileIndex: { position: 0, type: "number" },
-    firstSubdirIndex: { position: 4, type: "number" },
-    nextIndex: { position: 8, type: "number" },
-    previousIndex: { position: 12, type: "number" },
-    parentIndex: { position: 16, type: "number" },
-    dirname: { position: 20, length: 64, type: "str" }
+    firstFileIndex: { position: 0, type: "number" },              // [4, u32] The index of the first file
+    firstSubdirIndex: { position: 4, type: "number" },            // [4, u32] The index of the first subdirectory
+    nextIndex: { position: 8, type: "number" },                   // [4, u32] The index of the next directory
+    previousIndex: { position: 12, type: "number" },              // [4, u32] The index of the previous directory
+    parentIndex: { position: 16, type: "number" },                // [4, u32] The index of the parent directory
+    dirname: { position: 20, length: 64, type: "str" }            // [64, str] The directory name (null terminated)
 };
 
 /**

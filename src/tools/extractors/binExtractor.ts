@@ -9,11 +9,11 @@ import { generateByteObjectFromMapping } from "helpers/bytes";
 import { extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import lzo from "lzo";
-import BinMiscellaneous from "tools/bin/binMiscellaneous";
-import BinSoundEffect from "tools/bin/binSoundEffect";
-import BinSoundHeader from "tools/bin/binSoundHeader";
-import BinText from "tools/bin/binText";
-import BinTexture from "tools/bin/binTexture";
+import BinMiscellaneous from "tools/extractors/bin/binMiscellaneous";
+import BinSoundEffect from "tools/extractors/bin/binSoundEffect";
+import BinSoundHeader from "tools/extractors/bin/binSoundHeader";
+import BinText from "tools/extractors/bin/binText";
+import BinTexture from "tools/extractors/bin/binTexture";
 import NsBytes from "types/bytes";
 
 

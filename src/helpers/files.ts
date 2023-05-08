@@ -66,13 +66,18 @@ export function generatePathFromStringStack(pathStack: string[]): string {
  * Exports any data as a JSON file.
  * @param data The data to export.
  * @param absolutePath The absolute path to the file.
- * * @param fileName The name of the file.
+ * @param fileName The name of the file.
+ * @param force Whether to force the export.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function exportAsJson(data: any, absolutePath: string, fileName: string) {
+export function exportAsJson(data: any, absolutePath: string, fileName: string, force = false) {
     const path = absolutePath + `/${fileName}`;
 
-    if (!fs.existsSync(path)) {
+    if (!fs.existsSync(path) || force) {
+        if (force) {
+            logger.warn(`Overwriting '${fileName}'..`);
+        }
+
         const dataString = JSON.stringify(data, null, 4);
 
         if (dataString === undefined) {

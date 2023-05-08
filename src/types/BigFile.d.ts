@@ -1,6 +1,6 @@
 declare namespace NsBigFile {
     /**
-     * Formatted file data.
+     * File data.
      */
     interface IsFile {
         name: string;
@@ -12,13 +12,13 @@ declare namespace NsBigFile {
         directoryName: string;
         directoryIndex: number;
         unixTimestamp: number;
-        data?: Uint8Array;
+        data: Uint8Array;
     }
 
     /**
      * Formatted directory data.
      */
-    interface IsDirectory {
+    interface IsFormattedDirectory {
         name: string;
         path: string;
         fileIndexes: number[];

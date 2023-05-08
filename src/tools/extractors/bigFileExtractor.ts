@@ -137,7 +137,6 @@ function readBigFileMetadataTable(
  * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param fileMetadataTable The file metadata table (used to link data to metadata).
  * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
- * @param includeData Whether to include the file data in the result (defaults to false).
  * @returns The formatted files into an array.
  */
 function readBigFileFiles(
@@ -145,26 +144,19 @@ function readBigFileFiles(
     offsetTable: NsBytes.IsMappingByteObject[],
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
-    numberOfFiles: number,
-    includeData = false
+    numberOfFiles: number
 ) {
-    if (includeData) {
-        logger.info("Reading Big File files and their data..");
-    }
+    logger.info("Reading Big File files and their data..");
 
     const resultArray: NsBigFile.IsFile[] = [];
 
     if (numberOfFiles > offsetTable.length) {
-        if (includeData) {
-            logger.warn("The number of files is greater than the offset table length, ceiling it.");
-        }
+        logger.warn("The number of files is greater than the offset table length, ceiling it.");
 
         numberOfFiles = offsetTable.length;
     }
 
-    if (includeData) {
-        logger.verbose(`Number of files to read: ${numberOfFiles.toLocaleString("en-US")}`);
-    }
+    logger.verbose(`Number of files to read: ${numberOfFiles.toLocaleString("en-US")}`);
 
     for (let i = 0; i < numberOfFiles; i++) {
         const tbOffset = offsetTable[i];
@@ -186,13 +178,8 @@ function readBigFileFiles(
             directoryName: dirName as string,
             directoryIndex: tbFileMetadata.directoryIndex as number,
             unixTimestamp: tbFileMetadata.unixTimestamp as number,
+            data: cache.readBytes(dataOffset, dataSize)
         };
-
-        let data: Uint8Array | undefined;
-        if (includeData) {
-            data = cache.readBytes(dataOffset, dataSize);
-            resultArray[i].data = data;
-        }
     }
 
     return resultArray;
@@ -212,7 +199,7 @@ function readBigFileStructure(
 ) {
     logger.info("Reading Big File structure..");
 
-    const structure: NsBigFile.IsDirectory[] = [];
+    const structure: NsBigFile.IsFormattedDirectory[] = [];
     const pathStacks: string[][] = [];
 
     for (let i = 0; i < directoryMetadataTable.length; i++) {
@@ -252,7 +239,7 @@ function readBigFileStructure(
  * @param includeEmptyDirs Whether to include empty directories in the output (defaults to false).
  */
 function extractBigFile(
-    structure: NsBigFile.IsDirectory[],
+    structure: NsBigFile.IsFormattedDirectory[],
     files: NsBigFile.IsFile[],
     includeEmptyDirs = false
 ) {
@@ -310,8 +297,22 @@ function extractBigFile(
     );
 }
 
-function createMetadataFile() {
-    //
+function createMetadataFile(
+    header: NsBytes.IsMappingByteObjectResultWithEmptiness,
+    offsetTable: NsBytes.IsMappingByteObject[],
+    fileMetadataTable: NsBytes.IsMappingByteObject[],
+    directoryMetadataTable: NsBytes.IsMappingByteObject[]
+) {
+    const metadata = {
+        header: {
+            ...header.data
+        },
+        offsets: offsetTable,
+        directories: directoryMetadataTable,
+        files: fileMetadataTable
+    };
+
+    return metadata;
 }
 
 /**
@@ -357,23 +358,12 @@ export default function BigFileExtractor(
         "directories"
     );
 
-    // Used for JSON export
-    const fileMetadata = readBigFileFiles(
-        cache,
-        offsetTable,
-        directoryMetadataTable,
-        fileMetadataTable,
-        header.data.fileCount as number,
-        false
-    );
-
     const files = readBigFileFiles(
         cache,
         offsetTable,
         directoryMetadataTable,
         fileMetadataTable,
-        header.data.fileCount as number,
-        true
+        header.data.fileCount as number
     );
 
     const structure = readBigFileStructure(
@@ -389,13 +379,17 @@ export default function BigFileExtractor(
     );
 
     logger.info("Creating Metadata JSON file..");
+
     const metadata = createMetadataFile(
-        // TODO
+        header,
+        offsetTable,
+        fileMetadataTable,
+        directoryMetadataTable
     );
 
     logger.info("Exporting Metadata JSON file..");
 
-    exportAsJson(metadata, outputDirPath, "metadata.json");
+    exportAsJson(metadata, outputDirPath, "metadata.json", true);
 
     logger.info("Big File extracted successfully!");
 

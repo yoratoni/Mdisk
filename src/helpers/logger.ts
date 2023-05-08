@@ -29,32 +29,12 @@ if (GENERAL_CONFIG.verbose) {
 }
 
 /**
- * Winston debug filter.
- */
-const debugFilter = format((info, ) => {
-    if (info.level === "debug") {
-        return info;
-    }
-    return false;
-});
-
-/**
  * Winston general formatted logger.
  */
 const logger = createLogger({
     format: loggerFormat,
     transports: [
-        new transports.Console({ level: loggerLevel }),
-        new transports.File({
-            filename: "src/logs/errors.log",
-            level: "error",
-            format: format.combine(format.uncolorize(), format.json())
-        }),
-        new transports.File({
-            filename: "src/logs/debugs.log",
-            level: "debug",
-            format: format.combine(format.uncolorize(), format.json(), debugFilter())
-        })
+        new transports.Console({ level: loggerLevel })
     ],
 });
 
