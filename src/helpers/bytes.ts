@@ -266,10 +266,11 @@ export function convertNumberArrayToHexString(numberArray: number[]) {
  * as the mapping length is calculated from each key of the mapping.
  *
  * Example:
+ * ```TS
  *     unixTimestamp: 16,  // 4 bytes by default
  *     filename: { position: 20, length: 64 }  // 64 bytes
- * >>> The length of this mapping is 68 (4 + 64).
- *
+ *     // The length of this mapping is then 68 (4 + 64).
+ * ```
  * @param mapping The mapping.
  * @returns The length of the mapping.
  */

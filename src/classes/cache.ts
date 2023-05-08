@@ -121,9 +121,9 @@ export default class Cache {
      */
     public closeFile() {
         if (this._file) {
-            logger.info(`Closed file '${this._fileName}'.`);
-
             closeFile(this._file);
+
+            logger.info(`Closed '${this._fileName}' file.`);
         }
     }
 

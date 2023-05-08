@@ -205,7 +205,7 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
     if (exportDecompressedBin) {
         logger.warn("Exporting the decompressed bin file, this may take a a bit more time..");
 
-        const outputFilePath = path.join(outputDirPath, "DECOMP_" + path.basename(binFilePath));
+        const outputFilePath = path.join(outputDirPath, "decompressed_" + path.basename(binFilePath));
         fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
     }
 }

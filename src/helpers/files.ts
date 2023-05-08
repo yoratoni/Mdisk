@@ -71,14 +71,19 @@ export function generatePathFromStringStack(pathStack: string[]): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function exportAsJson(data: any, absolutePath: string, fileName: string) {
     const path = absolutePath + `/${fileName}`;
-    const dataString = JSON.stringify(data, null, 4);
 
-    if (dataString === undefined) {
-        logger.error("Could not stringify data");
-        process.exit(1);
+    if (!fs.existsSync(path)) {
+        const dataString = JSON.stringify(data, null, 4);
+
+        if (dataString === undefined) {
+            logger.error("Could not stringify data");
+            process.exit(1);
+        }
+
+        fs.writeFileSync(path, dataString);
+    } else {
+        logger.warn(`'${fileName}' already exists, skipping export.`);
     }
-
-    fs.writeFileSync(path, dataString);
 }
 
 /**

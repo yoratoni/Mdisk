@@ -12,6 +12,13 @@ declare namespace NsBin {
     }
 
     /**
+     * A texture file chunk.
+     */
+    interface binTextureFileChunk {
+        chunkSize: number;
+    }
+
+    /**
      * Links all the font chunks inside the bin texture file.
      */
     interface binTextureFileFonts {

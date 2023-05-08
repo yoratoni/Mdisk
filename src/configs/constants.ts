@@ -34,8 +34,9 @@ export const BIN_FILE_TYPES: NsConstants.IsStringFileTypes = {
  * The configuration for texture files.
  */
 export const TEXTURE_FILE_CONFIG = {
-    headerLength: 32,
+    unk1: "0xFFFFFFFF",
     magicHex: "0x3412D0CAFF00FF00DEC0DEC0",
+    headerLength: 32,
     RGBAPaletteLengths: [
         0x40,
         0x400
