@@ -7,11 +7,11 @@ import BinExtractor from "tools/extractors/binExtractor";
 
 logger.info("Mdisk started..");
 
-BigFileBuilder("C:/Users/terci/Desktop/BigFile", "F:/Yoratoni/Mdisk/src", false);
+BigFileBuilder("C:/Users/terci/Desktop/BigFile", "F:/Yoratoni/Mdisk/src");
 
 // TODO: Add a parameter for endianness.
 
-// BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean.bf", "C:/Users/terci/Desktop/BigFile", false);
+// BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean.bf", "C:/Users/terci/Desktop/BigFile", true, false);
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/jingle_demo.wam", "F:/Yoratoni/Mdisk/src/binary");
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/beluga_demo.waa", "F:/Yoratoni/Mdisk/src/binary");
 

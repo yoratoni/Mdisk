@@ -1,9 +1,11 @@
 import fs from "fs";
 import path from "path";
 
+import { BF_FILE_CONFIG } from "configs/constants";
 import { BigFileBuilderChecker } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
+import { concatenateUint8Arrays, convertHexStringToUint8Array, convertNumberToUint8Array, convertStringToUint8Array } from "helpers/bytes";
 
 
 /**
@@ -63,12 +65,14 @@ function calculateFileAndDirCounts(metadata: NsBigFile.IsMetadata, includeEmptyD
  * @param metadata The metadata object.
  * @param fileCount The number of files in the Big File.
  * @param directoryCount The number of directories in the Big File.
+ * @param littleEndian Whether to use little endian.
  * @returns The header as Uint8Array.
  */
 function generateHeader(
     metadata: NsBigFile.IsMetadata,
     fileCount: number,
-    directoryCount: number
+    directoryCount: number,
+    littleEndian: boolean
 ) {
     // Add the null terminator to the magic bytes
     metadata.header.magic += "\0";
@@ -79,20 +83,28 @@ function generateHeader(
     metadata.header.directoryCount = directoryCount;
     metadata.header.directoryCount2 = directoryCount;
 
-    return metadata.header;
+    const rawHeader = [
+        convertStringToUint8Array(metadata.header.magic, littleEndian),
+        convertHexStringToUint8Array(metadata.header.formatVersion, littleEndian),
+        convertNumberToUint8Array(metadata.header.fileCount, 4, littleEndian),
+        convertNumberToUint8Array(metadata.header.directoryCount, 4, littleEndian),
+    ];
+
+    // Get the final Uint8Array header
+    const header = concatenateUint8Arrays(rawHeader);
+
+    return header;
 }
 
 /**
  * Main function to build the Big File archive.
  * @param inputDirPath The absolute path to the input Big File directory.
  * @param bigFilePath The absolute path to the output Big File.
- * @param includeEmptyDirs Whether to include empty directories in the output (defaults to false).
  * @link [Big File doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md)
  */
 export default function BigFileBuilder(
     inputDirPath: string,
-    bigFilePath: string,
-    includeEmptyDirs = false
+    bigFilePath: string
 ) {
     BigFileBuilderChecker(inputDirPath);
 
@@ -102,10 +114,10 @@ export default function BigFileBuilder(
 
     const { fileCount, directoryCount } = calculateFileAndDirCounts(
         metadata,
-        includeEmptyDirs
+        metadata.includeEmptyDirs
     );
 
-    const header = generateHeader(metadata, fileCount, directoryCount);
+    const header = generateHeader(metadata, fileCount, directoryCount, metadata.littleEndian);
 
     console.log(header);
 }

@@ -35,10 +35,7 @@ export function concatenateUint8Arrays(bytesArrays: Uint8Array[]) {
  * @param hexString The hex string to convert.
  * @returns The array of numbers.
  */
-export function convertHexStringToNumberArray(
-    hexString: string,
-    littleEndian = true
-) {
+export function convertHexStringToNumberArray(hexString: string, littleEndian = true) {
     const hexArray = hexString.split(" ");
     const numberArray: number[] = [];
 
@@ -59,6 +56,40 @@ export function convertHexStringToNumberArray(
     }
 
     return numberArray;
+}
+
+/**
+ * Converts an hex string to an Uint8Array (with & without "0x" prefix).
+ * @param hexString The hex string.
+ * @returns The Uint8Array.
+ */
+export function convertHexStringToUint8Array(hexString: string, littleEndian = true) {
+    // Remove the "0x" prefix if present
+    if (hexString.startsWith("0x")) {
+        hexString = hexString.slice(2);
+    }
+
+    // Remove spaces if present
+    if (hexString.includes(" ")) {
+        hexString = hexString.replace(" ", "");
+    }
+
+    const hexLength = hexString.length / 2;
+    const resultArray = new Uint8Array(hexLength);
+
+    if (littleEndian) {
+        for (let i = 0; i < hexLength; i++) {
+            const hex = hexString.substring(i * 2, i * 2 + 2);
+            resultArray[i] = parseInt(hex, 16);
+        }
+    } else {
+        for (let i = 0; i < hexLength; i++) {
+            const hex = hexString.substring(i * 2, i * 2 + 2);
+            resultArray[hexLength - i - 1] = parseInt(hex, 16);
+        }
+    }
+
+    return resultArray;
 }
 
 /**
@@ -195,7 +226,7 @@ export function convertNumberToUint8Array(number: number, bytes = 4, littleEndia
         number = number >> 8;
     }
 
-    if (!littleEndian) {
+    if (littleEndian) {
         return bytesArray.reverse();
     }
 
@@ -250,7 +281,7 @@ export function convertNumberArrayToHexString(numberArray: number[]) {
     const convertedData: string[] = [];
 
     for (const sample of numberArray) {
-        const uint8Arr = convertNumberToUint8Array(sample, 2);
+        const uint8Arr = convertNumberToUint8Array(sample, 2, false);
         const hexStringArr = convertUint8ArrayToHexString(uint8Arr, false, false, true);
 
         convertedData.push(hexStringArr);
@@ -427,12 +458,14 @@ export function generateBytesObjectFromMapping(
  * @param mapping The mapping.
  * @param mappingLength The length of the mapping.
  * @param ignoreEmptiness Whether to ignore the emptiness check (defaults to true).
+ * @param littleEndian Whether the bytes array is little endian (defaults to true).
  */
 export function generateBytesTableFromMapping(
     bytesArray: Uint8Array,
     mapping: NsMappings.IsMapping,
     mappingLength: number,
-    ignoreEmptiness = true
+    ignoreEmptiness = true,
+    littleEndian = true,
 ) {
     const resultTable: NsBytes.IsMappingByteObject[] = [];
 
@@ -442,7 +475,8 @@ export function generateBytesTableFromMapping(
         const resultObject = generateBytesObjectFromMapping(
             slicedBytesArray,
             mapping,
-            ignoreEmptiness
+            ignoreEmptiness,
+            littleEndian
         );
 
         // If the result object is empty, we can stop the loop

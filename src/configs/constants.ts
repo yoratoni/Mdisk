@@ -2,6 +2,13 @@ import NsConstants from "types/constants";
 
 
 /**
+ * The configuration for bin files.
+ */
+export const BF_FILE_CONFIG = {
+    headerLength: 68
+};
+
+/**
  * The chunk size in Megabytes, to read the Big File.
  */
 export const CHUNK_SIZE = 512;

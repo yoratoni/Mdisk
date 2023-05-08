@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import Cache from "classes/cache";
-import { CHUNK_SIZE } from "configs/constants";
+import { BF_FILE_CONFIG, CHUNK_SIZE } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
     MpBigFileFileMetadataTableEntry,
@@ -23,14 +23,15 @@ import NsMappings from "types/mappings";
 /**
  * Reads the header of the Big File.
  * @param cache Initialized cache class.
- * @param headerSize The size of the header (defaults to 68 bytes).
+ * @param headerSize The size of the header (normally 68 bytes).
+ * @param littleEndian Whether to use little endian or not.
  * @returns The formatted header.
  */
-function readBigFileHeader(cache: Cache, headerSize = 68) {
+function readBigFileHeader(cache: Cache, headerSize: number, littleEndian: boolean) {
     logger.info("Reading Big File header..");
 
     const rawHeader = cache.readBytes(0, headerSize);
-    const header = generateBytesObjectFromMapping(rawHeader, MpBigFileHeader);
+    const header = generateBytesObjectFromMapping(rawHeader, MpBigFileHeader, true, littleEndian);
 
     // Verify the magic string
     if (header.data.magic !== "BIG") {
@@ -65,12 +66,14 @@ function readBigFileHeader(cache: Cache, headerSize = 68) {
  * @param cache Initialized cache class.
  * @param offsetTableOffset The offset of the offset table.
  * @param offsetTableMaxLength The max number of entries in the offset table.
+ * @param littleEndian Whether to use little endian or not.
  * @returns The formatted offset table.
  */
 function readBigFileOffsetTable(
     cache: Cache,
     offsetTableOffset: number,
-    offsetTableMaxLength: number
+    offsetTableMaxLength: number,
+    littleEndian: boolean
 ) {
     logger.info("Reading Big File offset table..");
 
@@ -85,7 +88,8 @@ function readBigFileOffsetTable(
         rawOffsetTable,
         MpBigFileOffsetTableEntry,
         mappingLength,
-        false
+        false,
+        littleEndian
     );
 
     return offsetTable;
@@ -101,6 +105,7 @@ function readBigFileOffsetTable(
  * @param mapping The mapping to use to read the table.
  * @param metadataOffset The offset of the directory metadata table.
  * @param numberOfEntries The number of dirs in the directory metadata table.
+ * @param littleEndian Whether to use little endian or not.
  * @param type The type of the metadata table (used for logging) ("directories" | "files").
  * @returns The formatted directory metadata table.
  */
@@ -109,6 +114,7 @@ function readBigFileMetadataTable(
     mapping: NsMappings.IsMapping,
     metadataOffset: number,
     numberOfEntries: number,
+    littleEndian: boolean,
     type: "directories" | "files"
 ) {
     logger.info(`Reading Big File ${type} metadata table..`);
@@ -117,10 +123,12 @@ function readBigFileMetadataTable(
     const bytesArrayLength = mappingLength * numberOfEntries;
 
     const rawMetadataTable = cache.readBytes(metadataOffset, bytesArrayLength);
-    const metadataTable = generateBytesTableFromMapping(rawMetadataTable,
+    const metadataTable = generateBytesTableFromMapping(
+        rawMetadataTable,
         mapping,
         mappingLength,
-        true
+        true,
+        littleEndian
     );
 
     return metadataTable;
@@ -299,7 +307,8 @@ function extractBigFile(
 
 /**
  * Creates the metadata object from the header and the tables.
- * @param includeEmptyDirs Whether to include empty directories in the output (defaults to false).
+ * @param includeEmptyDirs Whether to include empty directories in the output.
+ * @param littleEndian Whether the Big File is little endian.
  * @param header The header object.
  * @param offsetTable The offset table.
  * @param fileMetadataTable The file metadata table.
@@ -309,6 +318,7 @@ function extractBigFile(
  */
 function createMetadata(
     includeEmptyDirs: boolean,
+    littleEndian: boolean,
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     offsetTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
@@ -324,6 +334,7 @@ function createMetadata(
 
     const metadata = {
         includeEmptyDirs: includeEmptyDirs,
+        littleEndian: littleEndian,
         header: {
             ...header.data
         },
@@ -346,6 +357,7 @@ function createMetadata(
 export default function BigFileExtractor(
     bigFilePath: string,
     outputDirPath: string,
+    littleEndian = true,
     includeEmptyDirs = false
 ) {
     extractorChecker(bigFilePath, "Big File", ".bf", outputDirPath);
@@ -354,13 +366,16 @@ export default function BigFileExtractor(
     const cache = new Cache(bigFilePath, CHUNK_SIZE);
 
     const header = readBigFileHeader(
-        cache
+        cache,
+        BF_FILE_CONFIG.headerLength,
+        littleEndian
     );
 
     const offsetTable = readBigFileOffsetTable(
         cache,
         header.data.offsetTableOffset as number,
-        header.data.offsetTableMaxLength as number
+        header.data.offsetTableMaxLength as number,
+        littleEndian
     );
 
     const fileMetadataTable = readBigFileMetadataTable(
@@ -368,6 +383,7 @@ export default function BigFileExtractor(
         MpBigFileFileMetadataTableEntry,
         header.data.fileMetadataOffset as number,
         header.data.fileCount as number,
+        littleEndian,
         "files"
     );
 
@@ -376,6 +392,7 @@ export default function BigFileExtractor(
         MpBigFileDirectoryMetadataTableEntry,
         header.data.directoryMetadataOffset as number,
         header.data.directoryCount as number,
+        littleEndian,
         "directories"
     );
 
@@ -403,6 +420,7 @@ export default function BigFileExtractor(
 
     const metadata = createMetadata(
         includeEmptyDirs,
+        littleEndian,
         header,
         offsetTable,
         fileMetadataTable,

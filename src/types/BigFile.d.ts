@@ -69,6 +69,7 @@ declare namespace NsBigFile {
      */
     interface IsMetadata {
         includeEmptyDirs: boolean;
+        littleEndian: boolean;
         header: {
             magic: string;
             formatVersion: string;

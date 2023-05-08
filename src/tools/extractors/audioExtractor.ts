@@ -305,18 +305,18 @@ function generateAudioData(
     // Manually done because the header is not a simple mapping
     headerArray.push(
         convertStringToUint8Array(header.data.fileID as string),
-        convertNumberToUint8Array(header.data.fileSize as number, 4, false),
+        convertNumberToUint8Array(header.data.fileSize as number, 4),
         convertStringToUint8Array(header.data.format as string),
         convertStringToUint8Array(header.data.fmtBlockID as string),
-        convertNumberToUint8Array(header.data.fmtBlockSize as number, 4, false),
-        convertNumberToUint8Array(header.data.codec as number, 2, false),
-        convertNumberToUint8Array(header.data.numChannels as number, 2, false),
-        convertNumberToUint8Array(header.data.sampleRate as number, 4, false),
-        convertNumberToUint8Array(header.data.byteRate as number, 4, false),
-        convertNumberToUint8Array(header.data.dataBlockAlign as number, 2, false),
-        convertNumberToUint8Array(header.data.bitsPerSample as number, 2, false),
+        convertNumberToUint8Array(header.data.fmtBlockSize as number, 4),
+        convertNumberToUint8Array(header.data.codec as number, 2),
+        convertNumberToUint8Array(header.data.numChannels as number, 2),
+        convertNumberToUint8Array(header.data.sampleRate as number, 4),
+        convertNumberToUint8Array(header.data.byteRate as number, 4),
+        convertNumberToUint8Array(header.data.dataBlockAlign as number, 2),
+        convertNumberToUint8Array(header.data.bitsPerSample as number, 2),
         convertStringToUint8Array(header.data.dataBlockID as string),
-        convertNumberToUint8Array(header.data.dataBlockSize as number, 4, false)
+        convertNumberToUint8Array(header.data.dataBlockSize as number, 4)
     );
 
     const headerOutput = Buffer.concat(headerArray);
@@ -331,7 +331,7 @@ function generateAudioData(
 
     // Generate the data (as a Uint8Array)
     for (const sample of data) {
-        dataArray.push(convertNumberToUint8Array(sample, 2, false));
+        dataArray.push(convertNumberToUint8Array(sample, 2));
     }
 
     const dataOutput = Buffer.concat(dataArray);
