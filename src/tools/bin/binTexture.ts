@@ -6,6 +6,7 @@ import { TARGA_FILE_HEADER, TEXTURE_FILE_CONFIG, TEXTURE_FILE_TYPES } from "conf
 import { MpBinFileTexture } from "configs/mappings";
 import {
     concatenateUint8Arrays,
+    convertNumberArrayToUint8Array,
     convertUint8ArrayToHexString,
     convertUint8ArrayToNumber,
     generateByteObjectFromMapping
@@ -81,7 +82,7 @@ function parseChunks(chunks: Uint8Array[]) {
             let remainingBytes = chunk.length - TEXTURE_FILE_CONFIG.headerLength;
 
             // Data linked to the chunk
-            if (remainingBytes > 0) {
+            if (remainingBytes != 0) {
                 // Specific chunk parsing for procedural textures
                 if (chunkType === "PROCEDURAL") {
                     if (remainingBytes === 64) {
@@ -321,7 +322,7 @@ function dumpTextures(
         const textureIndex = chunks.indexOf(texture);
         const textureData = texture.data.data as Uint8Array;
         const textureType = texture.data.chunkType as string;
-        const textureHeaderChunk = resObject.linkedTextures[resObject.textureKeys[i]];
+        const textureHeader = resObject.linkedTextures[resObject.textureKeys[i]];
 
         // Filename: index_textureType.tga
         const filename = `${chunks.indexOf(texture)}_${textureType}.tga`;
@@ -363,8 +364,8 @@ function dumpTextures(
         }
 
         // Link texture chunk without data to the one with data and vice versa
-        textureHeaderChunk.data.linkedIndex = textureIndex;
-        texture.data.linkedIndex = chunks.indexOf(textureHeaderChunk);
+        textureHeader.data.linkedIndex = textureIndex;
+        texture.data.linkedIndex = chunks.indexOf(textureHeader);
 
         // Link texture chunk with data to palette link
         resObject.links[i].data.linkedIndex = textureIndex;
@@ -396,12 +397,12 @@ function dumpTextures(
             continue;
         }
 
-        // Get the pixel color data
-        const pixelColorData: NsBin.binTextureRGBAData[] = [];
+        // Get the final palette data (BGR or BGRA)
+        const palette: NsBin.binTextureBGRAData[] = [];
 
         let pointer = 0;
         while (pointer < linkedPaletteData.length) {
-            const RGBA: NsBin.binTextureRGBAData = {
+            const color: NsBin.binTextureBGRAData = {
                 B: 0,
                 G: 0,
                 R: 0,
@@ -409,123 +410,113 @@ function dumpTextures(
             };
 
             if (usesRGBA) {
-                RGBA.B = linkedPaletteData[pointer];
-                RGBA.G = linkedPaletteData[pointer + 1];
-                RGBA.R = linkedPaletteData[pointer + 2];
-                RGBA.A = linkedPaletteData[pointer + 3];
+                color.B = linkedPaletteData[pointer];
+                color.G = linkedPaletteData[pointer + 1];
+                color.R = linkedPaletteData[pointer + 2];
+                color.A = linkedPaletteData[pointer + 3];
 
-                pointer += 4;
+                pointer += 1;
             } else {
-                RGBA.B = linkedPaletteData[pointer];
-                RGBA.G = linkedPaletteData[pointer + 1];
-                RGBA.R = linkedPaletteData[pointer + 2];
+                color.B = linkedPaletteData[pointer];
+                color.G = linkedPaletteData[pointer + 1];
+                color.R = linkedPaletteData[pointer + 2];
 
-                pointer += 3;
+                pointer += 1;
             }
 
-            pixelColorData.push(RGBA);
+            palette.push(color);
         }
 
         // Specs:
-        // - Little Endian
         // - https://www.fileformat.info/format/tga/egff.htm
         // - https://en.wikipedia.org/wiki/Truevision_TGA
         // - http://www.paulbourke.net/dataformats/tga/
 
-        // Create the Targa file
-        const targaFileHeader = new Uint8Array(TARGA_FILE_HEADER.headerLength);
-
         // Set the Targa file header image width and height
-        TARGA_FILE_HEADER.width = textureHeaderChunk.data.width as number;
-        TARGA_FILE_HEADER.height = textureHeaderChunk.data.height as number;
+        TARGA_FILE_HEADER.width = textureHeader.data.width as number;
+        TARGA_FILE_HEADER.height = textureHeader.data.height as number;
+
+        // Create the Targa file
+        const targaHeader = new Uint8Array(TARGA_FILE_HEADER.headerLength);
 
         // Targa Header
-        targaFileHeader[0] = TARGA_FILE_HEADER.idLength;
-        targaFileHeader[1] = TARGA_FILE_HEADER.colorMapType;
-        targaFileHeader[2] = TARGA_FILE_HEADER.imageType;
+        targaHeader[0] = TARGA_FILE_HEADER.idLength;
+        targaHeader[1] = TARGA_FILE_HEADER.colorMapType;
+        targaHeader[2] = TARGA_FILE_HEADER.imageType;
 
         // Color Map Specification
-        targaFileHeader[3] = TARGA_FILE_HEADER.firstEntryIndex;
-        targaFileHeader[4] = TARGA_FILE_HEADER.firstEntryIndex >> 8;
-        targaFileHeader[5] = TARGA_FILE_HEADER.colorMapLength;
-        targaFileHeader[6] = TARGA_FILE_HEADER.colorMapLength >> 8;
-        targaFileHeader[7] = TARGA_FILE_HEADER.colorMapEntrySize;
+        targaHeader[3] = TARGA_FILE_HEADER.firstEntryIndex;
+        targaHeader[4] = TARGA_FILE_HEADER.firstEntryIndex >> 8;
+        targaHeader[5] = TARGA_FILE_HEADER.colorMapLength;
+        targaHeader[6] = TARGA_FILE_HEADER.colorMapLength >> 8;
+        targaHeader[7] = TARGA_FILE_HEADER.colorMapEntrySize;
 
         // Image Specification
-        targaFileHeader[8] = TARGA_FILE_HEADER.xOrigin;
-        targaFileHeader[9] = TARGA_FILE_HEADER.xOrigin >> 8;
-        targaFileHeader[10] = TARGA_FILE_HEADER.yOrigin;
-        targaFileHeader[11] = TARGA_FILE_HEADER.yOrigin >> 8;
-        targaFileHeader[12] = TARGA_FILE_HEADER.width;
-        targaFileHeader[13] = TARGA_FILE_HEADER.width >> 8;
-        targaFileHeader[14] = TARGA_FILE_HEADER.height;
-        targaFileHeader[15] = TARGA_FILE_HEADER.height >> 8;
-        targaFileHeader[16] = TARGA_FILE_HEADER.pixelDepth;
-        targaFileHeader[17] = TARGA_FILE_HEADER.imageDescriptor;
+        targaHeader[8] = TARGA_FILE_HEADER.xOrigin;
+        targaHeader[9] = TARGA_FILE_HEADER.xOrigin >> 8;
+        targaHeader[10] = TARGA_FILE_HEADER.yOrigin;
+        targaHeader[11] = TARGA_FILE_HEADER.yOrigin >> 8;
+        targaHeader[12] = TARGA_FILE_HEADER.width;
+        targaHeader[13] = TARGA_FILE_HEADER.width >> 8;
+        targaHeader[14] = TARGA_FILE_HEADER.height;
+        targaHeader[15] = TARGA_FILE_HEADER.height >> 8;
+        targaHeader[16] = TARGA_FILE_HEADER.pixelDepth;
+        targaHeader[17] = TARGA_FILE_HEADER.imageDescriptor;
 
-        // if (i == 11) {
+        // Create the Targa raw data
+        const targaRawData: number[] = [];
 
-        // Create the Targa data
-        const allocatedBytes = TARGA_FILE_HEADER.pixelDepth / 8;
-        const targaDataSize = TARGA_FILE_HEADER.width * TARGA_FILE_HEADER.height * allocatedBytes;
-        const targaData: Uint8Array = new Uint8Array(targaDataSize);
-
-        // console.log(
-        //     "i:", i,
-        //     " | textureType:", textureType,
-        //     " | targaDataSize:", targaDataSize,
-        //     " | textureData len:", textureData.length,
-        //     " | PixelColorData len:", pixelColorData.length
-        // );
+        let test = 0;
 
         // Targa Data
-        // for (let j = 0; j < targaDataSize; j += allocatedBytes) {
-        //     let currRGBA: NsBin.binTextureRGBAData;
-        //     const index = textureData[j / allocatedBytes];
+        for (const rawIndex of textureData) {
+            const index = rawIndex;
+            let color: NsBin.binTextureBGRAData;
 
-        //     if (textureType === "PALETTE_4") {
-        //         const index1 = (index & 0b11110000) >> 4;
-        //         const index2 = (index & 0b00001111);
+            if (rawIndex > test) {
+                test = rawIndex;
+            }
 
-        //         currRGBA = pixelColorData[index1];
-        //         targaData[j] = currRGBA.B;
-        //         targaData[j + 1] = currRGBA.G;
-        //         targaData[j + 2] = currRGBA.R;
-        //         targaData[j + 3] = currRGBA.A;
+            if (textureType === "PALETTE_4") {
+                const index1 = (index & 0xf0) >> 4;
+                const index2 = (index & 0x0f);
 
-        //         currRGBA = pixelColorData[index2];
-        //         targaData[j + 4] = currRGBA.B;
-        //         targaData[j + 5] = currRGBA.G;
-        //         targaData[j + 6] = currRGBA.R;
-        //         targaData[j + 7] = currRGBA.A;
+                color = palette[index1];
+                targaRawData.push(
+                    color.B,
+                    color.G,
+                    color.R,
+                    color.A
+                );
 
-        //         continue;
-        //     }
+                color = palette[index2];
+                targaRawData.push(
+                    color.B,
+                    color.G,
+                    color.R,
+                    color.A
+                );
 
-        //     currRGBA = pixelColorData[index];
+                continue;
+            }
 
-        //     if (currRGBA === undefined) {
-        //         console.log(
-        //             " | textureType:", textureType,
-        //             " | Index:", index,
-        //             " | J:", j,
-        //             " | J / allocatedBytes:", j / allocatedBytes,
-        //             " | textureData len:", textureData.length,
-        //             " | PixelColorData len:", pixelColorData.length
-        //         );
-        //         continue;
-        //     }
+            color = palette[index % palette.length];
+            targaRawData.push(
+                color.B,
+                color.G,
+                color.R,
+                color.A
+            );
+        }
 
-        //     targaData[j] = currRGBA.B;
-        //     targaData[j + 1] = currRGBA.G;
-        //     targaData[j + 2] = currRGBA.R;
-        //     targaData[j + 3] = currRGBA.A;
-        // }
-        // }
+        // console.log(test, palette.length);
 
-        // Get the final Targa in Uint8Array format
+        // Convert the Targa data to Uint8Array
+        const targaData = convertNumberArrayToUint8Array(targaRawData);
+
+        // Get the final Targa content in Uint8Array format
         const targa = concatenateUint8Arrays([
-            targaFileHeader,
+            targaHeader,
             targaData
         ]);
 

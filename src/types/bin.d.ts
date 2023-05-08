@@ -44,9 +44,9 @@ declare namespace NsBin {
     }
 
     /**
-     * Bin texture RGBA data.
+     * Bin texture BGRA data.
      */
-    interface binTextureRGBAData {
+    interface binTextureBGRAData {
         B: number;
         G: number;
         R: number;

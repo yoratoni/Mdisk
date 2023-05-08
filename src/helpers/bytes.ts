@@ -203,6 +203,21 @@ export function convertNumberToUint8Array(number: number, bytes = 4, littleEndia
 }
 
 /**
+ * Converts a number array to an Uint8Array.
+ * @param numberArray The number array.
+ * @returns The bytes array.
+ */
+export function convertNumberArrayToUint8Array(numberArray: number[]) {
+    const bytesArray = new Uint8Array(numberArray.length);
+
+    for (let i = 0; i < numberArray.length; i++) {
+        bytesArray[i] = numberArray[i];
+    }
+
+    return bytesArray;
+}
+
+/**
  * Converts an Uint8Array to a hex string array.
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
