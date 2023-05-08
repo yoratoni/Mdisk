@@ -152,9 +152,41 @@ export function readFileByChunk(
     return buffer;
 }
 
+/**
+ * Checks if an extracted Big File folder is valid for building.
+ * @param inputDirPath The path to the input Big File directory.
+ */
+export function BigFileBuilderChecker(
+    inputDirPath: string
+) {
+    logger.info("Beginning Big File build process..");
+
+    if (!fs.existsSync(inputDirPath)) {
+        logger.error(`Invalid Big File directory path: ${inputDirPath}`);
+        process.exit(1);
+    }
+
+    // Check if the Bin folder exists
+    if (!fs.existsSync(`${inputDirPath}/Bin`)) {
+        logger.error(`Invalid Big File directory (directory 'Bin' missing): ${inputDirPath}`);
+        process.exit(1);
+    }
+
+    // Check if the EngineData folder exists
+    if (!fs.existsSync(`${inputDirPath}/EngineDatas`)) {
+        logger.error(`Invalid Big File directory (directory 'EngineDatas' missing): ${inputDirPath}`);
+        process.exit(1);
+    }
+
+    // Checks if the "metadata.json" file exists
+    if (!fs.existsSync(`${inputDirPath}/metadata.json`)) {
+        logger.error(`Invalid Big File directory (file 'metadata.json' missing): ${inputDirPath}`);
+        process.exit(1);
+    }
+}
 
 /**
- * Check if the file path is valid and if the output directory exists,
+ * Checks if a file path is valid and if the output directory exists,
  * if not, creates the output directory recursively.
  *
  * In the case of the file path, it also checks if the file extension is valid.

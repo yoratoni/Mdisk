@@ -297,7 +297,15 @@ function extractBigFile(
     );
 }
 
-function createMetadataFile(
+/**
+ * Creates the metadata object from the header and the tables.
+ * @param header The header object.
+ * @param offsetTable The offset table.
+ * @param fileMetadataTable The file metadata table.
+ * @param directoryMetadataTable The directory metadata table.
+ * @returns The metadata object.
+ */
+function createMetadata(
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     offsetTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
@@ -312,7 +320,7 @@ function createMetadataFile(
         files: fileMetadataTable
     };
 
-    return metadata;
+    return metadata as unknown as NsBigFile.IsMetadata;
 }
 
 /**
@@ -380,7 +388,7 @@ export default function BigFileExtractor(
 
     logger.info("Creating Metadata JSON file..");
 
-    const metadata = createMetadataFile(
+    const metadata = createMetadata(
         header,
         offsetTable,
         fileMetadataTable,

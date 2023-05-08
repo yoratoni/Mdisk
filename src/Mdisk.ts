@@ -1,14 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import logger from "helpers/logger";
-import AudioExtractor from "tools/audioExtractor";
-import BigFileExtractor from "tools/bigFileExtractor";
-import BinExtractor from "tools/binExtractor";
+import BigFileBuilder from "tools/builders/bigFileBuilder";
+import AudioExtractor from "tools/extractors/audioExtractor";
+import BigFileExtractor from "tools/extractors/bigFileExtractor";
+import BinExtractor from "tools/extractors/binExtractor";
 
 logger.info("Mdisk started..");
 
+BigFileBuilder("C:/Users/terci/Desktop/BigFile", "F:/Yoratoni/Mdisk/src");
+
 // TODO: Add a parameter for endianness.
 
-BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean.bf", "C:/Users/terci/Desktop/BigFile", false);
+// BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean.bf", "C:/Users/terci/Desktop/BigFile", false);
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/jingle_demo.wam", "F:/Yoratoni/Mdisk/src/binary");
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/beluga_demo.waa", "F:/Yoratoni/Mdisk/src/binary");
 

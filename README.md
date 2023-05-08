@@ -10,11 +10,10 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
-For now, I'm only doing the extraction part, then,
-I'll work on the file modification system.
+**For now, I stopped working on the textures to work a bit on the building process.**
 
-Support
--------
+Extraction Support
+------------------
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
 | `.bf`   | Big File          | **SUPPORTED**               |
@@ -28,6 +27,20 @@ Support
 | `.ova`  | Binarized actions | **-----------------------** |
 | `.omd`  | Binarized actions | **-----------------------** |
 
+Building Support
+----------------
+| File    | Description       | Status                      |
+|---------|-------------------|-----------------------------|
+| `.bf`   | Big File          | **WORK IN PROGRESS**        |
+| `.bik`  | Video             | **-----------------------** |
+| `.wa*`  | Audio             | **-----------------------** |
+| `.mtx`  | Trailer videos ?  | **-----------------------** |
+| `.bin`  | Binary files      | **-----------------------** |
+| `.wol`  | Prototypes ?      | **-----------------------** |
+| `.ofc`  | Binarized actions | **-----------------------** |
+| `.oin`  | Binarized actions | **-----------------------** |
+| `.ova`  | Binarized actions | **-----------------------** |
+| `.omd`  | Binarized actions | **-----------------------** |
 
 Bin Support
 -----------
