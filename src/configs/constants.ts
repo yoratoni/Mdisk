@@ -5,7 +5,11 @@ import NsConstants from "types/constants";
  * The configuration for bin files.
  */
 export const BF_FILE_CONFIG = {
-    headerLength: 68
+    headerLength: 68,
+    fileCountOffset: 8,
+    directoryCountOffset: 12,
+    fileCount2Offset: 44,
+    directoryCount2Offset: 48
 };
 
 /**

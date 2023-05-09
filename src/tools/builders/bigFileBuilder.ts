@@ -5,7 +5,7 @@ import { BF_FILE_CONFIG } from "configs/constants";
 import { BigFileBuilderChecker } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
-import { concatenateUint8Arrays, convertHexStringToUint8Array, convertNumberToUint8Array, convertStringToUint8Array } from "helpers/bytes";
+import { concatenateUint8Arrays, convertHexStringToUint8Array, convertNumberToUint8Array, convertStringToUint8Array, convertUint8ArrayToHexString } from "helpers/bytes";
 
 
 /**
@@ -74,26 +74,32 @@ function generateHeader(
     directoryCount: number,
     littleEndian: boolean
 ) {
-    // Add the null terminator to the magic bytes
-    metadata.header.magic += "\0";
+    // Recover the raw header from the metadata
+    const rawHeader = convertHexStringToUint8Array(metadata.rawHeader, littleEndian);
 
-    // Override the number of files and directories in the metadata.
-    metadata.header.fileCount = fileCount;
-    metadata.header.fileCount2 = fileCount;
-    metadata.header.directoryCount = directoryCount;
-    metadata.header.directoryCount2 = directoryCount;
+    if (!metadata.includeEmptyDirs) {
+        // Override the number of files and directories in the (formatted) metadata header
+        metadata.header.fileCount = fileCount;
+        metadata.header.fileCount2 = fileCount;
+        metadata.header.directoryCount = directoryCount;
+        metadata.header.directoryCount2 = directoryCount;
 
-    const rawHeader = [
-        convertStringToUint8Array(metadata.header.magic, littleEndian),
-        convertHexStringToUint8Array(metadata.header.formatVersion, littleEndian),
-        convertNumberToUint8Array(metadata.header.fileCount, 4, littleEndian),
-        convertNumberToUint8Array(metadata.header.directoryCount, 4, littleEndian),
-    ];
+        // Convert the file and directory counts to hex
+        const hexFileCount = convertNumberToUint8Array(fileCount, 4, littleEndian);
+        const hexDirectoryCount = convertNumberToUint8Array(directoryCount, 4, littleEndian);
 
-    // Get the final Uint8Array header
-    const header = concatenateUint8Arrays(rawHeader);
+        // Replace the file and directory counts in the raw header
+        rawHeader.set(hexFileCount, BF_FILE_CONFIG.fileCountOffset);
+        rawHeader.set(hexDirectoryCount, BF_FILE_CONFIG.directoryCountOffset);
+        rawHeader.set(hexFileCount, BF_FILE_CONFIG.fileCount2Offset);
+        rawHeader.set(hexDirectoryCount, BF_FILE_CONFIG.directoryCount2Offset);
+    }
 
-    return header;
+    return rawHeader;
+}
+
+function generateOffsetTable() {
+    //
 }
 
 /**
@@ -117,7 +123,16 @@ export default function BigFileBuilder(
         metadata.includeEmptyDirs
     );
 
-    const header = generateHeader(metadata, fileCount, directoryCount, metadata.littleEndian);
+    const header = generateHeader(
+        metadata,
+        fileCount,
+        directoryCount,
+        metadata.littleEndian
+    );
+
+    const offsetTable = generateOffsetTable(
+
+    );
 
     console.log(header);
 }

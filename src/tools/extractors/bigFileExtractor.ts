@@ -10,6 +10,7 @@ import {
 } from "configs/mappings";
 import {
     calculateMappingsLength,
+    convertUint8ArrayToHexString,
     generateBytesObjectFromMapping,
     generateBytesTableFromMapping
 } from "helpers/bytes";
@@ -21,16 +22,14 @@ import NsMappings from "types/mappings";
 
 
 /**
- * Reads the header of the Big File.
- * @param cache Initialized cache class.
- * @param headerSize The size of the header (normally 68 bytes).
+ * Parse and format the header of the Big File.
+ * @param rawHeader The raw header (as Uint8Array).
  * @param littleEndian Whether to use little endian or not.
  * @returns The formatted header.
  */
-function readBigFileHeader(cache: Cache, headerSize: number, littleEndian: boolean) {
+function parseBigFileHeader(rawHeader: Uint8Array, littleEndian: boolean) {
     logger.info("Reading Big File header..");
 
-    const rawHeader = cache.readBytes(0, headerSize);
     const header = generateBytesObjectFromMapping(rawHeader, MpBigFileHeader, true, littleEndian);
 
     // Verify the magic string
@@ -309,6 +308,7 @@ function extractBigFile(
  * Creates the metadata object from the header and the tables.
  * @param includeEmptyDirs Whether to include empty directories in the output.
  * @param littleEndian Whether the Big File is little endian.
+ * @param rawHeader The raw header bytes.
  * @param header The header object.
  * @param offsetTable The offset table.
  * @param fileMetadataTable The file metadata table.
@@ -319,6 +319,7 @@ function extractBigFile(
 function createMetadata(
     includeEmptyDirs: boolean,
     littleEndian: boolean,
+    rawHeader: Uint8Array,
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
     offsetTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
@@ -335,6 +336,7 @@ function createMetadata(
     const metadata = {
         includeEmptyDirs: includeEmptyDirs,
         littleEndian: littleEndian,
+        rawHeader: convertUint8ArrayToHexString(rawHeader, littleEndian, false, false),
         header: {
             ...header.data
         },
@@ -365,9 +367,11 @@ export default function BigFileExtractor(
     // Loading the cache
     const cache = new Cache(bigFilePath, CHUNK_SIZE);
 
-    const header = readBigFileHeader(
-        cache,
-        BF_FILE_CONFIG.headerLength,
+    // Get the raw header
+    const rawHeader = cache.readBytes(0, BF_FILE_CONFIG.headerLength);
+
+    const header = parseBigFileHeader(
+        rawHeader,
         littleEndian
     );
 
@@ -421,6 +425,7 @@ export default function BigFileExtractor(
     const metadata = createMetadata(
         includeEmptyDirs,
         littleEndian,
+        rawHeader,
         header,
         offsetTable,
         fileMetadataTable,
