@@ -41,7 +41,7 @@ declare namespace NsBigFile {
         nextIndex: number;
         previousIndex: number;
         parentIndex: number;
-        dirName: string;
+        dirname: string;
     }
 
     /**
@@ -57,10 +57,22 @@ declare namespace NsBigFile {
     }
 
     /**
+     * Metadata file data.
+     */
+    interface IsMetadataCompleteFileData extends IsMetadataFile {
+        dataOffset: number;
+        key: string;
+        dirname: string;
+        filePath: string;
+        isExtracted: boolean;
+    }
+
+    /**
      * Metadata structure data.
      */
     interface IsMetadataStructure {
         name: string;
+        path: string;
         fileIndexes: number[];
     }
 

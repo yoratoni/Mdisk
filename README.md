@@ -1,16 +1,34 @@
 # Mdisk
 A tool for the game Beyond Good & Evil.
 
+Usage
+-----
+The goal here was to build a tool that can extract and build the game files.
+The tool is separated into two main parts: the extraction and the building.
 
-Technical Summary
------------------
-Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
+### Extraction
+The extraction is done by providing the path to the Big File and the path to the output directory.
+Note that the output directory will be created if it does not exist.
 
-This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
-general classes and helper functions. I also added a mapping system between byte positions
-and data. The files can be read by chunks instead of a complete loading.
+The extraction process will create multiple directories and one file:
+- `Bin`: Contains the extracted `.bin` files.
+- `EngineDatas`: Contains all the other type of files.
+- `ExtractedFiles`: Contains the extracted files from the `Bin` & `EngineDatas` directories.
+- `metadata.json`: Contains all the information about the files inside the Big File (for building).
 
-**For now, I stopped working on the textures to work a bit on the building process.**
+**Note that** `ExtractedFiles` **is basically where you will modify the files**.
+
+### Building
+The building is done by providing the path to the extracted Big File (directory)
+and the path to the output directory where the new Big File will be created.
+Note that it verifies that all needed files are present in the extracted Big File.
+
+Basically, all files that are not inside the `ExtractedFiles` directory will be replaced by the original ones
+inside the `Bin` & `EngineDatas` directories.
+
+So if there's nothing inside the `ExtractedFiles` directory, the Big File will be the same as the original one.
+
+**WARNING: NEVER OVERWRITE THE ORIGINAL BIG FILE BY MINE, I PREFER TO SAY IT..**
 
 Extraction Support
 ------------------
@@ -52,6 +70,15 @@ Bin Support
 | `ff8*`  | Textures           | **WORK IN PROGRESS**        |
 | `ff0*`  | Miscellaneous      | **-----------------------** |
 
+Technical Summary
+-----------------
+Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
+
+This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
+general classes and helper functions. I also added a mapping system between byte positions
+and data. The files can be read by chunks instead of a complete loading.
+
+**For now, I stopped working on the textures to work a bit on the building process.**
 
 Big File
 --------

@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 
+import { GENERAL_CONFIG } from "configs/config";
 import logger from "helpers/logger";
 
 
@@ -159,28 +160,33 @@ export function readFileByChunk(
 export function BigFileBuilderChecker(
     inputDirPath: string
 ) {
-    logger.info("Beginning Big File build process..");
+    logger.info("Beginning Big File building process..");
 
     if (!fs.existsSync(inputDirPath)) {
-        logger.error(`Invalid Big File directory path: ${inputDirPath}`);
+        logger.error(`Missing Big File directory: '${inputDirPath}'`);
         process.exit(1);
+    }
+
+    if (!fs.existsSync(`${inputDirPath}/${GENERAL_CONFIG.bigFile.extractedFilesDirName}`)) {
+        logger.warn(`Missing Big File '${GENERAL_CONFIG.bigFile.extractedFilesDirName}' directory in '${inputDirPath}'`);
+        logger.warn("Big File will be built without any changes..");
     }
 
     // Check if the Bin folder exists
     if (!fs.existsSync(`${inputDirPath}/Bin`)) {
-        logger.error(`Invalid Big File directory (directory 'Bin' missing): ${inputDirPath}`);
+        logger.error(`Missing Big File 'Bin' directory in '${inputDirPath}'`);
         process.exit(1);
     }
 
     // Check if the EngineData folder exists
     if (!fs.existsSync(`${inputDirPath}/EngineDatas`)) {
-        logger.error(`Invalid Big File directory (directory 'EngineDatas' missing): ${inputDirPath}`);
+        logger.error(`Missing Big File 'EngineDatas' directory in '${inputDirPath}'`);
         process.exit(1);
     }
 
     // Checks if the "metadata.json" file exists
     if (!fs.existsSync(`${inputDirPath}/metadata.json`)) {
-        logger.error(`Invalid Big File directory (file 'metadata.json' missing): ${inputDirPath}`);
+        logger.error(`Missing Big File Metadata file in '${inputDirPath}'`);
         process.exit(1);
     }
 }
@@ -212,6 +218,13 @@ export function extractorChecker(
     if (!fs.existsSync(outputDirPath)) {
         logger.info(`Creating output directory: ${outputDirPath}`);
         fs.mkdirSync(outputDirPath, { recursive: true });
+    }
+
+    const extractedDirPath = path.join(outputDirPath, GENERAL_CONFIG.bigFile.extractedFilesDirName);
+
+    if (!fs.existsSync(extractedDirPath)) {
+        logger.info(`Creating '${GENERAL_CONFIG.bigFile.extractedFilesDirName}' directory: ${extractedDirPath}`);
+        fs.mkdirSync(extractedDirPath, { recursive: true });
     }
 
     if (!checkFileExtension(filePath, requiredFileExtension)) {

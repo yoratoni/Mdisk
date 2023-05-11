@@ -173,7 +173,7 @@ function readBigFileFiles(
         const dataOffset = tbOffset.dataOffset as number + 4;
         const dataSize = tbFileMetadata.fileSize as number;
 
-        const dirName = directoryMetadataTable[tbFileMetadata.directoryIndex as number].dirname;
+        const dirname = directoryMetadataTable[tbFileMetadata.directoryIndex as number].dirname;
 
         resultArray[i] = {
             name: tbFileMetadata.filename as string,
@@ -182,7 +182,7 @@ function readBigFileFiles(
             size: dataSize,
             nextIndex: tbFileMetadata.nextIndex as number,
             previousIndex: tbFileMetadata.previousIndex as number,
-            directoryName: dirName as string,
+            directoryName: dirname as string,
             directoryIndex: tbFileMetadata.directoryIndex as number,
             unixTimestamp: tbFileMetadata.unixTimestamp as number,
             data: cache.readBytes(dataOffset, dataSize)
@@ -326,13 +326,6 @@ function createMetadata(
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     structures: NsBigFile.IsFormattedDirectory[]
 ) {
-    const structuresWithoutPaths = structures.map((dir) => {
-        return {
-            name: dir.name,
-            fileIndexes: dir.fileIndexes
-        };
-    });
-
     const metadata = {
         includeEmptyDirs: includeEmptyDirs,
         littleEndian: littleEndian,
@@ -343,7 +336,7 @@ function createMetadata(
         offsets: offsetTable,
         directories: directoryMetadataTable,
         files: fileMetadataTable,
-        structures: structuresWithoutPaths
+        structures: structures
     };
 
     return metadata as unknown as NsBigFile.IsMetadata;
