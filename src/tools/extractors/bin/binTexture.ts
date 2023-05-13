@@ -76,4 +76,7 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
 
 
     logger.info(`Successfully extracted textures: '${getFileName(binFilePath)}' => '${outputDirPath}'.`);
+
+    // Closing the file from the cache
+    cache.closeFile();
 }

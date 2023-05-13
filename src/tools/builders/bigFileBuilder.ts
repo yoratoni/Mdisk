@@ -7,7 +7,6 @@ import { BF_FILE_CONFIG, CHUNK_SIZE } from "configs/constants";
 import { MpBigFileDirectoryMetadataTableEntry, MpBigFileFileMetadataTableEntry, MpBigFileOffsetTableEntry } from "configs/mappings";
 import {
     calculateMappingsLength,
-    concatenateUint8Arrays,
     convertHexStringToUint8Array,
     convertNumberToUint8Array,
     convertStringToUint8Array
@@ -15,7 +14,6 @@ import {
 import { BigFileBuilderChecker } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
-import { convertUint8ArrayToHexString } from "helpers/bytes";
 
 
 /**
@@ -472,6 +470,9 @@ function readFiles(
         data[index].set(fileData, 4);
     }
 
+    // Closing the file from the cache
+    cache.closeFile();
+
     return data;
 }
 
@@ -510,24 +511,24 @@ function generateBigFile(
         ...fileMetadataTable
     ]);
 
-    // Creates a write stream
-    const stream = fs.createWriteStream(
-        finalPath,
-        {
-            flags: "w"
-        }
-    );
+    // // Creates a write stream
+    // const stream = fs.createWriteStream(
+    //     finalPath,
+    //     {
+    //         flags: "w"
+    //     }
+    // );
 
-    // Write the Big File header and tables
-    stream.write(bigFileHeaderAndTables);
+    // // Write the Big File header and tables
+    // stream.write(bigFileHeaderAndTables);
 
-    // Write the Big File file data by file
-    for (const fileData of data) {
-        stream.write(fileData);
-    }
+    // // Write the Big File file data by file
+    // for (const fileData of data) {
+    //     stream.write(fileData);
+    // }
 
-    // End the stream
-    stream.end();
+    // // End the stream
+    // stream.end();
 }
 
 /**

@@ -67,8 +67,8 @@ function readDataBlockHeader(
         // Generate a fake header
         header.data.headerSize = 0;
         header.data.compressed = false;
-        header.data.decompressedSize = cache.getFileSize();
-        header.data.compressedSize = cache.getFileSize();
+        header.data.decompressedSize = cache.getSize();
+        header.data.compressedSize = cache.getSize();
 
         return header;
     }
@@ -125,7 +125,7 @@ function readDataBlockData(
  */
 function readDataBlocks(cache: Cache, fileType: string) {
     const dataBlocks = [];
-    const fileSize = cache.getFileSize();
+    const fileSize = cache.getSize();
 
     let dataBlockHeader: NsBytes.IsMappingByteObjectResultWithEmptiness;
     let dataBlockData: Uint8Array;
@@ -208,4 +208,7 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
         const outputFilePath = path.join(outputDirPath, "decompressed_" + path.basename(binFilePath));
         fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
     }
+
+    // Closing the file from the cache
+    cache.closeFile();
 }

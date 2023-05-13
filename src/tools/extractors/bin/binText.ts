@@ -240,4 +240,7 @@ export default function BinText(outputDirPath: string, binFilePath: string, data
     fs.writeFileSync(outputFilePath, result);
 
     logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
+
+    // Closing the file from the cache
+    cache.closeFile();
 }

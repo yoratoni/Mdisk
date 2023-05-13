@@ -7,8 +7,8 @@ import logger from "helpers/logger";
 export default class Cache {
     private _fileName: string;
     private _filePath: string;
-    private _fileSize: number;
     private _file: number;
+    private _size: number;
     private _chunkNumber: number;
     private _chunkSize: number;
     private _buffer: Uint8Array;
@@ -34,7 +34,7 @@ export default class Cache {
 
             this._fileName = "";
             this._filePath = "";
-            this._fileSize = concatenatedBuffer.length;
+            this._size = concatenatedBuffer.length;
             this._chunkNumber = 0;
             this._chunkSize = concatenatedBuffer.length;
             this._file = -1;
@@ -45,7 +45,7 @@ export default class Cache {
             this._pointers.customChunkSize(concatenatedBuffer.length);
 
             logger.verbose(`Loaded cache from buffer with ${buffer.length.toLocaleString("en-US")} chunk(s).`);
-            logger.info(`Buffer size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+            logger.info(`Buffer size: ${this._size.toLocaleString("en-US")} bytes.`);
 
             return;
         }
@@ -53,7 +53,7 @@ export default class Cache {
         this._bufferLoaded = false;
         this._fileName = getFileName(absolutePath);
         this._filePath = absolutePath;
-        this._fileSize = getFileSize(this._filePath);
+        this._size = getFileSize(this._filePath);
         this._chunkNumber = 0;
         this._chunkSize = convertMegaBytesToBytes(chunkSize);
         this._file = openFile(this._filePath);
@@ -62,7 +62,7 @@ export default class Cache {
 
         this._buffer = readFileByChunk(
             this._file,
-            this._fileSize,
+            this._size,
             this._buffer,
             this._chunkNumber,
             this._chunkSize
@@ -70,10 +70,10 @@ export default class Cache {
 
         this._pointers = new Pointers();
 
-        const numberOfChunks = Math.ceil(this._fileSize / this._chunkSize);
+        const numberOfChunks = Math.ceil(this._size / this._chunkSize);
         logger.verbose(`Loaded cache from file '${this._fileName}' with ${numberOfChunks.toLocaleString("en-US")} chunk(s).`);
         logger.info(`Chunk size: ${this._chunkSize.toLocaleString("en-US")} bytes.`);
-        logger.info(`File size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+        logger.info(`File size: ${this._size.toLocaleString("en-US")} bytes.`);
     }
 
     /**
@@ -84,36 +84,36 @@ export default class Cache {
     public loadFile(absolutePath: string, buffer?: Uint8Array) {
         if (this._bufferLoaded && buffer) {
             this._filePath = "";
-            this._fileSize = buffer.length;
+            this._size = buffer.length;
             this._file = -1;
             this._chunkNumber = 0;
 
             this._buffer = buffer;
 
             logger.verbose(`Loaded cache from new buffer with ${buffer.length.toLocaleString("en-US")} chunk(s).`);
-            logger.info(`Buffer size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+            logger.info(`Buffer size: ${this._size.toLocaleString("en-US")} bytes.`);
 
             return;
         }
 
         this._fileName = getFileName(absolutePath);
         this._filePath = absolutePath;
-        this._fileSize = getFileSize(this._filePath);
+        this._size = getFileSize(this._filePath);
         this._file = openFile(this._filePath);
         this._chunkNumber = 0;
 
         this._buffer = readFileByChunk(
             this._file,
-            this._fileSize,
+            this._size,
             this._buffer,
             this._chunkNumber,
             this._chunkSize
         );
 
-        const numberOfChunks = Math.ceil(this._fileSize / this._chunkSize);
+        const numberOfChunks = Math.ceil(this._size / this._chunkSize);
         logger.verbose(`Loaded cache from file '${this._fileName}' with ${numberOfChunks.toLocaleString("en-US")} chunk(s).`);
         logger.info(`Chunk size: ${this._chunkSize.toLocaleString("en-US")} bytes.`);
-        logger.info(`File size: ${this._fileSize.toLocaleString("en-US")} bytes.`);
+        logger.info(`File size: ${this._size.toLocaleString("en-US")} bytes.`);
     }
 
     /**
@@ -177,11 +177,11 @@ export default class Cache {
     }
 
     /**
-     * Get the size of the file in bytes.
-     * @returns The size of the file in bytes.
+     * Get the size of the file/buffer in bytes.
+     * @returns The size of the file/buffer in bytes.
      */
-    public getFileSize() {
-        return this._fileSize;
+    public getSize() {
+        return this._size;
     }
 
     /**
@@ -202,7 +202,7 @@ export default class Cache {
 
             this._buffer = readFileByChunk(
                 this._file,
-                this._fileSize,
+                this._size,
                 this._buffer,
                 this._chunkNumber,
                 this._chunkSize
@@ -213,6 +213,24 @@ export default class Cache {
             this._pointers.bytePointer,
             this._pointers.bytePointer + numberOfBytes
         );
+
+        if (bytes.length != numberOfBytes) {
+            const reachedEndOfBuffer = this._pointers.bytePointer + bytes.length === this._buffer.length;
+            const reachedEndOfData = this._pointers.absolutePointer + numberOfBytes === this._size;
+
+            logger.error(
+                `Could not read ${numberOfBytes.toLocaleString("en-US")} bytes\n` +
+                `>> Absolute pointer: ${absolutePointer.toLocaleString("en-US")}\n` +
+                `>> Chunk pointer: ${this._pointers.chunkPointer.toLocaleString("en-US")}\n` +
+                `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
+                `>> Bytes length: ${bytes.length.toLocaleString("en-US")}\n` +
+                `>> Buffer length: ${this._buffer.length.toLocaleString("en-US")}\n` +
+                `>> Reached end of buffer: ${reachedEndOfBuffer}\n` +
+                `>> Reached end of data: ${reachedEndOfData}`
+            );
+
+            process.exit(1);
+        }
 
         this._pointers.incrementAbsolutePointer(numberOfBytes);
 

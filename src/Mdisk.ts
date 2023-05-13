@@ -4,18 +4,24 @@ import BigFileBuilder from "tools/builders/bigFileBuilder";
 import AudioExtractor from "tools/extractors/audioExtractor";
 import BigFileExtractor from "tools/extractors/bigFileExtractor";
 import BinExtractor from "tools/extractors/binExtractor";
+import BigFileComparator from "tools/tests/BigFileComparator";
 
 logger.info("Mdisk started..");
 
-BigFileBuilder(
-    "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf",
-    "C:/Users/terci/Desktop/BigFile",
-    "C:/Users/terci/Desktop/BigFile"
-);
+// BigFileComparator(
+//     "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf",
+//     "C:/Users/terci/Desktop/BigFile/sally_clean.bf",
+// );
+
+// BigFileBuilder(
+//     "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf",
+//     "C:/Users/terci/Desktop/BigFile",
+//     "C:/Users/terci/Desktop/BigFile"
+// );
 
 // TODO: Add a parameter for endianness.
 
-// BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf", "C:/Users/terci/Desktop/BigFile", true, false);
+BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf", "C:/Users/terci/Desktop/BigFile", true, false);
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/jingle_demo.wam", "F:/Yoratoni/Mdisk/src/binary");
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/beluga_demo.waa", "F:/Yoratoni/Mdisk/src/binary");
 

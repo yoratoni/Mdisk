@@ -399,5 +399,6 @@ export default function AudioExtractor(audioFilePath: string, outputDirPath: str
 
     fs.writeFileSync(outputFilePath, finalData);
 
+    // Closing the file from the cache
     cache.closeFile();
 }

@@ -408,11 +408,11 @@ export default function BigFileExtractor(
         files,
     );
 
-    extractBigFile(
-        structures,
-        files,
-        includeEmptyDirs
-    );
+    // extractBigFile(
+    //     structures,
+    //     files,
+    //     includeEmptyDirs
+    // );
 
     logger.info("Creating Metadata JSON file..");
 
@@ -429,9 +429,10 @@ export default function BigFileExtractor(
 
     logger.info("Exporting Metadata JSON file..");
 
-    exportAsJson(metadata, outputDirPath, "metadata.json", true);
+    // exportAsJson(metadata, outputDirPath, "metadata.json", true);
 
     logger.info("Big File extracted successfully!");
 
+    // Closing the file from the cache
     cache.closeFile();
 }
