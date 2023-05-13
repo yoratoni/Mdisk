@@ -7,6 +7,7 @@ import { BF_FILE_CONFIG, CHUNK_SIZE } from "configs/constants";
 import { MpBigFileDirectoryMetadataTableEntry, MpBigFileFileMetadataTableEntry, MpBigFileOffsetTableEntry } from "configs/mappings";
 import {
     calculateMappingsLength,
+    concatenateUint8Arrays,
     convertHexStringToUint8Array,
     convertNumberToUint8Array,
     convertStringToUint8Array
@@ -14,6 +15,7 @@ import {
 import { BigFileBuilderChecker } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
+import { convertUint8ArrayToHexString } from "helpers/bytes";
 
 
 /**
@@ -35,7 +37,11 @@ function getExtractedFiles(inputDirPath: string) {
         }
     }
 
-    logger.verbose(`Found ${extractedFiles.length} extracted file(s).`);
+    logger.verbose(`Found ${extractedFiles.length.toLocaleString("en-US")} extracted file(s).`);
+
+    if (extractedFiles.length === 0) {
+        logger.warn("No extracted files found, rebuilding the Big File with original data only..");
+    }
 
     return extractedFiles;
 }
@@ -174,7 +180,7 @@ function getAllFiles(
         allFiles.push(completeFileData);
     }
 
-    logger.verbose(`Found ${allFiles.length} file(s).`);
+    logger.verbose(`Found ${allFiles.length.toLocaleString("en-US")} file(s).`);
 
     return allFiles;
 }
@@ -223,7 +229,7 @@ function getDirIndexes(metadata: NsBigFile.IsMetadata) {
     // Sort the directory indexes
     const sortedDirIndexes = dirIndexes.sort((a, b) => a - b);
 
-    logger.verbose(`Found ${sortedDirIndexes.length} directory index(es).`);
+    logger.verbose(`Found ${sortedDirIndexes.length.toLocaleString("en-US")} directory index(es).`);
 
     return sortedDirIndexes;
 }
@@ -416,13 +422,13 @@ function generateFileMetadataTable(
 
 /**
  * Reads the file data table of the Big File, creating an array containing the complete file data.
- * @param inputBigFilePath The input Big File path.
- * @param metadata The metadata object.
- * @returns The file data as an Uint8Array.
+ * @param inputBigFilePath The absolute path to the input Big File (used to recover original data).
+ * @param allFiles The list of all files.
+ * @returns The file data as an Uint8Arrays (one for each file).
  */
 function readFiles(
     inputBigFilePath: string,
-    metadata: NsBigFile.IsMetadata
+    allFiles: NsBigFile.IsMetadataCompleteFileData[]
 ) {
     logger.info("Getting the Big File file data..");
 
@@ -434,20 +440,101 @@ function readFiles(
     // Loading the cache
     const cache = new Cache(inputBigFilePath, CHUNK_SIZE);
 
-    // Getting the first data offset (first file)
-    const firstDataOffset = metadata.offsets[0].dataOffset;
-
     // Calculate the number of bytes for all files
-    const dataSize = metadata.files.reduce((acc, file) => acc + file.fileSize, 0);
+    const dataSize = allFiles.reduce((acc, file) => acc + file.fileSize + 4, 0);
 
-    console.log(metadata.files.length);
+    logger.info(`Reading ${dataSize.toLocaleString("en-US")} bytes..`);
+
+    // Generate the new file data arrays (one by file)
+    const data: Uint8Array[] = [];
+
+    // Generate the file data array
+    for (const { index, file } of allFiles.map((file, index) => ({ index, file }))) {
+        let fileData: Uint8Array;
+
+        // Create the file data array (with 4 bytes for the file size)
+        data[index] = new Uint8Array(file.fileSize + 4);
+
+        if (file.isExtracted) {
+            // Get the file data from the extracted file
+            const rawData = fs.readFileSync(file.filePath);
+            fileData = new Uint8Array(rawData);
+        } else {
+            // Get the file data from the Big File
+            fileData = cache.readBytes(file.dataOffset, file.fileSize);
+        }
+
+        // Set the file data size
+        const fileSize = convertNumberToUint8Array(file.fileSize, 4, false);
+        data[index].set(fileSize, 0);
+
+        // Set the file data
+        data[index].set(fileData, 4);
+    }
+
+    return data;
+}
+
+/**
+ * Generates the Big File.
+ * @param outputBigFilePath The absolute directory path to the output built Big File.
+ * @param header The header as an Uint8Array.
+ * @param offsetTable The offset table as an Uint8Array.
+ * @param directoryMetadataTable The directory metadata table as an Uint8Array.
+ * @param fileMetadataTable The file metadata table as an Uint8Array.
+ * @param data The file data as an Uint8Arrays (one for each file).
+ */
+function generateBigFile(
+    outputBigFilePath: string,
+    header: Uint8Array,
+    offsetTable: Uint8Array,
+    directoryMetadataTable: Uint8Array,
+    fileMetadataTable: Uint8Array,
+    data: Uint8Array[]
+) {
+    logger.info("Generating the Big File..");
+
+    if (!fs.existsSync(outputBigFilePath)) {
+        logger.warn(`Output Big File path doesn't exist: ${outputBigFilePath}, creating it..`);
+        fs.mkdirSync(outputBigFilePath, { recursive: true });
+    }
+
+    // Set the final path
+    const finalPath = path.join(outputBigFilePath, "sally_clean.bf");
+
+    // Generate the Big File header and tables
+    const bigFileHeaderAndTables = new Uint8Array([
+        ...header,
+        ...offsetTable,
+        ...directoryMetadataTable,
+        ...fileMetadataTable
+    ]);
+
+    // Creates a write stream
+    const stream = fs.createWriteStream(
+        finalPath,
+        {
+            flags: "w"
+        }
+    );
+
+    // Write the Big File header and tables
+    stream.write(bigFileHeaderAndTables);
+
+    // Write the Big File file data by file
+    for (const fileData of data) {
+        stream.write(fileData);
+    }
+
+    // End the stream
+    stream.end();
 }
 
 /**
  * Main function to build the Big File archive.
  * @param inputBigFilePath The absolute path to the input Big File (used to recover original data).
  * @param inputDirPath The absolute path to the input Big File directory.
- * @param outputBigFilePath The absolute path to the output built Big File.
+ * @param outputBigFilePath The absolute directory path to the output built Big File.
  * @link [Big File doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md)
  */
 export default function BigFileBuilder(
@@ -457,7 +544,7 @@ export default function BigFileBuilder(
 ) {
     BigFileBuilderChecker(inputDirPath);
 
-    logger.warn("Original Big File will not be modified, just used to recover original data..");
+    logger.info("Original Big File will not be modified, just used to recover original data..");
 
     /**
      * Note: The goal here is to recover all the directories
@@ -514,14 +601,36 @@ export default function BigFileBuilder(
         allFiles
     );
 
-    const files = readFiles(
+    const data = readFiles(
         inputBigFilePath,
-        metadata
+        allFiles
     );
 
-    console.log(files);
+    generateBigFile(
+        outputBigFilePath,
+        header,
+        offsetTable,
+        directoryMetadataTable,
+        fileMetadataTable,
+        data
+    );
 
-    // console.log(
-    //     convertUint8ArrayToHexString(fileMetadataTable, metadata.littleEndian, false, false)
+    // Generate the Big File
+    // const bigFile = new Uint8Array(
+    //     header.length +
+    //     offsetTable.length +
+    //     directoryMetadataTable.length +
+    //     fileMetadataTable.length +
+    //     files.length
     // );
+
+    // const bigFileData = concatenateUint8Arrays([
+    //     header,
+    //     offsetTable,
+    //     directoryMetadataTable,
+    //     fileMetadataTable
+    // ]);
+
+    // Write the Big File
+    // fs.writeFileSync(outputBigFilePath + "/sally_clean.bf", Buffer.from(bigFileData));
 }

@@ -21,9 +21,10 @@ export const BF_FILE_CONFIG = {
 };
 
 /**
- * The chunk size in Megabytes, to read the Big File.
+ * The chunk size in Megabytes, to read & write the Big File.
+ * Note: Can't be more than 2,147,483,647 bytes (~2GB).
  */
-export const CHUNK_SIZE = 512;
+export const CHUNK_SIZE = 256;
 
 /**
  * Audio MS-ADPCM tables.

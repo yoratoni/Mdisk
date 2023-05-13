@@ -156,7 +156,7 @@ export function readFileByChunk(
 
 /**
  * Checks if an extracted Big File folder is valid for building.
- * @param inputDirPath The path to the input Big File directory.
+ * @param inputDirPath The absolute path to the input Big File directory.
  */
 export function BigFileBuilderChecker(
     inputDirPath: string
