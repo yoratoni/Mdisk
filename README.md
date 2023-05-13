@@ -106,7 +106,11 @@ all the information about the files inside the Big File to be able to rebuild it
 - `*.ofc` are binarized functions to perform specific actions.
 - `*.oin` ?
 - `*.ova` ?
-- `*.wol` are prototypes made during development.
+- `*.wol` used to create `ff0` files.
+
+Note about `.wol` files: these are files containing a list of all the `.wow` files used by a level,
+it is used as a "header" for the `ff0` files, while also tracking the resources
+already imported to not import them twice.
 
 *More information about the Big File can be found [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/BigFile.md).*
 

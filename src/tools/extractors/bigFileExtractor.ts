@@ -356,7 +356,7 @@ export default function BigFileExtractor(
     littleEndian = true,
     includeEmptyDirs = false
 ) {
-    extractorChecker(bigFilePath, "Big File", ".bf", outputDirPath);
+    extractorChecker(bigFilePath, "Big File", ".bf", outputDirPath, true);
 
     // Loading the cache
     const cache = new Cache(bigFilePath, CHUNK_SIZE);

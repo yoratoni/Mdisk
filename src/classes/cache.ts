@@ -214,14 +214,29 @@ export default class Cache {
 
         // Checking if the end pointer is out of bounds, if so, increase the buffer size temporarily
         if (endPointer >= this._buffer.length) {
-            this._buffer = readFileByChunk(
-                this._file,
-                this._size,
-                this._buffer,
-                0,  // Ignored
-                numberOfBytes,
-                this._pointers.absolutePointer
-            );
+            try {
+                this._buffer = readFileByChunk(
+                    this._file,
+                    this._size,
+                    this._buffer,
+                    0,  // Ignored
+                    numberOfBytes,
+                    this._pointers.absolutePointer
+                );
+            } catch (error) {
+                logger.error(
+                    "Error while reading bytes from file\n" +
+                    `>> Absolute pointer: ${absolutePointer.toLocaleString("en-US")}\n` +
+                    `>> Chunk pointer: ${this._pointers.chunkPointer.toLocaleString("en-US")}\n` +
+                    `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
+                    `>> Number of bytes: ${numberOfBytes.toLocaleString("en-US")}\n` +
+                    `>> Buffer length: ${this._buffer.length.toLocaleString("en-US")}\n` +
+                    `>> End pointer: ${endPointer.toLocaleString("en-US")}\n` +
+                    `>> Chunk size: ${this._chunkSize.toLocaleString("en-US")}\n`
+                );
+
+                process.exit(1);
+            }
 
             this._pointers.bytePointer = 0;
         }
@@ -242,7 +257,6 @@ export default class Cache {
                 `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
                 `>> Bytes length: ${bytes.length.toLocaleString("en-US")}\n` +
                 `>> Buffer length: ${this._buffer.length.toLocaleString("en-US")}\n` +
-                `>> Filename: ${this._fileName}\n` +
                 `>> Reached end of buffer: ${reachedEndOfBuffer}\n` +
                 `>> Reached end of data: ${reachedEndOfData}`
             );

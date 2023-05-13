@@ -21,29 +21,19 @@ import NsBytes from "types/bytes";
 /**
  * Get raw chunks from the texture buffer.
  * @param cache The cache object.
+ * @param littleEndian Whether the texture is little endian or not.
  * @returns The chunks.
+ * @link [Texture Chunks by 4g3v.](https://github.com/4g3v/JadeStudio/blob/master/JadeStudio.Core/FileFormats/Texture/Chunk.cs)
  */
-function getRawChunks(cache: Cache, littleEndian = true) {
-    const chunks = [];
+function getRawChunks(cache: Cache, littleEndian: boolean) {
+    const chunks: Uint8Array[] = [];
     let pointer = 0;
 
     while (pointer < cache.bufferLength) {
         const chunkSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
         const chunk = cache.readBytes(pointer + 4, chunkSize);
 
-        if (convertUint8ArrayToHexString(chunk.slice(0, 4), littleEndian, true) != TEXTURE_FILE_CONFIG.unk1) {
-
-            console.log(
-                convertUint8ArrayToHexString(chunks[chunks.length - 1], true, false, true)
-            );
-
-            console.log(
-                convertUint8ArrayToHexString(chunk, true, false, true)
-            );
-            throw new Error("Invalid chunk header.");
-        }
-
-        chunks.push(chunk);
+        console.log(chunkSize);
 
         pointer += chunkSize + 4;
     }
@@ -57,10 +47,16 @@ function getRawChunks(cache: Cache, littleEndian = true) {
  * @param outputDirPath The output directory path.
  * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
+ * @param littleEndian Whether the bin file is little endian or not.
  * @link [Texture files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextureFile.md)
  * @link [Jade Studio source code by 4g3v.](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
  */
-export default function BinTexture(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
+export default function BinTexture(
+    outputDirPath: string,
+    binFilePath: string,
+    dataBlocks: Uint8Array[],
+    littleEndian = true
+) {
     // Add a folder to the output path (filename without extension)
     outputDirPath = path.join(outputDirPath, getFileName(binFilePath));
 
@@ -70,13 +66,11 @@ export default function BinTexture(outputDirPath: string, binFilePath: string, d
     const cache = new Cache("", 0, dataBlocks);
 
     const rawChunks = getRawChunks(
-        cache
+        cache,
+        littleEndian
     );
 
 
 
     logger.info(`Successfully extracted textures: '${getFileName(binFilePath)}' => '${outputDirPath}'.`);
-
-    // Closing the file from the cache
-    cache.closeFile();
 }

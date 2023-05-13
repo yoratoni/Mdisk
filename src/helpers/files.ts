@@ -208,12 +208,14 @@ export function BigFileBuilderChecker(
  * @param fileType The type of the file (ex: "Big File", "bin file", etc..).
  * @param requiredFileExtension The required file extension(s) (ex: ".bf", [".waa", ".wac"], etc..).
  * @param outputDirPath The path to the output directory.
+ * @param addExtractedFilesDir Whether to add the "ExtractedFiles" directory to the output directory.
  */
 export function extractorChecker(
     filePath: string,
     fileType: string,
     requiredFileExtension: string | string[],
-    outputDirPath: string
+    outputDirPath: string,
+    addExtractedFilesDir = false
 ) {
     logger.info(`Beginning '${getFileName(filePath)}' extraction process..`);
 
@@ -227,11 +229,13 @@ export function extractorChecker(
         fs.mkdirSync(outputDirPath, { recursive: true });
     }
 
-    const extractedDirPath = path.join(outputDirPath, GENERAL_CONFIG.bigFile.extractedFilesDirName);
+    if (addExtractedFilesDir) {
+        const extractedDirPath = path.join(outputDirPath, GENERAL_CONFIG.bigFile.extractedFilesDirName);
 
-    if (!fs.existsSync(extractedDirPath)) {
-        logger.info(`Creating '${GENERAL_CONFIG.bigFile.extractedFilesDirName}' directory: ${extractedDirPath}`);
-        fs.mkdirSync(extractedDirPath, { recursive: true });
+        if (!fs.existsSync(extractedDirPath)) {
+            logger.info(`Creating '${GENERAL_CONFIG.bigFile.extractedFilesDirName}' directory: ${extractedDirPath}`);
+            fs.mkdirSync(extractedDirPath, { recursive: true });
+        }
     }
 
     if (!checkFileExtension(filePath, requiredFileExtension)) {
