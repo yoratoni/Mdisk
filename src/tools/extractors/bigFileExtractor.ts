@@ -27,7 +27,7 @@ import NsMappings from "types/mappings";
  * @param littleEndian Whether to use little endian or not.
  * @returns The formatted header.
  */
-function parseBigFileHeader(rawHeader: Uint8Array, littleEndian: boolean) {
+function parseHeader(rawHeader: Uint8Array, littleEndian: boolean) {
     logger.info("Reading Big File header..");
 
     const header = generateBytesObjectFromMapping(rawHeader, MpBigFileHeader, true, littleEndian);
@@ -68,7 +68,7 @@ function parseBigFileHeader(rawHeader: Uint8Array, littleEndian: boolean) {
  * @param littleEndian Whether to use little endian or not.
  * @returns The formatted offset table.
  */
-function readBigFileOffsetTable(
+function readOffsetTable(
     cache: Cache,
     offsetTableOffset: number,
     offsetTableMaxLength: number,
@@ -108,7 +108,7 @@ function readBigFileOffsetTable(
  * @param type The type of the metadata table (used for logging) ("directories" | "files").
  * @returns The formatted directory metadata table.
  */
-function readBigFileMetadataTable(
+function readMetadataTable(
     cache: Cache,
     mapping: NsMappings.IsMapping,
     metadataOffset: number,
@@ -146,7 +146,7 @@ function readBigFileMetadataTable(
  * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
  * @returns The formatted files into an array.
  */
-function readBigFileFiles(
+function readFiles(
     cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
@@ -199,7 +199,7 @@ function readBigFileFiles(
  * @param files The formatted files into an array.
  * @returns The formatted directory structures including all the matching indexes.
  */
-function readBigFileStructure(
+function readStructure(
     absoluteOutputDirPath: string,
     directoryMetadataTable: NsBytes.IsMappingByteObject[],
     files: NsBigFile.IsFile[]
@@ -358,19 +358,19 @@ export default function BigFileExtractor(
     // Get the raw header
     const rawHeader = cache.readBytes(0, BF_FILE_CONFIG.headerLength);
 
-    const header = parseBigFileHeader(
+    const header = parseHeader(
         rawHeader,
         littleEndian
     );
 
-    const offsetTable = readBigFileOffsetTable(
+    const offsetTable = readOffsetTable(
         cache,
         header.data.offsetTableOffset as number,
         header.data.offsetTableMaxLength as number,
         littleEndian
     );
 
-    const fileMetadataTable = readBigFileMetadataTable(
+    const fileMetadataTable = readMetadataTable(
         cache,
         MpBigFileFileMetadataTableEntry,
         header.data.fileMetadataOffset as number,
@@ -379,7 +379,7 @@ export default function BigFileExtractor(
         "file"
     );
 
-    const directoryMetadataTable = readBigFileMetadataTable(
+    const directoryMetadataTable = readMetadataTable(
         cache,
         MpBigFileDirectoryMetadataTableEntry,
         header.data.directoryMetadataOffset as number,
@@ -388,7 +388,7 @@ export default function BigFileExtractor(
         "directory"
     );
 
-    const files = readBigFileFiles(
+    const files = readFiles(
         cache,
         offsetTable,
         directoryMetadataTable,
@@ -396,7 +396,7 @@ export default function BigFileExtractor(
         header.data.fileCount as number
     );
 
-    const structures = readBigFileStructure(
+    const structures = readStructure(
         outputDirPath,
         directoryMetadataTable,
         files,

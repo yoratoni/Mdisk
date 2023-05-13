@@ -7,7 +7,11 @@ import BinExtractor from "tools/extractors/binExtractor";
 
 logger.info("Mdisk started..");
 
-BigFileBuilder("", "C:/Users/terci/Desktop/BigFile", "F:/Yoratoni/Mdisk/src");
+BigFileBuilder(
+    "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean.bf",
+    "C:/Users/terci/Desktop/BigFile",
+    "C:/Users/terci/Desktop/BigFile"
+);
 
 // TODO: Add a parameter for endianness.
 

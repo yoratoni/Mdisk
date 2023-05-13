@@ -1,16 +1,15 @@
 import fs from "fs";
 import path from "path";
 
+import Cache from "classes/cache";
 import { GENERAL_CONFIG } from "configs/config";
-import { BF_FILE_CONFIG } from "configs/constants";
-import { MpBigFileDirectoryMetadataTableEntry, MpBigFileOffsetTableEntry } from "configs/mappings";
+import { BF_FILE_CONFIG, CHUNK_SIZE } from "configs/constants";
+import { MpBigFileDirectoryMetadataTableEntry, MpBigFileFileMetadataTableEntry, MpBigFileOffsetTableEntry } from "configs/mappings";
 import {
     calculateMappingsLength,
-    concatenateUint8Arrays,
     convertHexStringToUint8Array,
     convertNumberToUint8Array,
-    convertStringToUint8Array,
-    convertUint8ArrayToHexString
+    convertStringToUint8Array
 } from "helpers/bytes";
 import { BigFileBuilderChecker } from "helpers/files";
 import logger from "helpers/logger";
@@ -36,7 +35,7 @@ function getExtractedFiles(inputDirPath: string) {
         }
     }
 
-    logger.info(`Found ${extractedFiles.length} extracted files.`);
+    logger.verbose(`Found ${extractedFiles.length} extracted file(s).`);
 
     return extractedFiles;
 }
@@ -60,6 +59,11 @@ function getMetadata(inputDirPath: string) {
         const rawMetadata = fs.readFileSync(metadataJSONPath, "utf8");
         const metadata = JSON.parse(rawMetadata) as NsBigFile.IsMetadata;
 
+        if (!metadata) {
+            logger.error("Invalid metadata file (empty)");
+            process.exit(1);
+        }
+
         return metadata;
     } catch (err) {
         logger.error("Error while trying to read the 'metadata.json' file");
@@ -81,7 +85,7 @@ function getAllFiles(
     extractedFiles: string[],
     metadata: NsBigFile.IsMetadata
 ) {
-    logger.info("Getting all files and their data..");
+    logger.info("Getting all files information..");
 
     const { offsets, directories, files, structures } = metadata;
     const allFiles: NsBigFile.IsMetadataCompleteFileData[] = [];
@@ -170,7 +174,7 @@ function getAllFiles(
         allFiles.push(completeFileData);
     }
 
-    logger.info(`Found ${allFiles.length} file(s).`);
+    logger.verbose(`Found ${allFiles.length} file(s).`);
 
     return allFiles;
 }
@@ -219,7 +223,7 @@ function getDirIndexes(metadata: NsBigFile.IsMetadata) {
     // Sort the directory indexes
     const sortedDirIndexes = dirIndexes.sort((a, b) => a - b);
 
-    logger.info(`Found ${sortedDirIndexes.length} directory index(es).`);
+    logger.verbose(`Found ${sortedDirIndexes.length} directory index(es).`);
 
     return sortedDirIndexes;
 }
@@ -259,8 +263,6 @@ function generateHeader(
         rawHeader.set(hexDirectoryCount, BF_FILE_CONFIG.directoryCount2Offset);
     }
 
-    logger.info("Big File header generated.");
-
     return rawHeader;
 }
 
@@ -295,8 +297,6 @@ function generateOffsetTable(
         );
     }
 
-    logger.info("Big File offset table generated.");
-
     return offsetTable;
 }
 
@@ -304,7 +304,7 @@ function generateOffsetTable(
  * Generates the Big File directory metadata table.
  * @param metadata The metadata object.
  * @param dirIndexes The list of all directory indexes (null if all used).
- * @returns The offset table as Uint8Array.
+ * @returns The directory metadata table as Uint8Array.
  */
 function generateDirectoryMetadataTable(
     metadata: NsBigFile.IsMetadata,
@@ -331,7 +331,7 @@ function generateDirectoryMetadataTable(
         // Get the directory metadata
         const directory = metadata.directories[dirIndex];
 
-        // Get the directory metadata table entries
+        // Generate the directory metadata table entries
         const firstFileIndex = convertNumberToUint8Array(directory.firstFileIndex, 4, metadata.littleEndian);
         const firstSubdirIndex = convertNumberToUint8Array(directory.firstSubdirIndex, 4, metadata.littleEndian);
         const nextIndex = convertNumberToUint8Array(directory.nextIndex, 4, metadata.littleEndian);
@@ -343,6 +343,7 @@ function generateDirectoryMetadataTable(
         const dirname64 = new Uint8Array(64);
         dirname64.set(dirname, 0);
 
+        // Set the directory metadata table entries
         directoryMetadataTable.set(
             [
                 ...firstFileIndex,
@@ -358,9 +359,75 @@ function generateDirectoryMetadataTable(
         index++;
     }
 
-    logger.info("Big File directory metadata table generated.");
-
     return directoryMetadataTable;
+}
+
+/**
+ * Generates the Big File file metadata table.
+ * @param metadata The metadata object.
+ * @param allFiles The list of all files.
+ * @returns The file metadata table as Uint8Array.
+ */
+function generateFileMetadataTable(
+    metadata: NsBigFile.IsMetadata,
+    allFiles: NsBigFile.IsMetadataCompleteFileData[]
+) {
+    logger.info("Generating the Big File file metadata table..");
+
+    // Get the number of files
+    const fileCount = allFiles.length;
+
+    // Calculate the number of bytes needed per file (based on the mapping)
+    const bytesPerFile = calculateMappingsLength(MpBigFileFileMetadataTableEntry);
+
+    // Generate the file metadata table array
+    const fileMetadataTable = new Uint8Array(fileCount * bytesPerFile);
+
+    // Generate the file metadata table
+    for (const { index, file } of allFiles.map((file, index) => ({ index, file }))) {
+        // Generate the file metadata table entries
+        const fileSize = convertNumberToUint8Array(file.fileSize, 4, metadata.littleEndian);
+        const nextIndex = convertNumberToUint8Array(file.nextIndex, 4, metadata.littleEndian);
+        const previousIndex = convertNumberToUint8Array(file.previousIndex, 4, metadata.littleEndian);
+        const directoryIndex = convertNumberToUint8Array(file.directoryIndex, 4, metadata.littleEndian);
+        const unixTimestamp = convertNumberToUint8Array(file.unixTimestamp, 4, metadata.littleEndian);
+        const filename = convertStringToUint8Array(file.filename, metadata.littleEndian);
+
+        // Note: filename is 64 bytes long, so we need to set the converted Uint8Array to this length
+        const filename64 = new Uint8Array(64);
+        filename64.set(filename, 0);
+
+        // Set the file metadata table entries
+        fileMetadataTable.set(
+            [
+                ...fileSize,
+                ...nextIndex,
+                ...previousIndex,
+                ...directoryIndex,
+                ...unixTimestamp,
+                ...filename64
+            ],
+            index * bytesPerFile
+        );
+    }
+
+    return fileMetadataTable;
+}
+
+function getFiles(
+    inputBigFilePath: string,
+    metadata: NsBigFile.IsMetadata,
+    allFiles: NsBigFile.IsMetadataCompleteFileData[]
+) {
+    logger.info("Getting the Big File file data..");
+
+    if (!fs.existsSync(inputBigFilePath)) {
+        logger.error(`Invalid input Big File path: ${inputBigFilePath}`);
+        process.exit(1);
+    }
+
+    // Loading the cache
+    const cache = new Cache(inputBigFilePath, CHUNK_SIZE);
 }
 
 /**
@@ -376,6 +443,8 @@ export default function BigFileBuilder(
     outputBigFilePath: string
 ) {
     BigFileBuilderChecker(inputDirPath);
+
+    logger.warn("Original Big File will not be modified, just used to recover original data..");
 
     /**
      * Note: The goal here is to recover all the directories
@@ -427,5 +496,20 @@ export default function BigFileBuilder(
         dirIndexes
     );
 
-    console.log(directoryMetadataTable);
+    const fileMetadataTable = generateFileMetadataTable(
+        metadata,
+        allFiles
+    );
+
+    const files = getFiles(
+        inputBigFilePath,
+        metadata,
+        allFiles
+    );
+
+    console.log(files);
+
+    // console.log(
+    //     convertUint8ArrayToHexString(fileMetadataTable, metadata.littleEndian, false, false)
+    // );
 }
