@@ -12,48 +12,9 @@ declare namespace NsBin {
     }
 
     /**
-     * A texture file chunk.
-     */
-    interface binTextureFileChunk {
-        chunkSize: number;
-    }
-
-    /**
-     * Links all the font chunks inside the bin texture file.
-     */
-    interface binTextureFileFonts {
-        [key: number]: NsBytes.IsMappingByteObjectResultWithEmptiness;
-    }
-
-    /**
-     * The linked data inside a bin texture file.
-     */
-    interface binTextureLinkedData {
-        [key: string]: NsBytes.IsMappingByteObjectResultWithEmptiness;
-    }
-
-    /**
-     * The result object of the chunk sorting inside a bin texture file.
-     */
-    interface binTextureFileChunkResObj {
-        fonts: binTextureFileFonts;
-        palettes: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        targa1: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        NoDataTarga1: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        targa2: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        NoDataTarga2: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        paletteKeys: string[];
-        textureKeys: string[];
-        links: NsBytes.IsMappingByteObjectResultWithEmptiness[];
-        linkedPalettes: binTextureLinkedData;
-        linkedTextures: binTextureLinkedData;
-    }
-
-    /**
      * Bin texture BGRA data.
      */
-    interface binTextureBGRAData {
+    interface IsTextureBGRAData {
         B: number;
         G: number;
         R: number;

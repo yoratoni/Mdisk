@@ -90,7 +90,7 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File data block header.
+ * Mapping for a bin file data block header.
  * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
@@ -99,7 +99,7 @@ export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File text group header.
+ * Mapping for a bin file text group header.
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroup: NsMappings.IsMapping = {
@@ -107,7 +107,7 @@ export const MpBinFileTextGroup: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File text group ID entry.
+ * Mapping for a bin file text group ID entry.
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
@@ -116,7 +116,7 @@ export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File text group string refs.
+ * Mapping for a bin file text group string refs.
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
@@ -124,7 +124,7 @@ export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File text group string refs.
+ * Mapping for a bin file text group string refs.
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
@@ -135,17 +135,15 @@ export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin File texture.
+ * Mapping for a bin file texture chunk.
  */
-export const MpBinFileTexture: NsMappings.IsMapping = {
-    unknown1: { position: 0, type: "hex" },
+export const MpBinFileTextureChunk: NsMappings.IsMapping = {
+    chunkMark: { position: 0, type: "hex" },
     unknown2: { position: 4, length: 2, type: "hex" },
-    textureType: { position: 6, length: 2, type: "number" },
+    chunkType: { position: 6, length: 2, type: "number" },
     width: { position: 8, length: 2, type: "number" },
     height: { position: 10, length: 2, type: "number" },
     unknown3: { position: 12, type: "hex" },
-    fontID: { position: 16, type: "hex" },
-    magic1: { position: 20, type: "hex" },
-    magic2: { position: 24, type: "hex" },
-    magic3: { position: 28, type: "hex" }
+    fontKey: { position: 16, type: "hex" },
+    magic: { position: 20, length: 12, type: "hex" }
 };

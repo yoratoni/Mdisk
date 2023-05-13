@@ -56,9 +56,9 @@ export const BIN_FILE_TYPES: NsConstants.IsStringFileTypes = {
  * The configuration for texture files.
  */
 export const TEXTURE_FILE_CONFIG = {
-    unk1: "0xFFFFFFFF",
-    magicHex: "0x3412D0CAFF00FF00DEC0DEC0",
-    headerLength: 32,
+    magic: "0x3412D0CAFF00FF00DEC0DEC0",
+    fontDescMagic: "FONTDESC",
+    chunkMark: "0xFFFFFFFF",
     RGBAPaletteLengths: [
         0x40,
         0x400
@@ -66,9 +66,9 @@ export const TEXTURE_FILE_CONFIG = {
 };
 
 /**
- * The internal texture types of the texture files.
+ * The internal chunk types of the texture files.
  */
-export const TEXTURE_FILE_TYPES: NsConstants.IsNumberAndStringFileTypes = {
+export const TEXTURE_FILE_CHUNK_TYPES: NsConstants.IsStringFileTypes = {
     2: "BMP",
     3: "JPEG",
     4: "SPRITE_GEN",
@@ -78,8 +78,7 @@ export const TEXTURE_FILE_TYPES: NsConstants.IsNumberAndStringFileTypes = {
     4097: "TARGA_1",
     8193: "TARGA_2",
     16390: "PALETTE_8",
-    20486: "PALETTE_4",
-    "FONTDESC": "FONTDESC"
+    20486: "PALETTE_4"
 };
 
 /**

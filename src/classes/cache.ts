@@ -213,7 +213,7 @@ export default class Cache {
         const endPointer = this._pointers.bytePointer + numberOfBytes;
 
         // Checking if the end pointer is out of bounds, if so, increase the buffer size temporarily
-        if (endPointer >= this._buffer.length) {
+        if (endPointer > this._buffer.length) {
             try {
                 this._buffer = readFileByChunk(
                     this._file,
@@ -225,7 +225,7 @@ export default class Cache {
                 );
             } catch (error) {
                 logger.error(
-                    "Error while reading bytes from file\n" +
+                    "Error while reading bytes\n" +
                     `>> Absolute pointer: ${absolutePointer.toLocaleString("en-US")}\n` +
                     `>> Chunk pointer: ${this._pointers.chunkPointer.toLocaleString("en-US")}\n` +
                     `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
