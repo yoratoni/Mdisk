@@ -101,9 +101,9 @@ function getAllFiles(
         const isExtracted = extractedFiles.includes(file.filename);
         let filePath: string;
 
-        // Remove all the path from the structure path until it matches "Bin" or "EngineDatas"
+        // Remove all the path from the structure path until it matches "Bin", "EngineDatas" or "EditorDatas"
         const structurePath = structure.path.split("/");
-        const structurePathIndex = structurePath.findIndex(path => path === "Bin" || path === "EngineDatas");
+        const structurePathIndex = structurePath.findIndex(path => path === "Bin" || path === "EngineDatas" || path === "EditorDatas");
         structurePath.splice(0, structurePathIndex);
 
         // Get the file path (original from the Big File)
@@ -130,6 +130,9 @@ function getAllFiles(
 
                 // Replace the file size with the built file size
                 file.fileSize = fs.statSync(filePath).size;
+
+                // Replace the Unix timestamp
+                file.unixTimestamp = Math.floor(fs.statSync(filePath).mtimeMs / 1000);
             }
         } else {
             filePath = originalFilePath;
@@ -305,6 +308,55 @@ function generateOffsetTable(
 }
 
 /**
+ * Generates the Big File file metadata table.
+ * @param metadata The metadata object.
+ * @param allFiles The list of all files.
+ * @returns The file metadata table as an Uint8Array.
+ */
+function generateFileMetadataTable(
+    metadata: NsBigFile.IsMetadata,
+    allFiles: NsBigFile.IsMetadataCompleteFileData[]
+) {
+    logger.info("Generating the Big File file metadata table..");
+
+    // Calculate the number of bytes needed per file (based on the mapping)
+    const bytesPerFile = calculateMappingsLength(MpBigFileFileMetadataTableEntry);
+
+    // Generate the file metadata table array
+    const fileMetadataTable = new Uint8Array(metadata.header.offsetTableMaxLength * bytesPerFile);
+
+    // Generate the file metadata table
+    for (const { index, file } of allFiles.map((file, index) => ({ index, file }))) {
+        // Generate the file metadata table entries
+        const fileSize = convertNumberToUint8Array(file.fileSize, 4, metadata.littleEndian);
+        const nextIndex = convertNumberToUint8Array(file.nextIndex, 4, metadata.littleEndian);
+        const previousIndex = convertNumberToUint8Array(file.previousIndex, 4, metadata.littleEndian);
+        const directoryIndex = convertNumberToUint8Array(file.directoryIndex, 4, metadata.littleEndian);
+        const unixTimestamp = convertNumberToUint8Array(file.unixTimestamp, 4, metadata.littleEndian);
+        const filename = convertStringToUint8Array(file.filename, metadata.littleEndian);
+
+        // Note: filename is 64 bytes long, so we need to set the converted Uint8Array to this length
+        const filename64 = new Uint8Array(64);
+        filename64.set(filename, 0);
+
+        // Set the file metadata table entries
+        fileMetadataTable.set(
+            [
+                ...fileSize,
+                ...nextIndex,
+                ...previousIndex,
+                ...directoryIndex,
+                ...unixTimestamp,
+                ...filename64
+            ],
+            index * bytesPerFile
+        );
+    }
+
+    return fileMetadataTable;
+}
+
+/**
  * Generates the Big File directory metadata table.
  * @param metadata The metadata object.
  * @param dirIndexes The list of all directory indexes (null if all used).
@@ -323,7 +375,10 @@ function generateDirectoryMetadataTable(
     const bytesPerDirectory = calculateMappingsLength(MpBigFileDirectoryMetadataTableEntry);
 
     // Generate the directory metadata table array
-    const directoryMetadataTable = new Uint8Array(dirCount * bytesPerDirectory);
+    // Removing the header length
+    const directoryMetadataTable = new Uint8Array(
+        metadata.header.offsetTableMaxLength * bytesPerDirectory - BF_FILE_CONFIG.headerLength
+    );
 
     // Generate the directory metadata table
     let index = 0;
@@ -367,58 +422,6 @@ function generateDirectoryMetadataTable(
 }
 
 /**
- * Generates the Big File file metadata table.
- * @param metadata The metadata object.
- * @param allFiles The list of all files.
- * @returns The file metadata table as an Uint8Array.
- */
-function generateFileMetadataTable(
-    metadata: NsBigFile.IsMetadata,
-    allFiles: NsBigFile.IsMetadataCompleteFileData[]
-) {
-    logger.info("Generating the Big File file metadata table..");
-
-    // Get the number of files
-    const fileCount = allFiles.length;
-
-    // Calculate the number of bytes needed per file (based on the mapping)
-    const bytesPerFile = calculateMappingsLength(MpBigFileFileMetadataTableEntry);
-
-    // Generate the file metadata table array
-    const fileMetadataTable = new Uint8Array(fileCount * bytesPerFile);
-
-    // Generate the file metadata table
-    for (const { index, file } of allFiles.map((file, index) => ({ index, file }))) {
-        // Generate the file metadata table entries
-        const fileSize = convertNumberToUint8Array(file.fileSize, 4, metadata.littleEndian);
-        const nextIndex = convertNumberToUint8Array(file.nextIndex, 4, metadata.littleEndian);
-        const previousIndex = convertNumberToUint8Array(file.previousIndex, 4, metadata.littleEndian);
-        const directoryIndex = convertNumberToUint8Array(file.directoryIndex, 4, metadata.littleEndian);
-        const unixTimestamp = convertNumberToUint8Array(file.unixTimestamp, 4, metadata.littleEndian);
-        const filename = convertStringToUint8Array(file.filename, metadata.littleEndian);
-
-        // Note: filename is 64 bytes long, so we need to set the converted Uint8Array to this length
-        const filename64 = new Uint8Array(64);
-        filename64.set(filename, 0);
-
-        // Set the file metadata table entries
-        fileMetadataTable.set(
-            [
-                ...fileSize,
-                ...nextIndex,
-                ...previousIndex,
-                ...directoryIndex,
-                ...unixTimestamp,
-                ...filename64
-            ],
-            index * bytesPerFile
-        );
-    }
-
-    return fileMetadataTable;
-}
-
-/**
  * Reads the file data table of the Big File, creating an array containing the complete file data.
  * @param inputBigFilePath The absolute path to the input Big File (used to recover original data).
  * @param allFiles The list of all files.
@@ -458,12 +461,12 @@ function readFiles(
             const rawData = fs.readFileSync(file.filePath);
             fileData = new Uint8Array(rawData);
         } else {
-            // Get the file data from the Big File
-            fileData = cache.readBytes(file.dataOffset, file.fileSize);
+            // Get the file data from the Big File (removing the 4 bytes for the file size)
+            fileData = cache.readBytes(file.dataOffset + 4, file.fileSize);
         }
 
         // Set the file data size
-        const fileSize = convertNumberToUint8Array(file.fileSize, 4, false);
+        const fileSize = convertNumberToUint8Array(file.fileSize, 4, true);
         data[index].set(fileSize, 0);
 
         // Set the file data
@@ -478,6 +481,7 @@ function readFiles(
 
 /**
  * Generates the Big File.
+ * @param metadata The metadata object.
  * @param outputBigFilePath The absolute directory path to the output built Big File.
  * @param header The header as an Uint8Array.
  * @param offsetTable The offset table as an Uint8Array.
@@ -486,6 +490,7 @@ function readFiles(
  * @param data The file data as an Uint8Arrays (one for each file).
  */
 function generateBigFile(
+    metadata: NsBigFile.IsMetadata,
     outputBigFilePath: string,
     header: Uint8Array,
     offsetTable: Uint8Array,
@@ -503,21 +508,37 @@ function generateBigFile(
     // Set the final path
     const finalPath = path.join(outputBigFilePath, "sally_clean.bf");
 
+    // Calculate the padding between the headerAndTables and the first file data
+    const totalLength = header.length + offsetTable.length + fileMetadataTable.length + directoryMetadataTable.length;
+    const padding = metadata.offsets[0].dataOffset - totalLength;
+
+    // Generate the padding array
+    const paddingArray = new Uint8Array(padding);
+
+    // Adding the padding beginning bytes (0xA0000000)
+    paddingArray.set([0xA0, 0x00, 0x00, 0x00], 0);
+
+    // Adding the first file offset at the end of the padding
+    paddingArray.set(
+        convertNumberToUint8Array(metadata.offsets[0].dataOffset, 4, metadata.littleEndian),
+        padding - 4
+    );
+
     // Generate the Big File header and tables
     const bigFileHeaderAndTables = new Uint8Array([
         ...header,
         ...offsetTable,
         ...fileMetadataTable,
-        ...directoryMetadataTable
+        ...directoryMetadataTable,
+        ...paddingArray
     ]);
-
-    // console.log(bigFileHeaderAndTables.length);
 
     // Creates a write stream
     const stream = fs.createWriteStream(
         finalPath,
         {
-            flags: "w"
+            flags: "w",
+            encoding: "hex"
         }
     );
 
@@ -609,7 +630,12 @@ export default function BigFileBuilder(
         allFiles
     );
 
+    // const fileTest = allFiles.filter(file => file.key === "0xEA2480FF");
+
+    // console.log(fileTest);
+
     generateBigFile(
+        metadata,
         outputBigFilePath,
         header,
         offsetTable,

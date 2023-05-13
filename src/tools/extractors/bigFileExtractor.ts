@@ -376,15 +376,6 @@ export default function BigFileExtractor(
         littleEndian
     );
 
-    const directoryMetadataTable = readMetadataTable(
-        cache,
-        MpBigFileDirectoryMetadataTableEntry,
-        header.data.directoryMetadataOffset as number,
-        header.data.directoryCount as number,
-        littleEndian,
-        "directory"
-    );
-
     const fileMetadataTable = readMetadataTable(
         cache,
         MpBigFileFileMetadataTableEntry,
@@ -394,11 +385,20 @@ export default function BigFileExtractor(
         "file"
     );
 
+    const directoryMetadataTable = readMetadataTable(
+        cache,
+        MpBigFileDirectoryMetadataTableEntry,
+        header.data.directoryMetadataOffset as number,
+        header.data.directoryCount as number,
+        littleEndian,
+        "directory"
+    );
+
     const files = readFiles(
         cache,
         offsetTable,
-        directoryMetadataTable,
         fileMetadataTable,
+        directoryMetadataTable,
         header.data.fileCount as number
     );
 

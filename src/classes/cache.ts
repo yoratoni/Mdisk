@@ -209,24 +209,28 @@ export default class Cache {
             );
         }
 
-        // Pointer is out of bounds because of too many bytes to read (> chunk size)
-        // Using custom chunk size
-        if (this._pointers.bytePointer + numberOfBytes > this._chunkSize) {
+        // Getting the end pointer
+        const endPointer = this._pointers.bytePointer + numberOfBytes;
+
+        // Checking if the end pointer is out of bounds, if so, increase the buffer size temporarily
+        if (endPointer >= this._buffer.length) {
             this._buffer = readFileByChunk(
                 this._file,
                 this._size,
                 this._buffer,
-                0,
-                this._chunkSize + numberOfBytes,
-                absolutePointer
+                0,  // Ignored
+                numberOfBytes,
+                this._pointers.absolutePointer
             );
+
+            this._pointers.bytePointer = 0;
         }
 
-        const bytes = this._buffer.slice(
-            this._pointers.bytePointer,
-            this._pointers.bytePointer + numberOfBytes
-        );
+        // Getting the bytes from the buffer
+        const bytes = this._buffer.slice(this._pointers.bytePointer, endPointer);
+        this._pointers.incrementAbsolutePointer(numberOfBytes);
 
+        // Checking if the bytes are missing
         if (bytes.length != numberOfBytes) {
             const reachedEndOfBuffer = this._pointers.bytePointer + bytes.length === this._buffer.length;
             const reachedEndOfData = this._pointers.absolutePointer + numberOfBytes === this._size;
@@ -238,14 +242,13 @@ export default class Cache {
                 `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
                 `>> Bytes length: ${bytes.length.toLocaleString("en-US")}\n` +
                 `>> Buffer length: ${this._buffer.length.toLocaleString("en-US")}\n` +
+                `>> Filename: ${this._fileName}\n` +
                 `>> Reached end of buffer: ${reachedEndOfBuffer}\n` +
                 `>> Reached end of data: ${reachedEndOfData}`
             );
 
             process.exit(1);
         }
-
-        this._pointers.incrementAbsolutePointer(numberOfBytes);
 
         return bytes;
     }
