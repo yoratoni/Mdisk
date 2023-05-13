@@ -1,6 +1,8 @@
 # Mdisk (WORK IN PROGRESS)
 A tool for the game Beyond Good & Evil.
 
+Note that I'm using Beyond Good & Evil - Steam & GOG - PC Version (sally_clean.bf).
+
 Usage
 -----
 The goal here was to build a tool that can extract and build the game files.
@@ -72,8 +74,6 @@ Bin Support
 
 Technical Summary
 -----------------
-Note that I'm using Beyond Good & Evil - Steam - PC (sally_clean.bf).
-
 This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.

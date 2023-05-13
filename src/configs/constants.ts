@@ -2,6 +2,14 @@ import NsConstants from "types/constants";
 
 
 /**
+ * Version detector.
+ */
+export const VERSION_DETECTOR = {
+    pc_gog_files: 8924,
+    pc_steam_files: 10005,
+};
+
+/**
  * The configuration for bin files.
  */
 export const BF_FILE_CONFIG = {

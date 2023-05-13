@@ -233,7 +233,7 @@ function getDirIndexes(metadata: NsBigFile.IsMetadata) {
  * @param metadata The metadata object.
  * @param fileCount The number of files in the Big File.
  * @param directoryCount The number of directories in the Big File.
- * @returns The header as Uint8Array.
+ * @returns The header as an Uint8Array.
  */
 function generateHeader(
     metadata: NsBigFile.IsMetadata,
@@ -270,7 +270,7 @@ function generateHeader(
  * Generates the Big File offset table.
  * @param metadata The metadata object.
  * @param allFiles The list of all files.
- * @returns The offset table as Uint8Array.
+ * @returns The offset table as an Uint8Array.
  */
 function generateOffsetTable(
     metadata: NsBigFile.IsMetadata,
@@ -304,7 +304,7 @@ function generateOffsetTable(
  * Generates the Big File directory metadata table.
  * @param metadata The metadata object.
  * @param dirIndexes The list of all directory indexes (null if all used).
- * @returns The directory metadata table as Uint8Array.
+ * @returns The directory metadata table as an Uint8Array.
  */
 function generateDirectoryMetadataTable(
     metadata: NsBigFile.IsMetadata,
@@ -366,7 +366,7 @@ function generateDirectoryMetadataTable(
  * Generates the Big File file metadata table.
  * @param metadata The metadata object.
  * @param allFiles The list of all files.
- * @returns The file metadata table as Uint8Array.
+ * @returns The file metadata table as an Uint8Array.
  */
 function generateFileMetadataTable(
     metadata: NsBigFile.IsMetadata,
@@ -414,10 +414,15 @@ function generateFileMetadataTable(
     return fileMetadataTable;
 }
 
-function getFiles(
+/**
+ * Reads the file data table of the Big File, creating an array containing the complete file data.
+ * @param inputBigFilePath The input Big File path.
+ * @param metadata The metadata object.
+ * @returns The file data as an Uint8Array.
+ */
+function readFiles(
     inputBigFilePath: string,
-    metadata: NsBigFile.IsMetadata,
-    allFiles: NsBigFile.IsMetadataCompleteFileData[]
+    metadata: NsBigFile.IsMetadata
 ) {
     logger.info("Getting the Big File file data..");
 
@@ -428,6 +433,14 @@ function getFiles(
 
     // Loading the cache
     const cache = new Cache(inputBigFilePath, CHUNK_SIZE);
+
+    // Getting the first data offset (first file)
+    const firstDataOffset = metadata.offsets[0].dataOffset;
+
+    // Calculate the number of bytes for all files
+    const dataSize = metadata.files.reduce((acc, file) => acc + file.fileSize, 0);
+
+    console.log(metadata.files.length);
 }
 
 /**
@@ -501,10 +514,9 @@ export default function BigFileBuilder(
         allFiles
     );
 
-    const files = getFiles(
+    const files = readFiles(
         inputBigFilePath,
-        metadata,
-        allFiles
+        metadata
     );
 
     console.log(files);
