@@ -197,6 +197,13 @@ export default class Cache {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
 
+        // Pointer is out of bounds because of too many bytes to read (> chunk size)
+        // Adding one to the chunk pointer to read the next chunk
+        if (this._pointers.bytePointer + numberOfBytes > this._chunkSize) {
+            this._pointers.chunkPointer++;
+            this._pointers.bytePointer = 0;
+        }
+
         if (this._pointers.chunkPointer !== this._chunkNumber && !this._bufferLoaded) {
             this._chunkNumber = this._pointers.chunkPointer;
 
@@ -219,7 +226,7 @@ export default class Cache {
             const reachedEndOfData = this._pointers.absolutePointer + numberOfBytes === this._size;
 
             logger.error(
-                `Could not read ${numberOfBytes.toLocaleString("en-US")} bytes\n` +
+                `Missing ${numberOfBytes.toLocaleString("en-US")} bytes\n` +
                 `>> Absolute pointer: ${absolutePointer.toLocaleString("en-US")}\n` +
                 `>> Chunk pointer: ${this._pointers.chunkPointer.toLocaleString("en-US")}\n` +
                 `>> Byte pointer: ${this._pointers.bytePointer.toLocaleString("en-US")}\n` +
