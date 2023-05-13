@@ -6,5 +6,6 @@ export const GENERAL_CONFIG = {
     dateFormat: "YYYY-MM-DD HH:mm:ss",              // Date format for the winston logger
     bigFile: {
         extractedFilesDirName: "ExtractedFiles",    // Dir where the extracted files will be placed
+        buildFileDirName: "build",                  // Dir where the build file will be placed
     }
 };

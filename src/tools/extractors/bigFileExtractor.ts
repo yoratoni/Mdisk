@@ -114,7 +114,7 @@ function readBigFileMetadataTable(
     metadataOffset: number,
     numberOfEntries: number,
     littleEndian: boolean,
-    type: "directories" | "files"
+    type: "directory" | "file"
 ) {
     logger.info(`Reading Big File ${type} metadata table..`);
 
@@ -153,7 +153,7 @@ function readBigFileFiles(
     fileMetadataTable: NsBytes.IsMappingByteObject[],
     numberOfFiles: number
 ) {
-    logger.info("Reading Big File files and their data..");
+    logger.info("Reading Big File data..");
 
     const resultArray: NsBigFile.IsFile[] = [];
 
@@ -254,7 +254,6 @@ function extractBigFile(
 
     const counters = {
         existingDirs: 0,
-        dirs: 0,
         files: 0
     };
 
@@ -271,8 +270,6 @@ function extractBigFile(
         // Create the current directory if it doesn't exist.
         if (includeDir && !dirExists) {
             fs.mkdirSync(dir.path, { recursive: true });
-
-            counters.dirs++;
         }
 
         // Write all the files of the current directory.
@@ -291,17 +288,15 @@ function extractBigFile(
     }
 
     if (counters.existingDirs > 0) {
-        logger.warn(`Skipped ${counters.existingDirs.toLocaleString("en-US")} existing directories.`);
+        const name = counters.existingDirs === 1 ? "directory" : "directories";
+        logger.warn(`Skipped ${counters.existingDirs.toLocaleString("en-US")} existing ${name}.`);
     }
 
-    if (!includeEmptyDirs && counters.dirs > 0) {
-        logger.warn(`Removed ${structures.length - counters.dirs} empty directories.`);
+    if (!includeEmptyDirs) {
+        logger.warn("Removed empty directories.");
     }
 
-    logger.info(
-        `Extracted ${counters.dirs.toLocaleString("en-US")} directories` +
-        ` and ${counters.files.toLocaleString("en-US")} files..`
-    );
+    logger.info(`Extracted ${counters.files.toLocaleString("en-US")} files..`);
 }
 
 /**
@@ -381,7 +376,7 @@ export default function BigFileExtractor(
         header.data.fileMetadataOffset as number,
         header.data.fileCount as number,
         littleEndian,
-        "files"
+        "file"
     );
 
     const directoryMetadataTable = readBigFileMetadataTable(
@@ -390,7 +385,7 @@ export default function BigFileExtractor(
         header.data.directoryMetadataOffset as number,
         header.data.directoryCount as number,
         littleEndian,
-        "directories"
+        "directory"
     );
 
     const files = readBigFileFiles(

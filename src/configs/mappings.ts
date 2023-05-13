@@ -41,7 +41,7 @@ export const MpBigFileHeader: NsMappings.IsMapping = {
  */
 export const MpBigFileOffsetTableEntry: NsMappings.IsMapping = {
     dataOffset: { position: 0, type: "number" },                  // [4, u32] The offset of the file data
-    key: { position: 4, type: "hex" }                             // [4, ???] The key of the file
+    key: { position: 4, type: "hex" }                             // [4, u32] The key of the file
 };
 
 /**

@@ -308,8 +308,7 @@ export function convertNumberArrayToHexString(numberArray: number[]) {
 export function calculateMappingsLength(mapping: NsMappings.IsMapping) {
     let mappingLength = 0;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for (const [key, value] of Object.entries(mapping)) {
+    for (const [, value] of Object.entries(mapping)) {
         if (typeof value === "object") {
             if (value.length) {
                 mappingLength += value.length;
