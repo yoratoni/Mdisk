@@ -141,16 +141,16 @@ function readMetadataTable(
  *
  * @param cache Initialized cache class.
  * @param offsetTable The offset table (used to get the file data offsets).
- * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param fileMetadataTable The file metadata table (used to link data to metadata).
+ * @param directoryMetadataTable The directory metadata table (used to link data to dirs).
  * @param numberOfFiles The number of files in the file metadata table (max = offsetTable.length).
  * @returns The formatted files into an array.
  */
 function readFiles(
     cache: Cache,
     offsetTable: NsBytes.IsMappingByteObject[],
-    directoryMetadataTable: NsBytes.IsMappingByteObject[],
     fileMetadataTable: NsBytes.IsMappingByteObject[],
+    directoryMetadataTable: NsBytes.IsMappingByteObject[],
     numberOfFiles: number
 ) {
     logger.info("Reading Big File data..");
@@ -376,15 +376,6 @@ export default function BigFileExtractor(
         littleEndian
     );
 
-    const fileMetadataTable = readMetadataTable(
-        cache,
-        MpBigFileFileMetadataTableEntry,
-        header.data.fileMetadataOffset as number,
-        header.data.fileCount as number,
-        littleEndian,
-        "file"
-    );
-
     const directoryMetadataTable = readMetadataTable(
         cache,
         MpBigFileDirectoryMetadataTableEntry,
@@ -392,6 +383,15 @@ export default function BigFileExtractor(
         header.data.directoryCount as number,
         littleEndian,
         "directory"
+    );
+
+    const fileMetadataTable = readMetadataTable(
+        cache,
+        MpBigFileFileMetadataTableEntry,
+        header.data.fileMetadataOffset as number,
+        header.data.fileCount as number,
+        littleEndian,
+        "file"
     );
 
     const files = readFiles(

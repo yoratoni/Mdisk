@@ -481,16 +481,16 @@ function readFiles(
  * @param outputBigFilePath The absolute directory path to the output built Big File.
  * @param header The header as an Uint8Array.
  * @param offsetTable The offset table as an Uint8Array.
- * @param directoryMetadataTable The directory metadata table as an Uint8Array.
  * @param fileMetadataTable The file metadata table as an Uint8Array.
+ * @param directoryMetadataTable The directory metadata table as an Uint8Array.
  * @param data The file data as an Uint8Arrays (one for each file).
  */
 function generateBigFile(
     outputBigFilePath: string,
     header: Uint8Array,
     offsetTable: Uint8Array,
-    directoryMetadataTable: Uint8Array,
     fileMetadataTable: Uint8Array,
+    directoryMetadataTable: Uint8Array,
     data: Uint8Array[]
 ) {
     logger.info("Generating the Big File..");
@@ -507,28 +507,30 @@ function generateBigFile(
     const bigFileHeaderAndTables = new Uint8Array([
         ...header,
         ...offsetTable,
-        ...directoryMetadataTable,
-        ...fileMetadataTable
+        ...fileMetadataTable,
+        ...directoryMetadataTable
     ]);
 
-    // // Creates a write stream
-    // const stream = fs.createWriteStream(
-    //     finalPath,
-    //     {
-    //         flags: "w"
-    //     }
-    // );
+    // console.log(bigFileHeaderAndTables.length);
 
-    // // Write the Big File header and tables
-    // stream.write(bigFileHeaderAndTables);
+    // Creates a write stream
+    const stream = fs.createWriteStream(
+        finalPath,
+        {
+            flags: "w"
+        }
+    );
 
-    // // Write the Big File file data by file
-    // for (const fileData of data) {
-    //     stream.write(fileData);
-    // }
+    // Write the Big File header and tables
+    stream.write(bigFileHeaderAndTables);
 
-    // // End the stream
-    // stream.end();
+    // Write the Big File file data by file
+    for (const fileData of data) {
+        stream.write(fileData);
+    }
+
+    // End the stream
+    stream.end();
 }
 
 /**
@@ -587,7 +589,7 @@ export default function BigFileBuilder(
         dirIndexes ? dirIndexes.length : metadata.directories.length
     );
 
-    const offsetTable = generateOffsetTable(
+    const fileMetadataTable = generateFileMetadataTable(
         metadata,
         allFiles
     );
@@ -597,7 +599,7 @@ export default function BigFileBuilder(
         dirIndexes
     );
 
-    const fileMetadataTable = generateFileMetadataTable(
+    const offsetTable = generateOffsetTable(
         metadata,
         allFiles
     );
@@ -611,27 +613,8 @@ export default function BigFileBuilder(
         outputBigFilePath,
         header,
         offsetTable,
-        directoryMetadataTable,
         fileMetadataTable,
+        directoryMetadataTable,
         data
     );
-
-    // Generate the Big File
-    // const bigFile = new Uint8Array(
-    //     header.length +
-    //     offsetTable.length +
-    //     directoryMetadataTable.length +
-    //     fileMetadataTable.length +
-    //     files.length
-    // );
-
-    // const bigFileData = concatenateUint8Arrays([
-    //     header,
-    //     offsetTable,
-    //     directoryMetadataTable,
-    //     fileMetadataTable
-    // ]);
-
-    // Write the Big File
-    // fs.writeFileSync(outputBigFilePath + "/sally_clean.bf", Buffer.from(bigFileData));
 }

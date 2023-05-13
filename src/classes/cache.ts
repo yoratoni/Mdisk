@@ -197,13 +197,6 @@ export default class Cache {
         this._pointers.absolutePointer = absolutePointer;
         this._pointers.getChunkAndBytePointersFromAbsolutePointer();
 
-        // Pointer is out of bounds because of too many bytes to read (> chunk size)
-        // Adding one to the chunk pointer to read the next chunk
-        if (this._pointers.bytePointer + numberOfBytes > this._chunkSize) {
-            this._pointers.chunkPointer++;
-            this._pointers.bytePointer = 0;
-        }
-
         if (this._pointers.chunkPointer !== this._chunkNumber && !this._bufferLoaded) {
             this._chunkNumber = this._pointers.chunkPointer;
 
@@ -213,6 +206,19 @@ export default class Cache {
                 this._buffer,
                 this._chunkNumber,
                 this._chunkSize
+            );
+        }
+
+        // Pointer is out of bounds because of too many bytes to read (> chunk size)
+        // Using custom chunk size
+        if (this._pointers.bytePointer + numberOfBytes > this._chunkSize) {
+            this._buffer = readFileByChunk(
+                this._file,
+                this._size,
+                this._buffer,
+                0,
+                this._chunkSize + numberOfBytes,
+                absolutePointer
             );
         }
 

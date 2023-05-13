@@ -1,3 +1,5 @@
+import { decode, encode } from "iconv-lite";
+
 import NsBytes from "types/bytes";
 import NsMappings from "types/mappings";
 
@@ -93,34 +95,41 @@ export function convertHexStringToUint8Array(hexString: string, littleEndian = t
 }
 
 /**
- * Converts an Uint8Array to a string.
+ * Converts an Uint8Array to a string (using iso-8859-1 by default).
  *
  * Note that this function removes "0" from the array before conversion.
  *
  * @param bytesArray The bytes array.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param encoding The encoding to use (defaults to "iso-8859-1").
  * @returns The decoded string.
  */
-export function convertUint8ArrayToString(bytesArray: Uint8Array, littleEndian = true) {
-    const decoder = new TextDecoder("iso-8859-1");
-
+export function convertUint8ArrayToString(
+    bytesArray: Uint8Array,
+    littleEndian = true,
+    encoding = "iso-8859-1"
+) {
     if (!littleEndian) {
         bytesArray = bytesArray.reverse();
     }
 
     const nonZeroBytes = bytesArray.filter(b => b !== 0);
-    return decoder.decode(nonZeroBytes);
+    return decode(Buffer.from(nonZeroBytes), encoding);
 }
 
 /**
- * Converts a string to an Uint8Array.
+ * Converts a string to an Uint8Array (using iso-8859-1 by default).
  * @param string The string.
  * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param encoding The encoding to use (defaults to "iso-8859-1").
  * @returns The bytes array.
  */
-export function convertStringToUint8Array(string: string, littleEndian = true) {
-    const encoder = new TextEncoder();
-    const bytesArray = encoder.encode(string);
+export function convertStringToUint8Array(
+    string: string,
+    littleEndian = true,
+    encoding = "iso-8859-1"
+) {
+    const bytesArray = encode(string, encoding);
 
     if (!littleEndian) {
         return bytesArray.reverse();

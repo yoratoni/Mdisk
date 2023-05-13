@@ -130,6 +130,7 @@ export function closeFile(file: number): void {
  * @param buffer The buffer to read the file into.
  * @param chunkNumber The number of the chunk.
  * @param chunkSize The size of the chunk in bytes.
+ * @param absPointer The absolute pointer to the file (optional, replaces chunkNumber).
  * @returns The buffer chunk of the file.
  */
 export function readFileByChunk(
@@ -137,7 +138,8 @@ export function readFileByChunk(
     fileSize: number,
     buffer: Uint8Array,
     chunkNumber: number,
-    chunkSize: number
+    chunkSize: number,
+    absPointer?: number
 ): Uint8Array {
     if (buffer.length !== chunkSize) {
         buffer = new Uint8Array(chunkSize);
@@ -145,11 +147,15 @@ export function readFileByChunk(
 
     const position = chunkNumber * chunkSize;
 
-    if (position >= fileSize) {
+    if (!absPointer && position >= fileSize) {
         return new Uint8Array(0);
     }
 
-    fs.readSync(file, buffer, 0, chunkSize, position);
+    if (absPointer && absPointer >= fileSize) {
+        return new Uint8Array(0);
+    }
+
+    fs.readSync(file, buffer, 0, chunkSize, absPointer ?? position);
 
     return buffer;
 }
