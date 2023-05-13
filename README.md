@@ -1,7 +1,8 @@
 # Mdisk (WORK IN PROGRESS)
 A tool for the game Beyond Good & Evil.
 
-Note that I'm using Beyond Good & Evil - Steam & GOG - PC Version (sally_clean.bf).
+Note that I'm using Beyond Good & Evil - Steam & GOG - PC (sally_clean.bf),
+this tool is compatible with both versions.
 
 Usage
 -----
