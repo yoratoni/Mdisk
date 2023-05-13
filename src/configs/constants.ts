@@ -2,11 +2,13 @@ import NsConstants from "types/constants";
 
 
 /**
- * Version detector.
+ * Version differences.
  */
-export const VERSION_DETECTOR = {
+export const VERSION_DIFFS = {
     pc_gog_files: 8924,
     pc_steam_files: 10005,
+    pc_gog_padding: [0xA0, 0x00, 0x00, 0x00],
+    pc_steam_padding: [0x58, 0x00, 0x00, 0x00]
 };
 
 /**

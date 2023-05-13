@@ -3,7 +3,7 @@ import path from "path";
 
 import Cache from "classes/cache";
 import { GENERAL_CONFIG } from "configs/config";
-import { BF_FILE_CONFIG, CHUNK_SIZE } from "configs/constants";
+import { BF_FILE_CONFIG, CHUNK_SIZE, VERSION_DIFFS } from "configs/constants";
 import { MpBigFileDirectoryMetadataTableEntry, MpBigFileFileMetadataTableEntry, MpBigFileOffsetTableEntry } from "configs/mappings";
 import {
     calculateMappingsLength,
@@ -515,8 +515,15 @@ function generateBigFile(
     // Generate the padding array
     const paddingArray = new Uint8Array(padding);
 
-    // Adding the padding beginning bytes (0xA0000000)
-    paddingArray.set([0xA0, 0x00, 0x00, 0x00], 0);
+    // Adding the padding beginning bytes (0xA0000000 for GOG, 0x58000000 for Steam)
+    if (metadata.header.fileCount === VERSION_DIFFS.pc_gog_files) {
+        paddingArray.set(VERSION_DIFFS.pc_gog_padding, 0);
+    } else if (metadata.header.fileCount === VERSION_DIFFS.pc_steam_files) {
+        paddingArray.set(VERSION_DIFFS.pc_steam_padding, 0);
+    } else {
+        logger.error(`Invalid file count: ${metadata.header.fileCount}`);
+        process.exit(1);
+    }
 
     // Adding the first file offset at the end of the padding
     paddingArray.set(

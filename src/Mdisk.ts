@@ -10,13 +10,13 @@ import BinExtractor from "tools/extractors/binExtractor";
 
 logger.info("Mdisk started..");
 
-BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf", "C:/Users/terci/Desktop/BigFile (GOG)", true, true);
+// BigFileExtractor("F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf", "C:/Users/terci/Desktop/BigFile (GOG)", true, false);
 
-BigFileBuilder(
-    "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf",
-    "C:/Users/terci/Desktop/BigFile (GOG)",
-    "C:/Users/terci/Desktop/BigFile (GOG)"
-);
+// BigFileBuilder(
+//     "F:/Yoratoni/Mdisk/src/binary/bf/sally_clean_gog.bf",
+//     "C:/Users/terci/Desktop/BigFile (GOG)",
+//     "C:/Users/terci/Desktop/BigFile (GOG)"
+// );
 
 // TODO: Add a parameter for endianness.
 

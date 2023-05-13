@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import Cache from "classes/cache";
-import { BF_FILE_CONFIG, CHUNK_SIZE, VERSION_DETECTOR } from "configs/constants";
+import { BF_FILE_CONFIG, CHUNK_SIZE, VERSION_DIFFS } from "configs/constants";
 import {
     MpBigFileDirectoryMetadataTableEntry,
     MpBigFileFileMetadataTableEntry,
@@ -165,9 +165,9 @@ function readFiles(
 
     logger.verbose(`Number of files to read: ${numberOfFiles.toLocaleString("en-US")}`);
 
-    if (numberOfFiles == VERSION_DETECTOR.pc_gog_files) {
+    if (numberOfFiles == VERSION_DIFFS.pc_gog_files) {
         logger.warn("Detected PC [GOG version]");
-    } else if (numberOfFiles == VERSION_DETECTOR.pc_steam_files) {
+    } else if (numberOfFiles == VERSION_DIFFS.pc_steam_files) {
         logger.warn("Detected PC [Steam version]");
     }
 

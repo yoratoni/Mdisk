@@ -20,15 +20,20 @@ The extraction process will create multiple directories and one file:
 
 **Note that** `ExtractedFiles` **is basically where you will modify the files**.
 
+Inside of `ExtractedFiles`, you'll find a folder named for each extracted file,
+once modified, you can rebuild them, it will generate a `build` folder inside of it,
+this folder will contain the rebuilt file that will be automatically used to build the Big File.
+
 ### Building
 The building is done by providing the path to the extracted Big File (directory)
 and the path to the output directory where the new Big File will be created.
 Note that it verifies that all needed files are present in the extracted Big File.
 
-Basically, all files that are not inside the `ExtractedFiles` directory will be replaced by the original ones
-inside the `Bin` & `EngineDatas` directories.
+Basically, all files that are not built inside the `ExtractedFiles` directory will be replaced by the original ones
+using the original Big File.
 
-So if there's nothing inside the `ExtractedFiles` directory, the Big File will be the same as the original one.
+So if there's nothing inside the `ExtractedFiles` directory, the Big File will be the same as the original one,
+without the unused directories (the Big File contains a lot of unused dirs..).
 
 **WARNING: NEVER OVERWRITE THE ORIGINAL BIG FILE BY MINE, I PREFER TO SAY IT..**
 
@@ -51,8 +56,8 @@ Building Support
 ----------------
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
-| `.bf`   | Big File          | **WORK IN PROGRESS**        |
-| `.bik`  | Video             | **-----------------------** |
+| `.bf`   | Big File          | **SUPPORTED**               |
+| `.bik`  | Video             | **SUPPORTED**               |
 | `.wa*`  | Audio             | **-----------------------** |
 | `.mtx`  | Trailer videos ?  | **-----------------------** |
 | `.bin`  | Binary files      | **-----------------------** |
@@ -64,21 +69,19 @@ Building Support
 
 Bin Support
 -----------
-| File    | Description        | Status                      |
-|---------|--------------------|-----------------------------|
-| `ff4*`  | Sound effects      | **-----------------------** |
-| `fe*`   | Sound headers      | **-----------------------** |
-| `fd*`   | Translated strings | **SUPPORTED**               |
-| `ff8*`  | Textures           | **WORK IN PROGRESS**        |
-| `ff0*`  | Miscellaneous      | **-----------------------** |
+| File    | Description        | Status (Building & Extraction) |
+|---------|--------------------|--------------------------------|
+| `ff4*`  | Sound effects      | **-----------------------**    |
+| `fe*`   | Sound headers      | **-----------------------**    |
+| `fd*`   | Translated strings | **EXTRACTION**                 |
+| `ff8*`  | Textures           | **EXTRACTION**                 |
+| `ff0*`  | Miscellaneous      | **-----------------------**    |
 
 Technical Summary
 -----------------
 This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
-
-**For now, I stopped working on the textures to work a bit on the building process.**
 
 Big File
 --------
