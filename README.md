@@ -47,7 +47,7 @@ Extraction Support
 | `.wa*`  | Audio             | **SUPPORTED**               |
 | `.mtx`  | Trailer videos ?  | **-----------------------** |
 | `.bin`  | Binary files      | **WORK IN PROGRESS**        |
-| `.wol`  | Prototypes ?      | **-----------------------** |
+| `.wol`  | List for `ff0`    | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
 | `.oin`  | Binarized actions | **-----------------------** |
 | `.ova`  | Binarized actions | **-----------------------** |
