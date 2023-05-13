@@ -62,7 +62,7 @@ Building Support
 | `.wa*`  | Audio             | **-----------------------** |
 | `.mtx`  | Trailer videos ?  | **-----------------------** |
 | `.bin`  | Binary files      | **-----------------------** |
-| `.wol`  | Prototypes ?      | **-----------------------** |
+| `.wol`  | List for `ff0`    | **-----------------------** |
 | `.ofc`  | Binarized actions | **-----------------------** |
 | `.oin`  | Binarized actions | **-----------------------** |
 | `.ova`  | Binarized actions | **-----------------------** |
