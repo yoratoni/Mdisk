@@ -139,11 +139,11 @@ export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
  */
 export const MpBinFileTextureChunk: NsMappings.IsMapping = {
     chunkMark: { position: 0, type: "hex" },
-    unknown2: { position: 4, length: 2, type: "hex" },
+    unknown1: { position: 4, length: 2, type: "hex" },
     chunkType: { position: 6, length: 2, type: "number" },
     width: { position: 8, length: 2, type: "number" },
     height: { position: 10, length: 2, type: "number" },
-    unknown3: { position: 12, type: "hex" },
+    unknown2: { position: 12, type: "hex" },
     fontKey: { position: 16, type: "hex" },
     magic: { position: 20, length: 12, type: "hex" }
 };

@@ -26,7 +26,7 @@ import NsBin from "types/bin";
  * @param cache Initialized cache class.
  * @returns The group ID entries, the group string refs and the pointer.
  */
-function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
+function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
     logger.info("Reading text group IDs..");
 
     let rawValue: Uint8Array;
@@ -106,7 +106,7 @@ function readTextIDs(cache: Cache): NsBin.IsGroupStringTextIDs {
 function readGroupStrings(
     cache: Cache,
     dataBlockSize: number,
-    textIDs: NsBin.IsGroupStringTextIDs
+    textIDs: NsBin.IsBinFileTextGroupStringTextIDs
 ) {
     let pointer = textIDs.pointer;
     const groupSize = dataBlockSize - pointer;

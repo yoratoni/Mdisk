@@ -68,15 +68,15 @@ export function generatePathFromStringStack(pathStack: string[]): string {
  * @param data The data to export.
  * @param absolutePath The absolute path to the file.
  * @param fileName The name of the file.
- * @param force Whether to force the export.
+ * @param overwrite Whether to force (overwrite) the export.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function exportAsJson(data: any, absolutePath: string, fileName: string, force = false) {
+export function exportAsJson(data: any, absolutePath: string, fileName: string, overwrite = false) {
     const path = absolutePath + `/${fileName}`;
     const fileExists = fs.existsSync(path);
 
-    if (!fileExists || force) {
-        if (fileExists && force) {
+    if (!fileExists || overwrite) {
+        if (fileExists && overwrite) {
             logger.warn(`Overwriting '${fileName}'..`);
         }
 

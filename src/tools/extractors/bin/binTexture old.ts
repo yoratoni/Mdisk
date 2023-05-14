@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
 import fs from "fs";
 import path from "path";
 
@@ -135,7 +138,7 @@ function parseChunks(chunks: Uint8Array[]) {
 function prepareChunks(chunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
     logger.info("Preparing chunks..");
 
-    const resObject: NsBin.binTextureFileChunkResObj = {
+    const resObject: NsBin.IsBinFileTextureSeparatedChunks = {
         fonts: [],
         palettes: [],
         textures: [],
