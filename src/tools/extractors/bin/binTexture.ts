@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 
 import Cache from "classes/cache";
@@ -10,7 +11,7 @@ import {
     convertUint8ArrayToString,
     generateBytesObjectFromMapping
 } from "helpers/bytes";
-import { extractorChecker, getFileName } from "helpers/files";
+import { exportAsJson, extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBin from "types/bin";
 import NsBytes from "types/bytes";
@@ -176,17 +177,22 @@ function getChunks(cache: Cache, littleEndian: boolean) {
  * @returns The sorted chunks.
  */
 function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[]) {
+    logger.info("Sorting chunks..");
+
     const chunks: NsBin.IsBinFileTextureSeparatedChunks = {
         fonts: [],
         palettes: [],
         textures: [],
+
         targa1: [],
         NoDataTarga1: [],
         targa2: [],
         NoDataTarga2: [],
+
+        links: [],
         paletteKeys: [],
         textureKeys: [],
-        links: [],
+
         linkedPalettes: {},
         linkedTextures: {}
     };
@@ -195,11 +201,6 @@ function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
         const chunkType = chunk.data.chunkType as string;
         const chunkData = chunk.data.data as Uint8Array;
         const isEmpty = (chunk.isEmpty as boolean) || chunkData.length == 0;
-
-        // Font desc
-        if (chunkType === TEXTURE_FILE_CONFIG.fontDescMagic) {
-            chunks.fonts[index - 1] = chunk;
-        }
 
         // Palette
         if (chunkType === "PALETTE") {
@@ -249,6 +250,11 @@ function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
             );
         }
 
+        // Font desc
+        if (chunkType === TEXTURE_FILE_CONFIG.fontDescMagic) {
+            chunks.fonts[index - 1] = chunk;
+        }
+
         // Get the keys for the texture and palette and add them to the object
         if (!isEmpty && chunkType === "PALETTE_LINK") {
             const textureKey = convertUint8ArrayToHexString(chunkData.slice(0, 4), true, true);
@@ -273,7 +279,7 @@ function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
 
     // Link textures
     const distinctTextureKeys = [...new Set(chunks.textureKeys)];
-    const textureHeadersWithoutData = rawChunks.filter((rawChunk) => {
+    const paletteHeaders = rawChunks.filter((rawChunk) => {
         const chunkType = rawChunk.data.chunkType as string;
 
         // Palette 4 & palette 8 with no data
@@ -282,21 +288,20 @@ function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
 
     for (let i = 0; i < distinctTextureKeys.length; i++) {
         try {
-            chunks.linkedTextures[distinctTextureKeys[i]] = textureHeadersWithoutData[i];
+            chunks.linkedTextures[distinctTextureKeys[i]] = paletteHeaders[i];
         } catch (e) {
-            // Doing nothing (sometimes, distinctTextureKeys > textureHeadersWithoutData)
+            // Doing nothing (sometimes, distinctTextureKeys > paletteHeaders)
         }
     }
 
     logger.info(`Found ${chunks.palettes.length.toLocaleString("en-US")} palettes..`);
     logger.info(`Found ${chunks.textures.length.toLocaleString("en-US")} textures..`);
-    logger.verbose(`Found ${chunks.targa1.length.toLocaleString("en-US")} Targa 1 (TGA)..`);
-    logger.verbose(`Found ${chunks.NoDataTarga1.length.toLocaleString("en-US")} Targa 1 (TGA) without data..`);
-    logger.verbose(`Found ${chunks.targa2.length.toLocaleString("en-US")} Targa 2 (TGA)..`);
-    logger.verbose(`Found ${chunks.NoDataTarga2.length.toLocaleString("en-US")} Targa 2 (TGA) without data..`);
-    logger.verbose(`Found ${chunks.paletteKeys.length.toLocaleString("en-US")} palette keys..`);
-    logger.verbose(`Found ${chunks.textureKeys.length.toLocaleString("en-US")} texture keys..`);
-    logger.verbose(`Found ${chunks.links.length.toLocaleString("en-US")} links..`);
+    logger.info(`Found ${chunks.targa1.length.toLocaleString("en-US")} Targa 1 (TGA)..`);
+    logger.info(`Found ${chunks.targa2.length.toLocaleString("en-US")} Targa 2 (TGA)..`);
+    logger.info(`Found ${chunks.fonts.length.toLocaleString("en-US")} fonts..`);
+    logger.info(`Found ${chunks.paletteKeys.length.toLocaleString("en-US")} palette keys..`);
+    logger.info(`Found ${chunks.textureKeys.length.toLocaleString("en-US")} texture keys..`);
+    logger.info(`Found ${chunks.links.length.toLocaleString("en-US")} links..`);
     logger.info("Chunks sorted..");
 
     return chunks;
@@ -307,17 +312,30 @@ function sortChunks(rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[])
  * @param outputDirPath The output directory path.
  * @param binFilePath The bin file path.
  * @param rawChunks The raw chunks.
- * @param chunks The sorted chunks.
+ * @param sortedChunks The sorted chunks.
  */
 function dumpTextures(
     outputDirPath: string,
     binFilePath: string,
     rawChunks: NsBytes.IsMappingByteObjectResultWithEmptiness[],
-    chunks: NsBin.IsBinFileTextureSeparatedChunks,
+    sortedChunks: NsBin.IsBinFileTextureSeparatedChunks,
 ) {
     logger.info("Dumping textures..");
 
-    // TODO
+
+    // Dump metadata file
+    const filename = path.basename(binFilePath, path.extname(binFilePath));
+
+    const metadataPath = path.join(outputDirPath, `${filename}.json`);
+    if (!fs.existsSync(metadataPath)) {
+        // Remove the data from the chunks
+        const noDataChunks = rawChunks.map((chunk) => {
+            chunk.data.data = undefined;
+            return chunk;
+        });
+
+        exportAsJson(noDataChunks, outputDirPath, `${filename}.json`);
+    }
 }
 
 /**
@@ -348,7 +366,7 @@ export default function BinTexture(
         littleEndian
     );
 
-    const chunks = sortChunks(
+    const sortedChunks = sortChunks(
         rawChunks
     );
 
@@ -356,7 +374,7 @@ export default function BinTexture(
         outputDirPath,
         binFilePath,
         rawChunks,
-        chunks
+        sortedChunks
     );
 
     logger.info(`Successfully extracted textures: '${getFileName(binFilePath)}' => '${outputDirPath}'.`);

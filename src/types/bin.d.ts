@@ -12,13 +12,6 @@ declare namespace NsBin {
     }
 
     /**
-     * Links all the font chunks inside Bin texture files.
-     */
-    interface IsBinFileTextureFileFonts {
-        [key: number]: NsBytes.IsMappingByteObjectResultWithEmptiness;
-    }
-
-    /**
      * The linked data inside Bin texture files.
      */
     interface IsBinFileTextureLinkedData {
@@ -29,7 +22,7 @@ declare namespace NsBin {
      * Sorted chunks for Bin texture files.
      */
     interface IsBinFileTextureSeparatedChunks {
-        fonts: IsBinFileTextureFileFonts;
+        fonts: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         palettes: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         textures: NsBytes.IsMappingByteObjectResultWithEmptiness[];
         targa1: NsBytes.IsMappingByteObjectResultWithEmptiness[];
