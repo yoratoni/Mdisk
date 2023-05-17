@@ -75,7 +75,7 @@ Bin Support
 | `ff4*`  | Sound effects      | **-----------------------**    |
 | `fe*`   | Sound headers      | **-----------------------**    |
 | `fd*`   | Translated strings | **EXTRACTION**                 |
-| `ff8*`  | Textures           | **EXTRACTION**                 |
+| `ff8*`  | Textures           | **-----------------------**    |
 | `ff0*`  | Miscellaneous      | **-----------------------**    |
 
 Technical Summary
