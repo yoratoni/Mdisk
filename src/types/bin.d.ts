@@ -19,6 +19,16 @@ declare namespace NsBin {
     }
 
     /**
+     * BGRA color data for Bin texture files.
+     */
+    interface IsBinTextureBGRAData {
+        B: number;
+        G: number;
+        R: number;
+        A: number;
+    }
+
+    /**
      * Sorted chunks for Bin texture files.
      */
     interface IsBinFileTextureSeparatedChunks {
