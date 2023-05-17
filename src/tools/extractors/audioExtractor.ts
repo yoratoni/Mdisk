@@ -9,7 +9,7 @@ import {
     convertStringToUint8Array,
     generateBytesObjectFromMapping
 } from "helpers/bytes";
-import { checkFileExtension, extractorChecker } from "helpers/files";
+import { checkFileExtension, extractorChecker, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import { clamp } from "helpers/numbers";
 import NsBytes from "types/bytes";
@@ -398,6 +398,8 @@ export default function AudioExtractor(audioFilePath: string, outputDirPath: str
     const outputFilePath = path.join(outputDirPath, filename + ".wav");
 
     fs.writeFileSync(outputFilePath, finalData);
+
+    logger.info(`Successfully extracted the audio file: '${getFileName(audioFilePath)}' => '${outputDirPath}'.`);
 
     // Closing the file from the cache
     cache.closeFile();

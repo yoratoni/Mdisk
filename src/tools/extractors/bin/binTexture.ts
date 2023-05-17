@@ -17,8 +17,8 @@ import logger from "helpers/logger";
 export default function BinTexture(
     outputDirPath: string,
     binFilePath: string,
-    // dataBlocks: Uint8Array[],
-    // littleEndian = true
+    dataBlocks: Uint8Array[],
+    littleEndian = true
 ) {
     // Add a folder to the output path (filename without extension)
     outputDirPath = path.join(outputDirPath, getFileName(binFilePath));

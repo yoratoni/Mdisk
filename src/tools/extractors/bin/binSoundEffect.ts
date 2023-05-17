@@ -4,5 +4,5 @@
  * @link [BIN Audio Bank files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/AudioBank.md)
  */
 export default function BinSoundEffect(dataBlocks: Uint8Array[]) {
-    console.log("test");
+    // TODO
 }

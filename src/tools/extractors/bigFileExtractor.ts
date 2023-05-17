@@ -14,7 +14,7 @@ import {
     generateBytesObjectFromMapping,
     generateBytesTableFromMapping
 } from "helpers/bytes";
-import { exportAsJson, extractorChecker, generatePathFromStringStack } from "helpers/files";
+import { exportAsJson, extractorChecker, generatePathFromStringStack, getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBigFile from "types/bigFile";
 import NsBytes from "types/bytes";
@@ -431,7 +431,7 @@ export default function BigFileExtractor(
 
     exportAsJson(metadata, outputDirPath, "metadata.json", true);
 
-    logger.info("Big File extracted successfully!");
+    logger.info(`Successfully extracted the Big File: '${getFileName(bigFilePath)}' => '${outputDirPath}'.`);
 
     // Closing the file from the cache
     cache.closeFile();

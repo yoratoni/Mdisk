@@ -24,16 +24,17 @@ import NsBin from "types/bin";
 /**
  * Read the text group IDs.
  * @param cache Initialized cache class.
+ * @param littleEndian Whether the bin file is little endian or not.
  * @returns The group ID entries, the group string refs and the pointer.
  */
-function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
+function readTextIDs(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGroupStringTextIDs {
     logger.info("Reading text group IDs..");
 
     let rawValue: Uint8Array;
 
     // Group ID Entry Size
     rawValue = cache.readBytes(0);
-    const groupIdEntrySize = generateBytesObjectFromMapping(rawValue, MpBinFileTextGroup);
+    const groupIdEntrySize = generateBytesObjectFromMapping(rawValue, MpBinFileTextGroup, true, littleEndian);
 
     // Calculate the number of groups
     const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIdEntry);
@@ -48,7 +49,8 @@ function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
         rawValue,
         MpBinFileTextGroupIdEntry,
         groupIDEntryMappingLength,
-        false
+        false,
+        littleEndian
     );
 
     // Group String Refs
@@ -62,7 +64,9 @@ function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
 
         const groupStringRefsSize = generateBytesObjectFromMapping(
             rawValue,
-            MpBinFileTextGroupStringRefsSize
+            MpBinFileTextGroupStringRefsSize,
+            true,
+            littleEndian
         );
 
         // Get one group string refs
@@ -77,7 +81,8 @@ function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
             rawValue,
             MpBinFileTextGroupStringRefs,
             groupStringRefsMappingLength,
-            false
+            false,
+            littleEndian
         );
 
         // Push the mapped data to the group string refs array
@@ -101,12 +106,14 @@ function readTextIDs(cache: Cache): NsBin.IsBinFileTextGroupStringTextIDs {
  * @param cache Initialized cache class.
  * @param dataBlockSize The size of the data block.
  * @param textIDs The group ID entries, the group string refs and the pointer.
+ * @param littleEndian Whether the bin file is little endian or not.
  * @returns The group strings in a list.
  */
 function readGroupStrings(
     cache: Cache,
     dataBlockSize: number,
-    textIDs: NsBin.IsBinFileTextGroupStringTextIDs
+    textIDs: NsBin.IsBinFileTextGroupStringTextIDs,
+    littleEndian: boolean
 ) {
     let pointer = textIDs.pointer;
     const groupSize = dataBlockSize - pointer;
@@ -118,7 +125,7 @@ function readGroupStrings(
 
     while (pointer < groupSize) {
         // Breaks size
-        const breaksSize = convertUint8ArrayToNumber(cache.readBytes(pointer));
+        const breaksSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
         pointer += 4;
 
         // Breaks positions
@@ -127,16 +134,16 @@ function readGroupStrings(
 
         // Convert the breaks positions to numbers
         for (let i = 0; i < breaksSize; i += 4) {
-            const breakPosition = convertUint8ArrayToNumber(rawBreakPositions.slice(i, i + 4));
+            const breakPosition = convertUint8ArrayToNumber(rawBreakPositions.slice(i, i + 4), littleEndian);
             breakPositions.push(breakPosition);
         }
 
         // Strings size
-        const stringSize = convertUint8ArrayToNumber(cache.readBytes(pointer));
+        const stringSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
         pointer += 4;
 
         // Concatenated strings
-        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize));
+        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
         pointer += stringSize;
 
         // Apply the breaks positions to the concatenated strings
@@ -210,20 +217,28 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @param outputDirPath The output directory path.
  * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
+ * @param littleEndian Whether the bin file is little endian or not.
  * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
-export default function BinText(outputDirPath: string, binFilePath: string, dataBlocks: Uint8Array[]) {
+export default function BinText(
+    outputDirPath: string,
+    binFilePath: string,
+    dataBlocks: Uint8Array[],
+    littleEndian = true
+) {
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
     const textIDs = readTextIDs(
-        cache
+        cache,
+        littleEndian
     );
 
     const groupStrings = readGroupStrings(
         cache,
         cache.bufferLength,
-        textIDs
+        textIDs,
+        littleEndian
     );
 
     const decoded = escapedUnicodeDecoder(
@@ -231,7 +246,8 @@ export default function BinText(outputDirPath: string, binFilePath: string, data
     );
 
     const result = convertStringToUint8Array(
-        decoded
+        decoded,
+        littleEndian
     );
 
     const filename = path.basename(binFilePath, ".bin") + ".txt";

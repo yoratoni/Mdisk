@@ -4,5 +4,5 @@
  * @link [BIN Map files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/MapFile.md)
  */
 export default function BinMiscellaneous(dataBlocks: Uint8Array[]) {
-    console.log("test");
+    // TODO
 }
