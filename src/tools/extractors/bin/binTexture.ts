@@ -367,22 +367,25 @@ function dumpTextures(
         targaFiles: 0
     };
 
+    console.log(totalLength);
+    console.log(sortedChunks.textures.length);
+
     // Dump textures
     for (let i = 0; i < totalLength; i++) {
         const texture = sortedChunks.textures[i];
+
+        // console.log(texture);
+
         const textureIndex = rawChunks.indexOf(texture);
         const textureData = texture.data.data as Uint8Array;
         const textureType = texture.data.chunkType as string;
         const textureHeader = sortedChunks.linkedTextures[sortedChunks.textureKeys[i]];
 
-        // Filename: index_textureType.tga
-        const filename = `${rawChunks.indexOf(texture)}_${textureType}.tga`;
-        const outputFilePath = path.join(outputDirPath, filename);
+        
 
         // Dump corresponding font desc and link the font desc to its texture
-        if (texture.data.isFontDesc) {
-            const fontDescFilename = `${textureIndex}_FONTDESC.bin`;
-            const fontDescOutputFilePath = path.join(outputDirPath, fontDescFilename);
+        if (texture.data.chunkType === TEXTURE_FILE_CONFIG.fontDescMagic) {
+            const fontDescOutputFilePath = path.join(outputDirPath, `${textureIndex}_fontdesc.bin`);
             fs.writeFileSync(fontDescOutputFilePath, textureData);
 
             counters.fontDescs++;
@@ -390,7 +393,8 @@ function dumpTextures(
 
         // Dump Targa 1
         if (textureType === "TARGA_1") {
-            fs.writeFileSync(outputFilePath, textureData);
+            const targa1OutputFilePath = path.join(outputDirPath, `${textureIndex}_${textureType}.1.tga`);
+            fs.writeFileSync(targa1OutputFilePath, textureData);
 
             counters.targa1++;
             continue;
@@ -398,7 +402,11 @@ function dumpTextures(
 
         // Dump Targa 2
         if (textureType === "TARGA_2") {
-            fs.writeFileSync(outputFilePath, textureData);
+            const targa2OutputFilePath = path.join(
+                outputDirPath,
+                `${textureIndex}_${textureType}.2.tga`
+            );
+            fs.writeFileSync(targa2OutputFilePath, textureData);
 
             counters.targa2++;
             continue;
@@ -406,7 +414,7 @@ function dumpTextures(
 
         // Missing palettes
         if (i >= sortedChunks.paletteKeys.length) {
-            const missingPaletteFilename = `${i}_MISSING_PALETTE.bin`;
+            const missingPaletteFilename = `${textureIndex}_unpalletized.bin`;
             const missingPaletteOutputFilePath = path.join(outputDirPath, missingPaletteFilename);
             fs.writeFileSync(missingPaletteOutputFilePath, textureData);
 
