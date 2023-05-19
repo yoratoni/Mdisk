@@ -69,6 +69,12 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
+EXE (GOG)
+---------
+The EXE file from the GOG version of the game uses Microsoft Visual C++ 7.0.
+
+**Work in progress..**
+
 Big File
 --------
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
@@ -188,8 +194,8 @@ when 2004 is removed from this result (value obtained when I compare the size of
 inside the header), we also obtain 1,867,776 bytes long which corresponds to the size of one block.
 
 
-Text Files
-----------
+Bin Text Files
+--------------
 Thanks to **Kapouett**, extracting the strings from the text (subtitles) files was not that hard.
 
 It seems that the text uses a system of keys to show keys/colors on the screen:
@@ -210,8 +216,8 @@ These kind of codes are removed when the texts are extracted, my code normally s
 including Korean etc..
 
 
-Texture Files
--------------
+Bin Texture Files
+-----------------
 I used some of the [Jade Engine](https://github.com/4g3v/JadeStudio/tree/master/JadeStudio.Core/FileFormats/Texture)
 source code to understand how the textures could be extracted, so, big thanks to him!
 
