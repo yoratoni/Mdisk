@@ -38,13 +38,13 @@ without the unused directories (the Big File contains a lot of unused dirs..).
 
 **WARNING: NEVER OVERWRITE THE ORIGINAL BIG FILE BY MINE, I PREFER TO SAY IT..**
 
-Extraction Support
+Extraction / Building Support
 ------------------
 | File    | Description       | Status                      |
 |---------|-------------------|-----------------------------|
-| `.bf`   | Big File          | **SUPPORTED**               |
-| `.bik`  | Video             | **SUPPORTED**               |
-| `.wa*`  | Audio             | **SUPPORTED**               |
+| `.bf`   | Big File          | **EXTRACTION / BUILDING**   |
+| `.bik`  | Video             | **EXTRACTION / BUILDING**   |
+| `.wa*`  | Audio             | **EXTRACTION**              |
 | `.mtx`  | Trailer videos ?  | **-----------------------** |
 | `.bin`  | Binary files      | **WORK IN PROGRESS**        |
 | `.wol`  | List for `ff0`    | **-----------------------** |
@@ -53,24 +53,9 @@ Extraction Support
 | `.ova`  | Binarized actions | **-----------------------** |
 | `.omd`  | Binarized actions | **-----------------------** |
 
-Building Support
-----------------
-| File    | Description       | Status                      |
-|---------|-------------------|-----------------------------|
-| `.bf`   | Big File          | **SUPPORTED**               |
-| `.bik`  | Video             | **SUPPORTED**               |
-| `.wa*`  | Audio             | **-----------------------** |
-| `.mtx`  | Trailer videos ?  | **-----------------------** |
-| `.bin`  | Binary files      | **-----------------------** |
-| `.wol`  | List for `ff0`    | **-----------------------** |
-| `.ofc`  | Binarized actions | **-----------------------** |
-| `.oin`  | Binarized actions | **-----------------------** |
-| `.ova`  | Binarized actions | **-----------------------** |
-| `.omd`  | Binarized actions | **-----------------------** |
-
-Bin Support
+Bin extraction / building Support
 -----------
-| File    | Description        | Status (Building & Extraction) |
+| File    | Description        | Status                         |
 |---------|--------------------|--------------------------------|
 | `ff4*`  | Sound effects      | **-----------------------**    |
 | `fe*`   | Sound headers      | **-----------------------**    |
