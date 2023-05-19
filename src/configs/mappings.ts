@@ -91,7 +91,7 @@ export const MpAudioHeader: NsMappings.IsMapping = {
 
 /**
  * Mapping for a bin file data block header.
- * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
+ * @link [Bin files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
     decompressedSize: { position: 0, type: "number" },
@@ -99,33 +99,17 @@ export const MpBinFileDataBlockHeader: NsMappings.IsMapping = {
 };
 
 /**
- * Mapping for a bin file text group header.
- * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
- */
-export const MpBinFileTextGroup: NsMappings.IsMapping = {
-    groupIdEntrySize: { position: 0, type: "number" }
-};
-
-/**
  * Mapping for a bin file text group ID entry.
- * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
+ * @link [Bin Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
-export const MpBinFileTextGroupIdEntry: NsMappings.IsMapping = {
+export const MpBinFileTextGroupIDEntry: NsMappings.IsMapping = {
     groupID: { position: 0, type: "hex" },
     magic: { position: 4, type: "str" }
 };
 
 /**
  * Mapping for a bin file text group string refs.
- * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
- */
-export const MpBinFileTextGroupStringRefsSize: NsMappings.IsMapping = {
-    groupStringRefsSize: { position: 0, type: "number" }
-};
-
-/**
- * Mapping for a bin file text group string refs.
- * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
+ * @link [Bin Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export const MpBinFileTextGroupStringRefs: NsMappings.IsMapping = {
     textID: { position: 0, type: "hex" },

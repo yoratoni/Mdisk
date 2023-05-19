@@ -3,10 +3,8 @@ import path from "path";
 
 import Cache from "classes/cache";
 import {
-    MpBinFileTextGroup,
-    MpBinFileTextGroupIdEntry,
-    MpBinFileTextGroupStringRefs,
-    MpBinFileTextGroupStringRefsSize
+    MpBinFileTextGroupIDEntry,
+    MpBinFileTextGroupStringRefs
 } from "configs/mappings";
 import {
     calculateMappingsLength,
@@ -19,66 +17,64 @@ import {
 import { getFileName } from "helpers/files";
 import logger from "helpers/logger";
 import NsBin from "types/bin";
+import NsBytes from "types/bytes";
 
 
 /**
- * Read the text group IDs.
+ * Read the text groups.
  * @param cache Initialized cache class.
  * @param littleEndian Whether the bin file is little endian or not.
- * @returns The group ID entries, the group string refs and the pointer.
+ * @returns The text groups.
  */
-function readTextIDs(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGroupStringTextIDs {
+function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGroupStringTextIDs {
     logger.info("Reading text group IDs..");
 
-    let rawValue: Uint8Array;
+    let pointer = 0;
 
     // Group ID Entry Size
-    rawValue = cache.readBytes(0);
-    const groupIdEntrySize = generateBytesObjectFromMapping(rawValue, MpBinFileTextGroup, true, littleEndian);
+    const textGroupsSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
+
+    pointer += 4;
 
     // Calculate the number of groups
-    const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIdEntry);
-    const numberOfGroups = groupIdEntrySize.data.groupIdEntrySize as number / groupIDEntryMappingLength;
+    const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIDEntry);
+    const numberOfGroups = Math.floor(textGroupsSize / groupIDEntryMappingLength);
 
     logger.verbose(`Number of groups: ${numberOfGroups}`);
 
     // Group ID Entries
-    rawValue = cache.readBytes(4, groupIdEntrySize.data.groupIdEntrySize as number);
+    const rawGroupIDEntries = cache.readBytes(pointer, textGroupsSize);
 
     const groupIDEntries = generateBytesTableFromMapping(
-        rawValue,
-        MpBinFileTextGroupIdEntry,
+        rawGroupIDEntries,
+        MpBinFileTextGroupIDEntry,
         groupIDEntryMappingLength,
         false,
         littleEndian
     );
 
+    pointer += textGroupsSize;
+
     // Group String Refs
-    const groupStringRefs = [];
-    let groupStringRefsPointer = groupIdEntrySize.data.groupIdEntrySize as number + 4;
+    const groupStringRefs: NsBytes.IsMappingByteObject[][] = [];
 
     // Repeat based on the number of groups
     for (let i = 0; i < numberOfGroups; i++) {
         // Get the size of the group string refs
-        rawValue = cache.readBytes(groupStringRefsPointer);
+        const groupStringRefsSize = convertUint8ArrayToNumber(cache.readBytes(pointer));
 
-        const groupStringRefsSize = generateBytesObjectFromMapping(
-            rawValue,
-            MpBinFileTextGroupStringRefsSize,
-            true,
-            littleEndian
-        );
+        pointer += 4;
 
-        // Get one group string refs
+        // Size of the mapping for one group string ref
         const groupStringRefsMappingLength = calculateMappingsLength(MpBinFileTextGroupStringRefs);
 
-        rawValue = cache.readBytes(
-            groupStringRefsPointer + 4,
-            groupStringRefsSize.data.groupStringRefsSize as number
-        );
+        // Read the group string ref
+        const rawGroupStringRef = cache.readBytes(pointer, groupStringRefsSize);
 
-        const oneGroupStringRefs = generateBytesTableFromMapping(
-            rawValue,
+        pointer += groupStringRefsSize;
+
+        const groupStringRef = generateBytesTableFromMapping(
+            rawGroupStringRef,
             MpBinFileTextGroupStringRefs,
             groupStringRefsMappingLength,
             false,
@@ -86,18 +82,16 @@ function readTextIDs(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGr
         );
 
         // Push the mapped data to the group string refs array
-        groupStringRefs.push(oneGroupStringRefs);
+        groupStringRefs.push(groupStringRef);
 
-        // Update the pointer
-        // Note that it's +8 because there's an unknown value after the group string refs
-        // + 4 bytes for the size of the group string refs
-        groupStringRefsPointer += groupStringRefsSize.data.groupStringRefsSize as number + 8;
+        // Add 4 bytes to the pointer for an unknown value
+        pointer += 4;
     }
 
     return {
-        groupIDEntries,
-        groupStringRefs,
-        pointer: groupStringRefsPointer
+        groupIDEntries: groupIDEntries,
+        groupStringRefs: groupStringRefs,
+        pointer: pointer
     };
 }
 
@@ -105,17 +99,17 @@ function readTextIDs(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGr
  * Read the text group strings.
  * @param cache Initialized cache class.
  * @param dataBlockSize The size of the data block.
- * @param textIDs The group ID entries, the group string refs and the pointer.
+ * @param textGroups The text groups and the pointer.
  * @param littleEndian Whether the bin file is little endian or not.
  * @returns The group strings in a list.
  */
 function readGroupStrings(
     cache: Cache,
     dataBlockSize: number,
-    textIDs: NsBin.IsBinFileTextGroupStringTextIDs,
+    textGroups: NsBin.IsBinFileTextGroupStringTextIDs,
     littleEndian: boolean
 ) {
-    let pointer = textIDs.pointer;
+    let pointer = textGroups.pointer;
     const groupSize = dataBlockSize - pointer;
 
     logger.info(`Reading group strings with a group size of ${groupSize} bytes.`);
@@ -123,17 +117,18 @@ function readGroupStrings(
     const breakPositions: number[] = [];
     const strings: string[] = [];
 
-    while (pointer < groupSize) {
-        // Breaks size
-        const breaksSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
+    const totalLength = groupSize + textGroups.pointer;
+    while (pointer < totalLength) {
+        // Break size
+        const breakSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
         pointer += 4;
 
-        // Breaks positions
-        const rawBreakPositions = cache.readBytes(pointer, breaksSize);
-        pointer += breaksSize;
+        // Break positions
+        const rawBreakPositions = cache.readBytes(pointer, breakSize);
+        pointer += breakSize;
 
-        // Convert the breaks positions to numbers
-        for (let i = 0; i < breaksSize; i += 4) {
+        // Convert the break positions to numbers
+        for (let i = 0; i < breakSize; i += 4) {
             const breakPosition = convertUint8ArrayToNumber(rawBreakPositions.slice(i, i + 4), littleEndian);
             breakPositions.push(breakPosition);
         }
@@ -143,22 +138,24 @@ function readGroupStrings(
         pointer += 4;
 
         // Concatenated strings
-        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
+        // const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
         pointer += stringSize;
 
-        // Apply the breaks positions to the concatenated strings
-        let string = "";
-        let stringIndex = 0;
+        console.log(stringSize);
 
-        for (let i = 0; i < breakPositions.length; i++) {
-            const breakPosition = breakPositions[i];
+        // // Apply the break positions to the concatenated strings
+        // let string = "";
+        // let stringIndex = 0;
 
-            string += concatenatedStrings.slice(stringIndex, breakPosition);
-            stringIndex = breakPosition;
-        }
+        // for (let i = 0; i < breakPositions.length; i++) {
+        //     const breakPosition = breakPositions[i];
 
-        // Push the string to the strings array
-        strings.push(string);
+        //     string += concatenatedStrings.slice(stringIndex, breakPosition);
+        //     stringIndex = breakPosition;
+        // }
+
+        // // Push the string to the strings array
+        // strings.push(string);
     }
 
     logger.info(`Number of strings: ${strings.length}`);
@@ -218,7 +215,7 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
  * @param littleEndian Whether the bin file is little endian or not.
- * @link [BIN Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
+ * @link [Bin Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
 export default function BinText(
     outputDirPath: string,
@@ -229,7 +226,7 @@ export default function BinText(
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
 
-    const textIDs = readTextIDs(
+    const textGroups = readTextGroups(
         cache,
         littleEndian
     );
@@ -237,23 +234,23 @@ export default function BinText(
     const groupStrings = readGroupStrings(
         cache,
         cache.bufferLength,
-        textIDs,
+        textGroups,
         littleEndian
     );
 
-    const decoded = escapedUnicodeDecoder(
-        groupStrings
-    );
+    // const decoded = escapedUnicodeDecoder(
+    //     groupStrings
+    // );
 
-    const result = convertStringToUint8Array(
-        decoded,
-        littleEndian
-    );
+    // const result = convertStringToUint8Array(
+    //     decoded,
+    //     littleEndian
+    // );
 
-    const filename = path.basename(binFilePath, ".bin") + ".txt";
+    // const filename = path.basename(binFilePath, ".bin") + ".txt";
 
-    const outputFilePath = path.join(outputDirPath, filename);
-    fs.writeFileSync(outputFilePath, result);
+    // const outputFilePath = path.join(outputDirPath, filename);
+    // fs.writeFileSync(outputFilePath, result);
 
-    logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
+    // logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
 }
