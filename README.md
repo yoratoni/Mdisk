@@ -69,12 +69,6 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
-EXE (GOG)
----------
-The EXE file from the GOG version of the game uses Microsoft Visual C++ 7.0.
-
-**Work in progress..**
-
 Big File
 --------
 The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
