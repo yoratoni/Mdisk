@@ -24,28 +24,28 @@ import NsBytes from "types/bytes";
  * @param cache Initialized cache class.
  * @param initialPointer The initial pointer position.
  * @param littleEndian Whether the bin file is little endian or not.
- * @returns The text groups.
+ * @returns The text groups, the final pointer position & the metadata.
  */
 function readTextGroups(
     cache: Cache,
     initialPointer: number,
     littleEndian: boolean
-): NsBin.IsBinFileTextGroupStringTextIDs {
+): NsBin.IsBinFileTextGroups {
     logger.info("Reading text group IDs..");
 
     let pointer = initialPointer;
 
-    // Group ID Entry Size
-    const textGroupsSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
+    // Group ID Entries Size
+    const groupIDEntriesSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
 
     pointer += 4;
 
     // Calculate the number of groups
     const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIDEntry);
-    const numberOfGroups = Math.floor(textGroupsSize / groupIDEntryMappingLength);
+    const numberOfGroups = Math.ceil(groupIDEntriesSize / groupIDEntryMappingLength);
 
     // Group ID Entries
-    const rawGroupIDEntries = cache.readBytes(pointer, textGroupsSize);
+    const rawGroupIDEntries = cache.readBytes(pointer, groupIDEntriesSize);
 
     const groupIDEntries = generateBytesTableFromMapping(
         rawGroupIDEntries,
@@ -63,7 +63,7 @@ function readTextGroups(
         }
     }
 
-    pointer += textGroupsSize;
+    pointer += groupIDEntriesSize;
 
     // Group String Refs
     const groupStringRefs: NsBytes.IsMappingByteObject[][] = [];
@@ -116,10 +116,22 @@ function readTextGroups(
         groupIDEntries.pop();
     }
 
+    /**
+     * About the unknown 4 bytes:
+     * I found only one file where it happens (fd201d26.bin):
+     * the first 4 bytes are 0x00000000, a bad file offset certainly,
+     * and the next 4 bytes contains the proper data.
+     *
+     * Which means that for this file, there's 4 bytes to add when rebuilding the file.
+     */
+
     return {
+        unknown4Bytes: groupIDEntriesSize === 0,
+        initialPointer: initialPointer,
+        groupIDEntriesSize: groupIDEntriesSize,
         groupIDEntries: groupIDEntries,
         groupStringRefs: groupStringRefs,
-        pointer: pointer
+        endPointer: pointer
     };
 }
 
@@ -132,21 +144,30 @@ function readTextGroups(
  */
 function readGroupStrings(
     cache: Cache,
-    textGroups: NsBin.IsBinFileTextGroupStringTextIDs,
+    textGroups: NsBin.IsBinFileTextGroups,
     littleEndian: boolean
-) {
-    const numberOfGroups = textGroups.groupStringRefs.length;
-    let groupIndex = 0;
-    let pointer = textGroups.pointer;
+): NsBin.IsBinFileGroupStrings {
+    const metadata: NsBin.IsBinFileGroupStringsMetadata = {
+        initialPointer: textGroups.endPointer,
+        numberOfGroups: textGroups.groupIDEntries.length,
+        breakSizes: [],
+        breakPositions: [],
+        stringSizes: [],
+        endPointer: 0
+    };
 
-    logger.info(`Reading ${numberOfGroups} strings..`);
+    let groupIndex = 0;
+    let pointer = textGroups.endPointer;
+
+    logger.info(`Reading ${metadata.numberOfGroups} groups of concatenated string(s)..`);
 
     const breakPositions: number[] = [];
     const strings: string[] = [];
 
-    while (groupIndex < numberOfGroups) {
+    while (groupIndex < metadata.numberOfGroups) {
         // Break size
         const breakSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
+        metadata.breakSizes.push(breakSize);
         pointer += 4;
 
         // Break positions
@@ -161,6 +182,7 @@ function readGroupStrings(
 
         // Strings size
         const stringSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
+        metadata.stringSizes.push(stringSize);
         pointer += 4;
 
         // Concatenated strings
@@ -171,22 +193,25 @@ function readGroupStrings(
         let string = "";
         let stringIndex = 0;
 
-        for (let i = 0; i < breakPositions.length; i++) {
-            const breakPosition = breakPositions[i];
-
+        for (const breakPosition of breakPositions) {
             string += concatenatedStrings.slice(stringIndex, breakPosition);
             stringIndex = breakPosition;
         }
 
         // Push the string to the strings array
-        strings.push(string);
+        strings.push(`>>>\n${string}\n<<<\n\n\n`);
 
         groupIndex++;
     }
 
+    // Set the metadata
+    metadata.breakPositions = breakPositions;
+    metadata.endPointer = pointer;
+
     return {
         strings: strings,
-        pointer: pointer
+        endPointer: pointer,
+        metadata: metadata
     };
 }
 
@@ -260,34 +285,41 @@ export default function BinText(
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
     const bufferLength = cache.bufferLength;
-    let lastPointer = 0;
+    let endPointer = 0;
 
-    const groupStrings: string[] = [];
+    const rawStrings: string[] = [];
+    const metadata = [];
 
     // There's multiple groups inside the bin file
     // We need to read only groups defined by their ID entries
     // Then, start again if the pointer is not at the end of the buffer
-    while (lastPointer < bufferLength) {
+    while (endPointer < bufferLength) {
         const textGroups = readTextGroups(
             cache,
-            lastPointer,
+            endPointer,
             littleEndian
         );
 
-        const { strings, pointer } = readGroupStrings(
+        // Add to the metadata
+        metadata.push(textGroups);
+
+        const groupStrings = readGroupStrings(
             cache,
             textGroups,
             littleEndian
         );
 
-        // Add the strings to the group strings array
-        groupStrings.push(...strings);
+        // Add the strings to the all strings array
+        rawStrings.push(...groupStrings.strings);
 
-        lastPointer = pointer;
+        // Add to the metadata
+        metadata.push(groupStrings.metadata);
+
+        endPointer = groupStrings.endPointer;
     }
 
     const decodedStrings = escapedUnicodeDecoder(
-        groupStrings,
+        rawStrings,
         removeCodes,
         removeColors
     );
@@ -298,9 +330,12 @@ export default function BinText(
         "utf-8"
     );
 
-    const filename = path.basename(binFilePath, ".bin") + ".txt";
+    const baseFilename = path.basename(binFilePath, ".bin");
 
-    const outputFilePath = path.join(outputDirPath, filename);
+    const metadataFilePath = path.join(outputDirPath, `${baseFilename}.json`);
+    fs.writeFileSync(metadataFilePath, JSON.stringify(metadata, null, 4));
+
+    const outputFilePath = path.join(outputDirPath, `${baseFilename}.txt`);
     fs.writeFileSync(outputFilePath, finalStrings);
 
     logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
