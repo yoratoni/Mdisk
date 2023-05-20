@@ -163,6 +163,9 @@ function readDataBlocks(cache: Cache, fileType: string) {
  * @link [BIN files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md)
  */
 export default function BinExtractor(binFilePath: string, outputDirPath: string, exportDecompressedBin = false) {
+    // Add the file directory to the output directory
+    outputDirPath = path.join(outputDirPath, getFileName(binFilePath));
+
     extractorChecker(binFilePath, "bin file", ".bin", outputDirPath);
 
     // Loading the cache
@@ -175,6 +178,19 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
 
     // Read all data blocks
     const dataBlocks = readDataBlocks(cache, fileType);
+
+    // Export the decompressed bin file
+    if (exportDecompressedBin) {
+        logger.warn("Exporting the decompressed bin file, this may take a a bit more time..");
+
+        const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + ".decomp.bin");
+
+        if (!fs.existsSync(outputFilePath)) {
+            fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
+        } else {
+            logger.warn(`The decompressed version of ${path.basename(binFilePath)} already exists, skipping..`);
+        }
+    }
 
     // Extract the data blocks depending on the file type
     switch (fileType) {
@@ -199,19 +215,6 @@ export default function BinExtractor(binFilePath: string, outputDirPath: string,
         default:
             logger.error(`Invalid bin file type: ${binFilePath}`);
             process.exit(1);
-    }
-
-    // Export the decompressed bin file
-    if (exportDecompressedBin) {
-        logger.warn("Exporting the decompressed bin file, this may take a a bit more time..");
-
-        const outputFilePath = path.join(outputDirPath, path.basename(binFilePath, ".bin") + ".decomp.bin");
-
-        if (!fs.existsSync(outputFilePath)) {
-            fs.writeFileSync(outputFilePath, Buffer.concat(dataBlocks));
-        } else {
-            logger.warn(`The decompressed version of ${path.basename(binFilePath)} already exists, skipping..`);
-        }
     }
 
     // Closing the file from the cache

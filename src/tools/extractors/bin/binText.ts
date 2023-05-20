@@ -11,7 +11,6 @@ import {
     convertStringToUint8Array,
     convertUint8ArrayToNumber,
     convertUint8ArrayToString,
-    generateBytesObjectFromMapping,
     generateBytesTableFromMapping
 } from "helpers/bytes";
 import { getFileName } from "helpers/files";
@@ -23,13 +22,18 @@ import NsBytes from "types/bytes";
 /**
  * Read the text groups.
  * @param cache Initialized cache class.
+ * @param initialPointer The initial pointer position.
  * @param littleEndian Whether the bin file is little endian or not.
  * @returns The text groups.
  */
-function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTextGroupStringTextIDs {
+function readTextGroups(
+    cache: Cache,
+    initialPointer: number,
+    littleEndian: boolean
+): NsBin.IsBinFileTextGroupStringTextIDs {
     logger.info("Reading text group IDs..");
 
-    let pointer = 0;
+    let pointer = initialPointer;
 
     // Group ID Entry Size
     const textGroupsSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
@@ -39,8 +43,6 @@ function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTex
     // Calculate the number of groups
     const groupIDEntryMappingLength = calculateMappingsLength(MpBinFileTextGroupIDEntry);
     const numberOfGroups = Math.floor(textGroupsSize / groupIDEntryMappingLength);
-
-    logger.verbose(`Number of groups: ${numberOfGroups}`);
 
     // Group ID Entries
     const rawGroupIDEntries = cache.readBytes(pointer, textGroupsSize);
@@ -53,6 +55,14 @@ function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTex
         littleEndian
     );
 
+    // Remove the invalid group ID entries (using ".txg " as marker)
+    for (const groupIDEntry of groupIDEntries) {
+        if (groupIDEntry.magic != ".txg") {
+            const index = groupIDEntries.indexOf(groupIDEntry);
+            groupIDEntries.splice(index, 1);
+        }
+    }
+
     pointer += textGroupsSize;
 
     // Group String Refs
@@ -60,32 +70,50 @@ function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTex
 
     // Repeat based on the number of groups
     for (let i = 0; i < numberOfGroups; i++) {
-        // Get the size of the group string refs
-        const groupStringRefsSize = convertUint8ArrayToNumber(cache.readBytes(pointer));
-
+        // Get the size of the group string ref
+        const groupStringRefSize = convertUint8ArrayToNumber(cache.readBytes(pointer));
         pointer += 4;
 
         // Size of the mapping for one group string ref
-        const groupStringRefsMappingLength = calculateMappingsLength(MpBinFileTextGroupStringRefs);
+        const groupStringRefMappingLength = calculateMappingsLength(MpBinFileTextGroupStringRefs);
 
         // Read the group string ref
-        const rawGroupStringRef = cache.readBytes(pointer, groupStringRefsSize);
+        const rawGroupStringRef = cache.readBytes(pointer, groupStringRefSize);
 
-        pointer += groupStringRefsSize;
+        pointer += groupStringRefSize;
 
         const groupStringRef = generateBytesTableFromMapping(
             rawGroupStringRef,
             MpBinFileTextGroupStringRefs,
-            groupStringRefsMappingLength,
+            groupStringRefMappingLength,
             false,
             littleEndian
         );
 
-        // Push the mapped data to the group string refs array
-        groupStringRefs.push(groupStringRef);
-
         // Add 4 bytes to the pointer for an unknown value
         pointer += 4;
+
+        // Verify the group string ref (using ".txi " & ".txs" as markers)
+        let groupStringRefVerified = true;
+        for (const stringID of groupStringRef) {
+            if (stringID.magic1 != ".txi" || stringID.magic2 != ".txs") {
+                groupStringRefVerified = false;
+                break;
+            }
+        }
+
+        // Push the mapped data to the group string refs array
+        if (groupStringRefVerified) {
+            groupStringRefs.push(groupStringRef);
+        } else {
+            // Reset the pointer position if the group string ref is not verified
+            pointer -= groupStringRefSize + 8;
+        }
+    }
+
+    // Sometimes the number of group string refs is less than the number of group ID entries
+    while (groupStringRefs.length < groupIDEntries.length) {
+        groupIDEntries.pop();
     }
 
     return {
@@ -98,27 +126,25 @@ function readTextGroups(cache: Cache, littleEndian: boolean): NsBin.IsBinFileTex
 /**
  * Read the text group strings.
  * @param cache Initialized cache class.
- * @param dataBlockSize The size of the data block.
  * @param textGroups The text groups and the pointer.
  * @param littleEndian Whether the bin file is little endian or not.
  * @returns The group strings in a list.
  */
 function readGroupStrings(
     cache: Cache,
-    dataBlockSize: number,
     textGroups: NsBin.IsBinFileTextGroupStringTextIDs,
     littleEndian: boolean
 ) {
+    const numberOfGroups = textGroups.groupStringRefs.length;
+    let groupIndex = 0;
     let pointer = textGroups.pointer;
-    const groupSize = dataBlockSize - pointer;
 
-    logger.info(`Reading group strings with a group size of ${groupSize} bytes.`);
+    logger.info(`Reading ${numberOfGroups} strings..`);
 
     const breakPositions: number[] = [];
     const strings: string[] = [];
 
-    const totalLength = groupSize + textGroups.pointer;
-    while (pointer < totalLength) {
+    while (groupIndex < numberOfGroups) {
         // Break size
         const breakSize = convertUint8ArrayToNumber(cache.readBytes(pointer), littleEndian);
         pointer += 4;
@@ -138,29 +164,30 @@ function readGroupStrings(
         pointer += 4;
 
         // Concatenated strings
-        // const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
+        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
         pointer += stringSize;
 
-        console.log(stringSize);
+        // Apply the break positions to the concatenated strings
+        let string = "";
+        let stringIndex = 0;
 
-        // // Apply the break positions to the concatenated strings
-        // let string = "";
-        // let stringIndex = 0;
+        for (let i = 0; i < breakPositions.length; i++) {
+            const breakPosition = breakPositions[i];
 
-        // for (let i = 0; i < breakPositions.length; i++) {
-        //     const breakPosition = breakPositions[i];
+            string += concatenatedStrings.slice(stringIndex, breakPosition);
+            stringIndex = breakPosition;
+        }
 
-        //     string += concatenatedStrings.slice(stringIndex, breakPosition);
-        //     stringIndex = breakPosition;
-        // }
+        // Push the string to the strings array
+        strings.push(string);
 
-        // // Push the string to the strings array
-        // strings.push(string);
+        groupIndex++;
     }
 
-    logger.info(`Number of strings: ${strings.length}`);
-
-    return strings;
+    return {
+        strings: strings,
+        pointer: pointer
+    };
 }
 
 /**
@@ -168,7 +195,11 @@ function readGroupStrings(
  * @param strings An array of all the encoded strings.
  * @returns The decoded string with line breaks.
  */
-function escapedUnicodeDecoder(strings: string[]) {
+function escapedUnicodeDecoder(
+    strings: string[],
+    removeCodes: boolean,
+    removeColors: boolean
+) {
     logger.info("Decoding escaped unicode characters..");
 
     let decodedStrings = "";
@@ -181,10 +212,6 @@ function escapedUnicodeDecoder(strings: string[]) {
             const code = parseInt(p1, 10);
             let character = "";
 
-            if (code < 61) {
-                // console.log(code);
-            }
-
             // Character validity check
             if (code !== undefined && code >= 0x0061 && code <= 0x10FFFF) {
                 character = String.fromCharCode(code);
@@ -196,11 +223,14 @@ function escapedUnicodeDecoder(strings: string[]) {
         });
 
         // Removes the codes (\p14\ etc..)
-        // console.log(decodedString);
-        decodedString = decodedString.replace(/\\[a-z][0-9]{1,2}\\/gi, "");
+        if (removeCodes) {
+            decodedString = decodedString.replace(/\\[a-z][0-9]{1,2}\\/gi, "");
+        }
 
         // Removes the colors (\cffffffff\ etc..)
-        decodedString = decodedString.replace(/\\c[a-z0-9]{8}\\/gi, "");
+        if (removeColors) {
+            decodedString = decodedString.replace(/\\c[a-z0-9]{8}\\/gi, "");
+        }
 
         // Concatenate the decoded strings
         decodedStrings = decodedStrings.concat(decodedString);
@@ -214,6 +244,8 @@ function escapedUnicodeDecoder(strings: string[]) {
  * @param outputDirPath The output directory path.
  * @param binFilePath The bin file path.
  * @param dataBlocks The decompressed data blocks.
+ * @param removeCodes Whether to remove the codes or not (optional, default: false)
+ * @param removeColors Whether to remove the colors or not (optional, default: false)
  * @param littleEndian Whether the bin file is little endian or not.
  * @link [Bin Text files doc by Kapouett.](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/TextFile.md)
  */
@@ -221,36 +253,55 @@ export default function BinText(
     outputDirPath: string,
     binFilePath: string,
     dataBlocks: Uint8Array[],
+    removeCodes = false,
+    removeColors = false,
     littleEndian = true
 ) {
     // Loading the cache in buffer mode (no file)
     const cache = new Cache("", 0, dataBlocks);
+    const bufferLength = cache.bufferLength;
+    let lastPointer = 0;
 
-    const textGroups = readTextGroups(
-        cache,
-        littleEndian
+    const groupStrings: string[] = [];
+
+    // There's multiple groups inside the bin file
+    // We need to read only groups defined by their ID entries
+    // Then, start again if the pointer is not at the end of the buffer
+    while (lastPointer < bufferLength) {
+        const textGroups = readTextGroups(
+            cache,
+            lastPointer,
+            littleEndian
+        );
+
+        const { strings, pointer } = readGroupStrings(
+            cache,
+            textGroups,
+            littleEndian
+        );
+
+        // Add the strings to the group strings array
+        groupStrings.push(...strings);
+
+        lastPointer = pointer;
+    }
+
+    const decodedStrings = escapedUnicodeDecoder(
+        groupStrings,
+        removeCodes,
+        removeColors
     );
 
-    const groupStrings = readGroupStrings(
-        cache,
-        cache.bufferLength,
-        textGroups,
-        littleEndian
+    const finalStrings = convertStringToUint8Array(
+        decodedStrings,
+        littleEndian,
+        "utf-8"
     );
 
-    // const decoded = escapedUnicodeDecoder(
-    //     groupStrings
-    // );
+    const filename = path.basename(binFilePath, ".bin") + ".txt";
 
-    // const result = convertStringToUint8Array(
-    //     decoded,
-    //     littleEndian
-    // );
+    const outputFilePath = path.join(outputDirPath, filename);
+    fs.writeFileSync(outputFilePath, finalStrings);
 
-    // const filename = path.basename(binFilePath, ".bin") + ".txt";
-
-    // const outputFilePath = path.join(outputDirPath, filename);
-    // fs.writeFileSync(outputFilePath, result);
-
-    // logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
+    logger.info(`Successfully extracted: '${getFileName(binFilePath)}' => '${getFileName(outputFilePath)}'.`);
 }

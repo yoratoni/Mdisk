@@ -3,12 +3,12 @@ import NsBytes from "types/bytes";
 
 declare namespace NsBin {
     /**
-     * The group ID entries, the group string refs and the pointer inside Bin text files.
+     * Bin text group string text IDs.
      */
     interface IsBinFileTextGroupStringTextIDs {
-        groupIDEntries: NsBytes.IsMappingByteObject[];
-        groupStringRefs: NsBytes.IsMappingByteObject[][];
-        pointer: number;
+        groupIDEntries: NsBytes.IsMappingByteObject[];          // Group ID Entries
+        groupStringRefs: NsBytes.IsMappingByteObject[][];       // Group String Refs
+        pointer: number;                                        // Final pointer position
     }
 }
 
