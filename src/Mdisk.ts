@@ -24,4 +24,4 @@ logger.info("Mdisk started..");
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/jingle_demo.wam", "F:/Yoratoni/Mdisk/src/binary");
 // AudioExtractor("F:/Yoratoni/Mdisk/src/binary/beluga_demo.waa", "F:/Yoratoni/Mdisk/src/binary");
 
-BinExtractor("F:/Yoratoni/Mdisk/src/binary/bin/texts/fd80f3f8.bin", "F:/Yoratoni/Mdisk/src/binary/texts", true);
+// BinExtractor("F:/Yoratoni/Mdisk/src/binary/bin/texts/fd80f3f8.bin", "F:/Yoratoni/Mdisk/src/binary/archives/texts", true);
