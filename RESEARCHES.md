@@ -1,3 +1,7 @@
+# Researches
+This file contains all the researches I've done on the game files.
+
+
 Trailer Files
 -------------
 I suppose, for now, that these files are actually some trailer videos or something like that.
