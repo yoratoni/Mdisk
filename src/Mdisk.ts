@@ -2,7 +2,7 @@
 import { convertStringToUint8Array, convertUint8ArrayToHexString, convertUint8ArrayToString } from "helpers/bytes";
 import { generatePNG } from "helpers/images";
 import logger from "helpers/logger";
-import { generateHuffmanCoding } from "helpers/maths/algorithms/huffman";
+import { generateHuffmanTable } from "helpers/maths/algorithms/huffman";
 import BigFileBuilder from "tools/builders/bigFileBuilder";
 import AudioExtractor from "tools/extractors/audioExtractor";
 import BigFileExtractor from "tools/extractors/bigFileExtractor";
@@ -17,7 +17,7 @@ logger.info("Mdisk started..");
 
 const data =  "ABCDEflknojnjjnj";  // new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8]);
 
-const encodedData = generateHuffmanCoding(data);
+const encodedData = generateHuffmanTable(data);
 
 console.log(encodedData);
 

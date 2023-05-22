@@ -131,9 +131,11 @@ export function makeHuffmanTree(
 /**
  * Huffman algorithm.
  * @param data String or Uint8Array (bytes) to encode.
- * @returns The encoded data in binary.
+ * @returns The encoded data in the table.
  */
-export function generateHuffmanCoding(data: string | Uint8Array): string {
+export function generateHuffmanTable(
+    data: string | Uint8Array
+): NsAlgorithms.huffmanTable {
     let frequencyTable: NsAlgorithms.huffmanFrequencyTable;
 
     // Get the frequency table (string or bytes)
@@ -176,16 +178,5 @@ export function generateHuffmanCoding(data: string | Uint8Array): string {
     // Start the traversal
     traverse(huffmanTree, "");
 
-    // Get the binary string
-    let binary = "";
-
-    for (const singleValue of data) {
-        if (singleValue in huffmanTable) {
-            binary += huffmanTable[singleValue];
-        } else {
-            binary += "0";
-        }
-    }
-
-    return binary;
+    return huffmanTable;
 }
