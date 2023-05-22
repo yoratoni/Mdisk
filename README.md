@@ -4,6 +4,21 @@ A tool for the game Beyond Good & Evil.
 Note that I'm using Beyond Good & Evil - Steam & GOG - PC (sally_clean.bf),
 this tool is compatible with both versions.
 
+Technical Summary
+-----------------
+You can find all the researches I've done on game files [here](https://github.com/yoratoni/Mdisk/blob/main/RESEARCHES.md).
+
+I'm trying to not use any library to decompress/compress the files as I'm also using this project to improve my skills, I'm only using `lzo` for the Bin files and `iconv-lite` for String <=> Uint8Array conversions as I'm using a lot of different string encodings.
+
+Notes:
+- Implemented a file reading system with chunks.
+- Mostly using Uint8Arrays for hex data.
+- Helper functions for bytes, files & numbers.
+- Complete BMP export implementation.
+- Classes for pointers & cache.
+
+I'm using the implemented BMP generation to preview data from files such as `mtx` trailers or texture Bin files, in the goal of reverse engineering them.
+
 Usage
 -----
 The goal here was to build a tool that can extract and build the game files.
@@ -62,12 +77,6 @@ Bin extraction / building Support
 | `fd*`   | Texts              | **EXTRACTION**                 |
 | `ff8*`  | Textures           | **-----------------------**    |
 | `ff0*`  | Miscellaneous      | **-----------------------**    |
-
-Technical Summary
------------------
-This tool is built with TS-Node and Typescript, I made the whole thing fully scalable by creating
-general classes and helper functions. I also added a mapping system between byte positions
-and data. The files can be read by chunks instead of a complete loading.
 
 Credits
 -------
