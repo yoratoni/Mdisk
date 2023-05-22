@@ -214,15 +214,17 @@ function createDIBHeader_BITMAPV4HEADER(
 }
 
 /**
- * Generates a BMP image from a Uint8Array (RGB square image).
+ * Generates a BMP image from a Uint8Array (RGB square image),
+ * where each pixel is represented by 3 bytes of the input array.
  * @param outputDirPath The output directory path
  * @param filename The filename of the image (without the extension).
  * @param input The Uint8Array to generate the image from.
+ * @link https://en.wikipedia.org/wiki/BMP_file_format
  */
 export function generateBMPImageFromUint8Array(
     outputDirPath: string,
     filename: string,
-    input: Uint8Array,
+    input: Uint8Array
 ) {
     logger.info("Generating BMP image from Uint8Array..");
 
@@ -241,17 +243,24 @@ export function generateBMPImageFromUint8Array(
     // Convert the Uint8Array to a number array
     const nbArray: number[] = [];
 
-    for (let i = 0; i < input.length; i += byteDepth) {
-        nbArray.push(
-            input[i],
-            input[i + 1],
-            input[i + 2]
-        );
+    // Generate pixel array
+    const bytesPerRow = width * byteDepth;
+    const paddingBytes = (4 - (bytesPerRow % 4)) % 4;
 
-        // Add 2 bytes of padding every two pixels
-        // Based on the length of the number array without padding
-        if (i > 0 && (i - 1) % 2 === 0) {
-            nbArray.push(0x00, 0x00);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * byteDepth;
+
+            nbArray.push(
+                input[index],
+                input[index + 1],
+                input[index + 2]
+            );
+        }
+
+        // Add padding bytes
+        for (let p = 0; p < paddingBytes; p++) {
+            nbArray.push(0x00);
         }
     }
 
@@ -312,8 +321,11 @@ export function generateBMPImage(
 ) {
     logger.info("Generating BMP image..");
 
+    // Calculate byte depth
+    const byteDepth = Object.keys(pixelArray[0]).length;
+
     // Calculate bit depth
-    const bitDepth = Object.keys(pixelArray[0]).length * 8;
+    const bitDepth = byteDepth * 8;
 
     if (bitDepth !== 24 && bitDepth !== 32) {
         logger.error(`Invalid bit depth: ${bitDepth}.`);
@@ -329,18 +341,23 @@ export function generateBMPImage(
     if (!isRGBA) {
         // RGB
         const rgbArray = pixelArray as NsBytes.IsRGBColor[];
+        const bytesPerRow = width * byteDepth;
+        const paddingBytes = (4 - (bytesPerRow % 4)) % 4;
 
-        for (let i = 0; i < rgbArray.length; i++) {
-            nbArray.push(
-                rgbArray[i].B,
-                rgbArray[i].G,
-                rgbArray[i].R
-            );
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const index = y * width + x;
 
-            // Add 2 bytes of padding every two pixels
-            // Based on the length of the number array without padding
-            if (i > 0 && (i - 1) % 2 === 0) {
-                nbArray.push(0x00, 0x00);
+                nbArray.push(
+                    rgbArray[index].B,
+                    rgbArray[index].G,
+                    rgbArray[index].R
+                );
+            }
+
+            // Add padding bytes
+            for (let p = 0; p < paddingBytes; p++) {
+                nbArray.push(0x00);
             }
         }
     } else {
@@ -379,11 +396,19 @@ export function generateBMPImage(
     // Create BMP header
     const header = createBMPHeader(dibHeader.length + pixelUint8Array.length, dibHeader.length);
 
+    logger.info("Creating BMP Uint8Array..");
+
     // Create BMP Uint8Array
     const bmpImage = new Uint8Array(header.length + dibHeader.length + pixelUint8Array.length);
 
+    logger.info("Combining BMP/DIB header and pixel array..");
+
     // Combine header and pixel arrays
-    bmpImage.set([...header, ...dibHeader, ...pixelUint8Array], 0);
+    bmpImage.set(header, 0);
+    bmpImage.set(dibHeader, header.length);
+    bmpImage.set(pixelUint8Array, header.length + dibHeader.length);
+
+    logger.info("Writing BMP image to file..");
 
     // Write to file
     const outputFilePath = path.join(outputDirPath, `${filename}.bmp`);

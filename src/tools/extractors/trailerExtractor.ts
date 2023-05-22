@@ -16,6 +16,6 @@ export default function TrailerExtractor(trailerFilePath: string, outputDirPath:
     generateBMPImageFromUint8Array(
         "C:/Users/terci/Desktop",
         "trailer",
-        cache.readBytes(0, 33493032)
+        cache.readBytes(0, 4)
     );
 }
