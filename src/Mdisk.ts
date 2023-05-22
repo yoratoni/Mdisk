@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { convertStringToUint8Array, convertUint8ArrayToHexString, convertUint8ArrayToString } from "helpers/bytes";
-import { generatePNG } from "helpers/images";
+import { generateBMPImage } from "helpers/images/bmp";
 import logger from "helpers/logger";
-import { generateHuffmanTable } from "helpers/maths/algorithms/huffman";
 import BigFileBuilder from "tools/builders/bigFileBuilder";
 import AudioExtractor from "tools/extractors/audioExtractor";
 import BigFileExtractor from "tools/extractors/bigFileExtractor";
@@ -14,29 +13,39 @@ import TrailerExtractor from "tools/extractors/trailerExtractor";
 
 logger.info("Mdisk started..");
 
+const rgb = [];
+const rgba = [];
 
-const data =  "ABCDEflknojnjjnj";  // new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+// RGB
+rgb.push(
+    { R: 255, G: 0, B: 0 },
+    { R: 255, G: 255, B: 255 },
+    { R: 0, G: 0, B: 255 },
+    { R: 0, G: 255, B: 0 },
+);
 
-const encodedData = generateHuffmanTable(data);
+// RGBA
+rgba.push(
+    { R: 0, G: 0, B: 255, A: 127 },
+    { R: 0, G: 255, B: 0, A: 127 },
+    { R: 255, G: 0, B: 0, A: 127 },
+    { R: 255, G: 255, B: 255, A: 127 },
+    { R: 0, G: 0, B: 255, A: 255 },
+    { R: 0, G: 255, B: 0, A: 255 },
+    { R: 255, G: 0, B: 0, A: 255 },
+    { R: 255, G: 255, B: 255, A: 255 },
+);
 
-console.log(encodedData);
+generateBMPImage(
+    "C:/Users/terci/Desktop",
+    "BMP_TEST",
+    4,
+    2,
+    rgba
+);
 
-// console.log(
-//     convertUint8ArrayToHexString(encodedData, true, false, true)
-// );
 
 
-// const pixels = [];
-
-// for (let i = 0; i < 1; i++) {
-//     for (let j = 0; j < 1; j++) {
-//         pixels.push({
-//             R: 219,
-//             G: 195,
-//             B: 205
-//         });
-//     }
-// }
 
 // generatePNG(
 //     "C:/Users/terci/Desktop",

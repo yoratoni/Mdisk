@@ -7,13 +7,15 @@ These files can be found inside `01 Texture Bank/Video Library/Trailer BGE`,
 so it seems possible that these files could be some video that can be set as textures inside of the game..
 
 Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
-decompressed file size field, if the file size == the decompressed file size (-2004), it uses `NTSC`.
+decompressed file size field, if the file size == the decompressed file size (diff of 2004), it uses `NTSC`.
+
+The 2004 bytes are at the end, it's a padding of `0x00` bytes.
 
 A `*.mtx` file seems to contain one or multiple tables that starts just after the header,
 these tables are the same size between `NTSC` & `PAL`.
 After that, a big padding containing only 0x00 separates the actual data from the table(s).
 
-The data seems to be represented as 16 byte long (starting after the header).
+The data seems to be represented as 16 bytes long (starting after the header).
 
 The table values seems to generally start with `0x0C`, I suppose that the first byte could be reserved
 to indicate the type of block, but note that it's not always the case.
@@ -25,9 +27,9 @@ Here's a table containing what I found out about the file header (for `MO_NTSC.m
 |--------|-------------|------------|------------------------------------------|
 | 0      | 6D 74 78 20 | ---------- | Magic ("mtx ")                           |
 | 4      | 01 10 00 00 | 4097       | Possibly the format/version              |
-| 8      | 28 10 FF 01 | 33,493,032 | Decompressed file size (-2004)           |
+| 8      | 28 10 FF 01 | 33,493,032 | File size (-2004)                        |
 | 12     | 00 80 1C 00 | 1,867,776  | The size of the padding & one data block |
-| 16     | 0B D5 BF 01 | 29,349,131 | ?                                        |
+| 16     | 0B D5 BF 01 | 29,349,131 | ? (always < file size)                   |
 | 20     | 00 C8 00 00 | 51,200     | Size of a table                          |
 | 24     | 02 00 00 00 | 2          | ?                                        |
 | 28     | 00 80 0C 00 | 819,200    | ?                                        |
