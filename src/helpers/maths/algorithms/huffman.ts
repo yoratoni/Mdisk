@@ -132,7 +132,6 @@ export function makeHuffmanTree(
  * Huffman algorithm.
  * @param data String or Uint8Array (bytes) to encode.
  * @returns The encoded data in binary.
- * @link https://compression.fiches-horaires.net/la-compression-sans-perte
  */
 export function generateHuffmanCoding(data: string | Uint8Array): string {
     let frequencyTable: NsAlgorithms.huffmanFrequencyTable;
