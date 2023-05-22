@@ -6,6 +6,8 @@ this tool is compatible with both versions.
 
 Technical Summary
 -----------------
+You can find all the researches I've done on game files [here](https://github.com/yoratoni/Mdisk/blob/main/RESEARCHES.md).
+
 I'm trying to not use any library to decompress/compress the files as I'm also using this project to improve my skills, I'm only using `lzo` for the Bin files and `iconv-lite` for String <=> Uint8Array conversions as I'm using a lot of different string encodings.
 
 Notes:
