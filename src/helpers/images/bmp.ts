@@ -214,9 +214,87 @@ function createDIBHeader_BITMAPV4HEADER(
 }
 
 /**
+ * Generates a BMP image from a Uint8Array (RGB square image).
+ * @param outputDirPath The output directory path
+ * @param filename The filename of the image (without the extension).
+ * @param input The Uint8Array to generate the image from.
+ */
+export function generateBMPImageFromUint8Array(
+    outputDirPath: string,
+    filename: string,
+    input: Uint8Array,
+) {
+    logger.info("Generating BMP image from Uint8Array..");
+
+    // Byte depth (RGB)
+    const byteDepth = 3;
+
+    // Bit depth (RGB)
+    const bitDepth = byteDepth * 8;
+
+    // Calculate width & height
+    const width = Math.floor(Math.sqrt(input.length / byteDepth));
+    const height = width;
+
+    logger.info(`Guessed dimensions: ${width}x${height} pixels.`);
+
+    // Convert the Uint8Array to a number array
+    const nbArray: number[] = [];
+
+    for (let i = 0; i < input.length; i += byteDepth) {
+        nbArray.push(
+            input[i],
+            input[i + 1],
+            input[i + 2]
+        );
+
+        // Add 2 bytes of padding every two pixels
+        // Based on the length of the number array without padding
+        if (i > 0 && (i - 1) % 2 === 0) {
+            nbArray.push(0x00, 0x00);
+        }
+    }
+
+    // Convert number array to Uint8Array
+    const pixelUint8Array = convertNumberArrayToUint8Array(nbArray);
+
+    // Create DIB header
+    const dibHeader = createDIBHeader_BITMAPINFOHEADER(
+        width,
+        height,
+        bitDepth,
+        pixelUint8Array.length,
+        72
+    );
+
+    // Create BMP header
+    const header = createBMPHeader(dibHeader.length + pixelUint8Array.length, dibHeader.length);
+
+    logger.info("Creating BMP Uint8Array..");
+
+    // Create BMP Uint8Array
+    const bmpImage = new Uint8Array(header.length + dibHeader.length + pixelUint8Array.length);
+
+    logger.info("Combining BMP/DIB header and pixel array..");
+
+    // Combine header and pixel arrays
+    bmpImage.set(header, 0);
+    bmpImage.set(dibHeader, header.length);
+    bmpImage.set(pixelUint8Array, header.length + dibHeader.length);
+
+    logger.info("Writing BMP image to file..");
+
+    // Write to file
+    const outputFilePath = path.join(outputDirPath, `${filename}.bmp`);
+    fs.writeFileSync(outputFilePath, bmpImage);
+
+    logger.info(`Successfully generated the BMP image from Uint8Array: '${filename}' => '${outputDirPath}'.`);
+}
+
+/**
  * Generates a BMP image.
  * @param outputDirPath The output directory path.
- * @param filename The filename of the image.
+ * @param filename The filename of the image (without the extension).
  * @param width The width of the image in pixels.
  * @param height The height of the image in pixels.
  * @param pixelArray The pixel array of the image.
@@ -232,7 +310,7 @@ export function generateBMPImage(
     pixelArray: NsBytes.IsRGBAColor[] | NsBytes.IsRGBColor[],
     DPI = 72
 ) {
-    logger.info("Creating BMP image..");
+    logger.info("Generating BMP image..");
 
     // Calculate bit depth
     const bitDepth = Object.keys(pixelArray[0]).length * 8;
@@ -245,24 +323,24 @@ export function generateBMPImage(
     // Is RGBA or RGB
     const isRGBA = bitDepth === 32;
 
-    // The final array containing the BMP image
-    const finalArray: number[] = [];
+    // The number array containing the BMP image
+    const nbArray: number[] = [];
 
     if (!isRGBA) {
         // RGB
         const rgbArray = pixelArray as NsBytes.IsRGBColor[];
 
         for (let i = 0; i < rgbArray.length; i++) {
-            finalArray.push(
+            nbArray.push(
                 rgbArray[i].B,
                 rgbArray[i].G,
                 rgbArray[i].R
             );
 
-            // Add 2 bytes padding every two pixels
-            // Based on length of final array without padding
+            // Add 2 bytes of padding every two pixels
+            // Based on the length of the number array without padding
             if (i > 0 && (i - 1) % 2 === 0) {
-                finalArray.push(0x00, 0x00);
+                nbArray.push(0x00, 0x00);
             }
         }
     } else {
@@ -270,7 +348,7 @@ export function generateBMPImage(
         const rgbaArray = pixelArray as NsBytes.IsRGBAColor[];
 
         for (let i = 0; i < rgbaArray.length; i++) {
-            finalArray.push(
+            nbArray.push(
                 rgbaArray[i].B,
                 rgbaArray[i].G,
                 rgbaArray[i].R,
@@ -279,12 +357,12 @@ export function generateBMPImage(
         }
     }
 
-    // Convert final array to Uint8Array
-    const pixelUint8Array = convertNumberArrayToUint8Array(finalArray);
+    // Convert number array to Uint8Array
+    const pixelUint8Array = convertNumberArrayToUint8Array(nbArray);
 
     /**
      * Note: BMP header & DIB header contains information about the image
-     * so we need to create the final pixel array first before creating the headers.
+     * so we need to create the pixel array first before creating the headers.
      */
 
     // Create DIB header
