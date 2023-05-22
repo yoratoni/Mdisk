@@ -14,6 +14,25 @@ declare namespace NsBytes {
         data: NsBytes.IsMappingByteObject;
         isEmpty: boolean;
     }
+
+    /**
+     * RGB color.
+     */
+    interface IsRGBColor {
+        R: number;
+        G: number;
+        B: number;
+    }
+
+    /**
+     * RGBA color.
+     */
+    interface IsRGBAColor {
+        R: number;
+        G: number;
+        B: number;
+        A: number;
+    }
 }
 
 

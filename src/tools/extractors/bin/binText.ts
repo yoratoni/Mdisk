@@ -186,7 +186,7 @@ function readGroupStrings(
         pointer += 4;
 
         // Concatenated strings
-        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), littleEndian);
+        const concatenatedStrings = convertUint8ArrayToString(cache.readBytes(pointer, stringSize), !littleEndian);
         pointer += stringSize;
 
         // Apply the break positions to the concatenated strings
@@ -326,7 +326,7 @@ export default function BinText(
 
     const finalStrings = convertStringToUint8Array(
         decodedStrings,
-        littleEndian,
+        !littleEndian,
         "utf-8"
     );
 

@@ -333,7 +333,7 @@ function generateFileMetadataTable(
         const previousIndex = convertNumberToUint8Array(file.previousIndex, 4, metadata.littleEndian);
         const directoryIndex = convertNumberToUint8Array(file.directoryIndex, 4, metadata.littleEndian);
         const unixTimestamp = convertNumberToUint8Array(file.unixTimestamp, 4, metadata.littleEndian);
-        const filename = convertStringToUint8Array(file.filename, metadata.littleEndian);
+        const filename = convertStringToUint8Array(file.filename, !metadata.littleEndian);
 
         // Note: filename is 64 bytes long, so we need to set the converted Uint8Array to this length
         const filename64 = new Uint8Array(64);
@@ -396,7 +396,7 @@ function generateDirectoryMetadataTable(
         const nextIndex = convertNumberToUint8Array(directory.nextIndex, 4, metadata.littleEndian);
         const previousIndex = convertNumberToUint8Array(directory.previousIndex, 4, metadata.littleEndian);
         const parentIndex = convertNumberToUint8Array(directory.parentIndex, 4, metadata.littleEndian);
-        const dirname = convertStringToUint8Array(directory.dirname, metadata.littleEndian);
+        const dirname = convertStringToUint8Array(directory.dirname, !metadata.littleEndian);
 
         // Note: dirname is 64 bytes long, so we need to set the converted Uint8Array to this length
         const dirname64 = new Uint8Array(64);

@@ -100,16 +100,16 @@ export function convertHexStringToUint8Array(hexString: string, littleEndian = t
  * Note that this function removes "0" from the array before conversion.
  *
  * @param bytesArray The bytes array.
- * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param littleEndian Whether the bytes array is little endian (defaults to false).
  * @param encoding The encoding to use (defaults to "iso-8859-1").
  * @returns The decoded string.
  */
 export function convertUint8ArrayToString(
     bytesArray: Uint8Array,
-    littleEndian = true,
+    littleEndian = false,
     encoding = "iso-8859-1"
 ) {
-    if (!littleEndian) {
+    if (littleEndian) {
         bytesArray = bytesArray.reverse();
     }
 
@@ -120,18 +120,18 @@ export function convertUint8ArrayToString(
 /**
  * Converts a string to an Uint8Array (using iso-8859-1 by default).
  * @param string The string.
- * @param littleEndian Whether the bytes array is little endian (defaults to true).
+ * @param littleEndian Whether the bytes array is little endian (defaults to false).
  * @param encoding The encoding to use (defaults to "iso-8859-1").
  * @returns The bytes array.
  */
 export function convertStringToUint8Array(
     string: string,
-    littleEndian = true,
+    littleEndian = false,
     encoding = "iso-8859-1"
 ) {
     const bytesArray = encode(string, encoding);
 
-    if (!littleEndian) {
+    if (littleEndian) {
         return bytesArray.reverse();
     }
 
@@ -422,7 +422,7 @@ export function generateBytesObjectFromMapping(
             if (value.type) {
                 switch (value.type) {
                     case "str":
-                        res = convertUint8ArrayToString(rawRes, littleEndian);
+                        res = convertUint8ArrayToString(rawRes, !littleEndian);
                         break;
                     case "hex":
                         res = convertUint8ArrayToHexString(rawRes, littleEndian, hexPrefix);
