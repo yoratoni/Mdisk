@@ -3,6 +3,14 @@ This file contains all the researches I've done on the game files.
 
 Big File
 --------
+The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
+not compressed.
+
+The whole extraction thing is now fully done, it also exports a `metadata.json` file that contains
+all the information about the files inside the Big File to be able to rebuild it.
+
+### Formats of files stored in the Big File
+
 - `*.bin` are a custom format, detailed [here](https://gitlab.com/Kapouett/bge-formats-doc/-/blob/master/Bin.md).
 - `*.waa`, `*.wac`, `*.wad`, `*.wam` are `wav` files (MS-ADPCM).
 - `*.waa` are ambient sounds.

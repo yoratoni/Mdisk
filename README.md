@@ -69,14 +69,6 @@ This tool is built with TS-Node and Typescript, I made the whole thing fully sca
 general classes and helper functions. I also added a mapping system between byte positions
 and data. The files can be read by chunks instead of a complete loading.
 
-Big File
---------
-The Big File stores all the game data, it is similar to a **tar** archive as the data inside are
-not compressed.
-
-The whole extraction thing is now fully done, it also exports a `metadata.json` file that contains
-all the information about the files inside the Big File to be able to rebuild it.
-
 Credits
 -------
 * Most of the information about general parsing comes from [this documentation](https://gitlab.com/Kapouett/bge-formats-doc) made by **Kapouett**.
