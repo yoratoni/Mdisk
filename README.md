@@ -6,7 +6,7 @@ this tool is compatible with both versions.
 
 Technical Summary
 -----------------
-I'm trying to not use any library to decompress/compress the files as I'm also using this project to improve my skills, I'm only using `lzo` for the Bin files and `iconv-lite` for String <=> Uint8Array conversions as I'm using a lot of different encodings.
+I'm trying to not use any library to decompress/compress the files as I'm also using this project to improve my skills, I'm only using `lzo` for the Bin files and `iconv-lite` for String <=> Uint8Array conversions as I'm using a lot of different string encodings.
 
 Notes:
 - Implemented a file reading system with chunks.
