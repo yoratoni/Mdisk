@@ -117,58 +117,56 @@ The 4 files:
 - `trailerOK_NTSC.mtx`
 - `trailerOK_PAL.mtx`
 
-`MO` could be the initials of `Making Of`.
+`MO` could be the initials for `Making Of`.
 
 These files can be found inside `01 Texture Bank/Video Library/Trailer BGE`,
 so it seems possible that these files could be some video that can be set as textures inside of the game..
 
-Note that `NTSC` data are not compressed, compared to `PAL`, this can be seen inside the
-decompressed file size field, if the file size == the decompressed file size (diff of 2004), it uses `NTSC`.
-
-A `*.mtx` file seems to contain one or multiple tables that starts just after the header,
-these tables are the same size between `NTSC` & `PAL`.
-After that, a big padding containing only 0x00 separates the actual data from the table(s).
-
 Here's a table containing what I found out about the file header (for `MO_NTSC.mtx`):
 
-| Offset | `NTSC`      | Value      | Description             | Same everywhere? |
-|--------|-------------|------------|-------------------------|------------------|
-| 0      | 6D 74 78 20 | ---------- | Magic ("mtx ")          | **Yes**          |
-| 4      | 01 10 00 00 | 4097       | Possibly format/version | **Yes**          |
-| 8      | 28 10 FF 01 | 33,493,032 | Decompressed size*      | **No**           |
-| 12     | 00 80 1C 00 | 1,867,776  | Padding + block length  | **No**           |
-| 16     | 0B D5 BF 01 | 29,349,131 | ? (always < file size)  | **No**           |
-| 20     | 00 C8 00 00 | 51,200     | Size of a table         | **Yes**          |
-| 24     | 02 00 00 00 | 2          | ?                       | **Yes**          |
-| 28     | 00 80 0C 00 | 819,200    | ?                       | **No**           |
-| 32     | 00 7D 00 00 | 32,000     | Sample rate / data rate | **MO / trailer** |
-| 36     | 00 00 80 3F | ---------- | Last value of header    | **Yes**          |
+| Offset | `NTSC`      | Value      | Description              | Constant value?  |
+|--------|-------------|------------|--------------------------|------------------|
+| 0      | 6D 74 78 20 | ---------- | Magic ("mtx ")           | **Yes**          |
+| 4      | 01 10 00 00 | 4097       | Possibly format/version  | **Yes**          |
+| 8      | 28 10 FF 01 | 33,493,032 | Decompressed size*       | **No**           |
+| 12     | 00 80 1C 00 | 1,867,776  | Padding / block length   | **No**           |
+| 16     | 0B D5 BF 01 | 29,349,131 | ? (always < file size)   | **No**           |
+| 20     | 00 C8 00 00 | 51,200     | Size of a table          | **Yes**          |
+| 24     | 02 00 00 00 | 2          | ?                        | **Yes**          |
+| 28     | 00 80 0C 00 | 819,200    | nbTables * tableSize * 2 | **No**           |
+| 32     | 00 7D 00 00 | 32,000     | Sample rate / data rate  | **MO / trailer** |
+| 36     | 00 00 80 3F | ---------- | Last value of header     | **Yes**          |
 
 Decompressed size:
 - The decompressed size is equal to the file size - 2004 bytes if the file is in the `NTSC` format.
-- In the case of `PAL`, it is compressed.
+- In the case of `PAL`, it is compressed as the file size is much smaller than in the header.
 
-Here's the table of each block (for `MO_NTSC.mtx`):
+An `mtx` file is composed like this (using `trailerOK_NTSC.mtx` as an example):
 
-| Offset     | Size       | Description            |
-|------------|------------|------------------------|
-| 0          | 40         | File header            |
-| 40         | 51,200     | Table A & data         |
-| 51,240     | 51,200     | Table B & data         |
-| 102,440    | 1,867,776  | Padding                |
-| 1,970,216  | 25,612,288 | Main data ?            |
-| 27,582,504 | 51,200     | Table C                |
-| 27,633,704 | 51,200     | Table D                |
-| 27,684,904 | 1,867,776  | A set of data          |
-| 29,552,680 | 51,200     | Table E (0x0C & empty) |
-| 29,603,880 | 51,200     | Table F (0x0C & empty) |
-| 29,655,080 | 1,867,776  | A set of data          |
-| 31,522,856 | 51,200     | Table G (0x0C & empty) |
-| 31,574,056 | 51,200     | Table H (0x0C & empty) |
-| 31,625,256 | 1,867,776  | A set of data          |
-| 33,493,032 | 2,004      | Padding                |
+| Offset     | Size       | Description                |
+|------------|------------|----------------------------|
+| 0          | 40         | File header                |
+| 40         | 51,200     | Table A                    |
+| 51,240     | 51,200     | Table B                    |
+| 102,440    | 1,206,272  | Padding                    |
+| 1,308,712  | 51,200     | Table C                    |
+| 1,359,912  | 51,200     | Table D                    |
+| 1,411,112  | 1,206,272  | Data                       |
+| **...**    | **...**    | **...**                    |
+| 60,198,952 | 51,200     | Table X                    |
+| 60,250,152 | 51,200     | Table X                    |
+| 60,301,352 | 1,206,272  | Data                       |
+| 61,507,624 | 51,200     | Table X (0x0C / 0x00)      |
+| 61,558,824 | 51,200     | Table X (0x0C / 0x00)      |
+| 61,610,024 | 1,206,272  | Data (not full)            |
+| 62,816,296 | 2,004      | Padding                    |
 
-About the last data set, it's a bit .. complicated, it is actually not 1,867,776 bytes long
-but 1,332,496 bytes long, with 537,284 `0x00` bytes, so 1,869,780 bytes long in total,
-when 2004 is removed from this result (value obtained when I compare the size of the file with the size
-inside the header), we also obtain 1,867,776 bytes long which corresponds to the size of one block.
+A set of data is represented as two tables and a data block.
+- The first data block is empty, but tables actually contains data.
+- The other sets of data follows the same pattern (2 tables + data block).
+- The last set(s) of data contains empty tables (0x0C / 0x00) and a data block not fully filled.
+
+Each table is composed of 51,200 bytes, this does not change between `NTSC` & `PAL`.
+
+Tables:
+- A table seems to contain 16 bytes of data per entry, where the second byte is always `0x00`.

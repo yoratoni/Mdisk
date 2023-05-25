@@ -1,7 +1,11 @@
 import fs from "fs";
 import path from "path";
 
-import { convertNumberArrayToUint8Array, convertNumberToUint8Array, convertStringToUint8Array } from "helpers/bytes";
+import {
+    convertNumberArrayToUint8Array,
+    convertNumberToUint8Array,
+    convertStringToUint8Array
+} from "helpers/bytes";
 import logger from "helpers/logger";
 import NsBytes from "types/bytes";
 
@@ -12,12 +16,10 @@ import NsBytes from "types/bytes";
  * @param offset The offset of the pixel array in bytes (without the header length).
  * @returns The BMP header.
  */
-function createBMPHeader(
+export function createBMPHeader(
     fileSize: number,
     offset: number
 ): Uint8Array {
-    logger.info("Creating BMP header..");
-
     const header = new Uint8Array(14);
 
     // BMP flag ("BM" - ASCII)
@@ -47,15 +49,13 @@ function createBMPHeader(
  * @param pixelArrayLength The length of the pixel array.
  * @param DPI The DPI of the image.
  */
-function createDIBHeader_BITMAPINFOHEADER(
+export function createDIBHeader_BITMAPINFOHEADER(
     width: number,
     height: number,
     bitDepth: number,
     pixelArrayLength: number,
     DPI: number
 ) {
-    logger.info("Creating DIB header (BITMAPINFOHEADER)..");
-
     const header = new Uint8Array(40);
 
     // Header size
@@ -116,15 +116,13 @@ function createDIBHeader_BITMAPINFOHEADER(
  * @param pixelArrayLength The length of the pixel array.
  * @param DPI The DPI of the image.
  */
-function createDIBHeader_BITMAPV4HEADER(
+export function createDIBHeader_BITMAPV4HEADER(
     width: number,
     height: number,
     bitDepth: number,
     pixelArrayLength: number,
     DPI: number
 ) {
-    logger.info("Creating DIB header (BITMAPV4HEADER)..");
-
     const header = new Uint8Array(108);
 
     // Header size
@@ -211,226 +209,6 @@ function createDIBHeader_BITMAPV4HEADER(
     header.set(blueGamma, 104);
 
     return header;
-}
-
-/**
- * Generates a BMP grayscale image from a Uint8Array,
- * where each pixel is represented by 1 byte of the input array.
- *
- * Used to analyze binary data so the BMP image is reversed to match first byte of the file.
- * @param outputDirPath The output directory path
- * @param filename The filename of the image (without the extension).
- * @param input The Uint8Array to generate the image from.
- * @param bytesPerRow Bytes per row on the image (optional, defaults to 16, -1 = squared image).
- * @link https://en.wikipedia.org/wiki/BMP_file_format
- */
-export function generateBMPGrayscaleFromUint8Array(
-    outputDirPath: string,
-    filename: string,
-    input: Uint8Array,
-    bytesPerRow = 16
-) {
-    logger.info("Generating BMP grayscale image from Uint8Array..");
-
-    // Byte depth (grayscale)
-    // Using 3 same values for RGB24 with 8 bit depth (no palette)
-    const byteDepth = 3;
-
-    // Bit depth (grayscale)
-    // Using 3 same values for RGB24 with 8 bit depth (no palette)
-    const bitDepth = byteDepth * 8;
-
-    // Verify bytes per row
-    if (bytesPerRow > input.length) {
-        logger.error("Invalid bytes per row!");
-        return;
-    }
-
-    // Calculate height
-    let height: number;
-
-    if (bytesPerRow < 0) {
-        // Square image (sqrt)
-        height = Math.floor(Math.sqrt(input.length));
-    } else {
-        // Number of rows
-        height = Math.floor(input.length / bytesPerRow);
-    }
-
-    // Calculate width (if bytesPerRow is -1, width = height)
-    const width = bytesPerRow < 0 ? height : bytesPerRow;
-
-    logger.info(`Guessed dimensions: ${width}x${height}`);
-
-    // Convert the Uint8Array to a number array
-    const nbArray: number[] = [];
-
-    // Generate pixel array
-    const bmpBytesPerRow = width * byteDepth;
-    const paddingBytes = (4 - (bmpBytesPerRow % 4)) % 4;
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const index = (y * width + x);
-
-            nbArray.push(
-                input[index],
-                input[index],
-                input[index]
-            );
-        }
-
-        // Add padding bytes
-        for (let p = 0; p < paddingBytes; p++) {
-            nbArray.push(0x00);
-        }
-    }
-
-    // Convert the number array to a Uint8Array
-    const pixelUint8Array = convertNumberArrayToUint8Array(nbArray);
-
-    // Reverse the pixel array (y-axis)
-    pixelUint8Array.reverse();
-
-    // Reverse the pixel array (x-axis)
-    for (let y = 0; y < height; y++) {
-        const row = pixelUint8Array.slice(y * bmpBytesPerRow, (y + 1) * bmpBytesPerRow);
-        row.reverse();
-
-        pixelUint8Array.set(row, y * bmpBytesPerRow);
-    }
-
-    // Create DIB header
-    const dibHeader = createDIBHeader_BITMAPINFOHEADER(
-        width,
-        height,
-        bitDepth,
-        pixelUint8Array.length,
-        72
-    );
-
-    // Create BMP header
-    const header = createBMPHeader(dibHeader.length + pixelUint8Array.length, dibHeader.length);
-
-    logger.info("Creating BMP Uint8Array..");
-
-    // Create BMP Uint8Array
-    const bmpImage = new Uint8Array(header.length + dibHeader.length + pixelUint8Array.length);
-
-    logger.info("Combining BMP/DIB header and pixel array..");
-
-    // Combine header and pixel arrays
-    bmpImage.set(header, 0);
-    bmpImage.set(dibHeader, header.length);
-    bmpImage.set(pixelUint8Array, header.length + dibHeader.length);
-
-    logger.info("Writing BMP grayscale to file..");
-
-    // Write to file
-    const outputFilePath = path.join(outputDirPath, `${filename}.bmp`);
-    fs.writeFileSync(outputFilePath, bmpImage);
-
-    logger.info(`Successfully generated the BMP grayscale from Uint8Array: '${filename}' => '${outputDirPath}'.`);
-}
-
-/**
- * Generates a BMP image from a Uint8Array (RGB square image),
- * where each pixel is represented by 3 bytes of the input array.
- *
- * Used to analyze binary data so the BMP image is reversed to match first byte of the file.
- * @param outputDirPath The output directory path
- * @param filename The filename of the image (without the extension).
- * @param input The Uint8Array to generate the image from.
- * @link https://en.wikipedia.org/wiki/BMP_file_format
- */
-export function generateBMPImageFromUint8Array(
-    outputDirPath: string,
-    filename: string,
-    input: Uint8Array
-) {
-    logger.info("Generating BMP image from Uint8Array..");
-
-    // Byte depth (RGB)
-    const byteDepth = 3;
-
-    // Bit depth (RGB)
-    const bitDepth = byteDepth * 8;
-
-    // Calculate width & height
-    const width = Math.floor(Math.sqrt(input.length / byteDepth));
-    const height = width;
-
-    logger.info(`Guessed dimensions: ${width}x${height} pixels.`);
-
-    // Convert the Uint8Array to a number array
-    const nbArray: number[] = [];
-
-    // Generate pixel array
-    const bytesPerRow = width * byteDepth;
-    const paddingBytes = (4 - (bytesPerRow % 4)) % 4;
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const index = (y * width + x) * byteDepth;
-
-            nbArray.push(
-                input[index],
-                input[index + 1],
-                input[index + 2]
-            );
-        }
-
-        // Add padding bytes
-        for (let p = 0; p < paddingBytes; p++) {
-            nbArray.push(0x00);
-        }
-    }
-
-    // Convert the number array to a Uint8Array
-    const pixelUint8Array = convertNumberArrayToUint8Array(nbArray);
-
-    // Reverse the pixel array (y-axis)
-    pixelUint8Array.reverse();
-
-    // Reverse the pixel array (x-axis)
-    for (let y = 0; y < height; y++) {
-        const row = pixelUint8Array.slice(y * bytesPerRow, (y + 1) * bytesPerRow);
-        row.reverse();
-
-        pixelUint8Array.set(row, y * bytesPerRow);
-    }
-
-    // Create DIB header
-    const dibHeader = createDIBHeader_BITMAPINFOHEADER(
-        width,
-        height,
-        bitDepth,
-        pixelUint8Array.length,
-        72
-    );
-
-    // Create BMP header
-    const header = createBMPHeader(dibHeader.length + pixelUint8Array.length, dibHeader.length);
-
-    logger.info("Creating BMP Uint8Array..");
-
-    // Create BMP Uint8Array
-    const bmpImage = new Uint8Array(header.length + dibHeader.length + pixelUint8Array.length);
-
-    logger.info("Combining BMP/DIB header and pixel array..");
-
-    // Combine header and pixel arrays
-    bmpImage.set(header, 0);
-    bmpImage.set(dibHeader, header.length);
-    bmpImage.set(pixelUint8Array, header.length + dibHeader.length);
-
-    logger.info("Writing BMP image to file..");
-
-    // Write to file
-    const outputFilePath = path.join(outputDirPath, `${filename}.bmp`);
-    fs.writeFileSync(outputFilePath, bmpImage);
-
-    logger.info(`Successfully generated the BMP image from Uint8Array: '${filename}' => '${outputDirPath}'.`);
 }
 
 /**
@@ -534,7 +312,7 @@ export function generateBMPImage(
     // Create BMP Uint8Array
     const bmpImage = new Uint8Array(header.length + dibHeader.length + pixelUint8Array.length);
 
-    logger.info("Combining BMP/DIB header and pixel array..");
+    logger.info("Combining BMP/DIB headers and pixel array..");
 
     // Combine header and pixel arrays
     bmpImage.set(header, 0);

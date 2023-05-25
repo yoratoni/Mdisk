@@ -161,6 +161,14 @@ export default class Cache {
     }
 
     /**
+     * Get the size of one chunk in bytes.
+     * @returns The size of one chunk in bytes.
+     */
+    public get chunkSize() {
+        return this._chunkSize;
+    }
+
+    /**
      * Get the complete cached buffer.
      * @returns The complete cached buffer.
      */
@@ -177,7 +185,7 @@ export default class Cache {
     }
 
     /**
-     * Get the size of the file/buffer in bytes.
+     * Get the total size of the file/buffer in bytes.
      * @returns The size of the file/buffer in bytes.
      */
     public getSize() {

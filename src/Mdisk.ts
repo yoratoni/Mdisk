@@ -28,4 +28,4 @@ logger.info("Mdisk started..");
 
 // BinExtractor("F:/Yoratoni/Mdisk/src/binary/bin/texts/fd80f3f8.bin", "F:/Yoratoni/Mdisk/src/binary/archives/texts", true);
 
-TrailerExtractor("F:/Yoratoni/Mdisk/src/binary/mtx/MO_NTSC.mtx", "F:/Yoratoni/Mdisk/src/binary/archives/trailers");
+// TrailerExtractor("F:/Yoratoni/Mdisk/src/binary/mtx/trailerOK_NTSC.mtx", "F:/Yoratoni/Mdisk/src/binary/archives/trailers");

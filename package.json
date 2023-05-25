@@ -7,7 +7,8 @@
     "repository": "https://github.com/yoratoni/Mdisk",
     "private": true,
     "scripts": {
-        "start": "ts-node src/mdisk.ts"
+        "start": "ts-node src/mdisk.ts",
+        "visualize": "ts-node src/visualize.ts"
     },
     "dependencies": {
         "chai": "^4.3.7",
