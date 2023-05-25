@@ -15,9 +15,9 @@ export const GENERAL_CONFIG = {
  */
 export const VIS_CONFIG = {
     outputDirPath: "C:/Users/terci/Desktop",        // Output dir path
-    bytesPerRow: 2048,                              // Number of bytes per row
-    numberOfBytesToRead: 0,                         // Number of bytes to read (0 = all)
-    chunkSize: 8,                                   // Number of bytes per chunk
+    bytesPerRow: 512,                               // Number of bytes per row
+    numberOfBytesToRead: 1308712,                   // Number of bytes to read (0 = all)
+    chunkSize: 16,                                  // Number of bytes per chunk
     backgroundColor: [0x7F, 0x00, 0x00],            // Background color
     alphaMask: 0xFF,                                // Alpha mask
 };
