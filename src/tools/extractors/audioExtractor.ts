@@ -105,21 +105,21 @@ function convertSamplesToNibbles(rawSamples: Uint8Array) {
  * Note that this function supports any number of channels.
  * @param cache Initialized cache class.
  * @param header The audio file header.
- * @param dataBlockNumber The number of the block to read.
+ * @param dataBlockIndex The number of the block to read.
  * @param dataBlockAlign The size of one data block.
  * @returns The formatted MS-ADPCM audio data (array -> each value = channel).
  */
 function readDataBlock(
     cache: Cache,
     header: NsBytes.IsMappingByteObjectResultWithEmptiness,
-    dataBlockNumber: number,
+    dataBlockIndex: number,
     dataBlockAlign: number
 ) {
     const headerSize = header.data.headerSize as number;
     const numChannels = header.data.numChannels as number;
 
     // Reads the complete block including all channels
-    const rawBlock = cache.readBytes(headerSize + dataBlockNumber * dataBlockAlign, dataBlockAlign);
+    const rawBlock = cache.readBytes(headerSize + dataBlockIndex * dataBlockAlign, dataBlockAlign);
 
     const channelBlocks: NsBytes.IsMappingByteObjectResultWithEmptiness[] = [];
 
